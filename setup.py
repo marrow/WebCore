@@ -4,7 +4,7 @@ import sys, os
 if sys.version_info <= (2, 5):
     raise SystemExit("Python 2.5 or later is required.")
 
-execfile(os.path.join("yapwf", "release.py"))
+execfile(os.path.join("web", "release.py"))
 
 setup(
         name = name,
@@ -22,9 +22,26 @@ setup(
         install_requires = [
                 'Paste',
                 'PasteScript',
-                'PasteDeploy'
+                'PasteDeploy',
+                'Routes',
+                'WebOb',
+                'WebError'
             ],
         extras_require = {
+                
+                # Templating Languages
+                'cheetah': ["TurboCheetah"],
+                'myghty': ["BuffetMyghty"],
+                'kid': ["TurboKid"],
+                'genshi': ["Genshi"],
+                'jinja2': ['Jinja2'], # TODO: a python.templating.engines compatible entry point
+                'json': ['TurboJson'],
+                'mako': ['Mako'],
+                'string': ['BuffetString'],
+                'xslt': ['BuffetXSLT'],
+                
+                # A sane set of default extras.
+                'default': ['TurboJson', 'Genshi']
             },
         
         classifiers = [
@@ -39,8 +56,8 @@ setup(
                 "Topic :: Software Development :: Libraries :: Python Modules"
             ],
         
-        packages = find_packages(exclude=['ez_setup', 'examples', 'tests', 'docs']),
-        package_data = find_package_data(where='yapwf', package='yapwf'),
+        packages = find_packages(exclude=['ez_setup', 'examples', 'tests', 'tests.*', 'docs']),
+        package_data = find_package_data(where='web', package='web'),
         include_package_data = True,
         zip_safe = True,
         
@@ -53,6 +70,11 @@ setup(
             ]
         
         entry_points = {
-            
+                'paste.paster_command': [
+                        'shell = yapwf.commands:ShellCommand'
+                    ],
+                'paste.paster_create_template': [
+                        'yapwf = yapwf.util:ApplicationTemplate'
+                    ]
             },
     )
