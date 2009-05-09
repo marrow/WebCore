@@ -47,6 +47,11 @@ setup(
         test_suite = 'nose.collector',
         tests_require = 'pymta >= 0.3',
         
+        namespace_packages = [
+                'yapwf',
+                'yapwf.extras'
+            ]
+        
         entry_points = {
             
             },
