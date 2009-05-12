@@ -7,6 +7,7 @@ TODO: Split this into its own package: every Python application and its dog seem
 """
 
 
+log = __import__('logging').getLogger(__name__)
 __all__ = ['adict', 'odict', 'mdict', 'ddict', 'idict']
 
 
@@ -28,15 +29,20 @@ class adict(dict):
         return "%s(%s)" % (self.__class__.__name__, dict.__repr__(self))
     
     def __setitem__(self, key, value):
-        return super(adict, self).__setitem__(key, value)
+        super(adict, self).__setitem__(key, value)
     
     def __getitem__(self, name):
         return super(adict, self).__getitem__(name)
     
     def __delitem__(self, name):
-        return super(adict, self).__delitem__(name)
+        super(adict, self).__delitem__(name)
     
-    __getattr__ = __getitem__
+    def __getattr__(self, name):
+        if hasattr(self, name):
+            return super(adict, self).__getattr__(name)
+        
+        return self.__getitem__(name)
+    
     __setattr__ = __setitem__
     
     def copy(self):
@@ -128,7 +134,7 @@ class ddict(dict):
         return val
 
 
-class idict:
+class idict(dict):
     """Dictionary, that has case-insensitive keys.
 
     Normally keys are retained in their original form when queried with
@@ -251,50 +257,3 @@ class idict:
             if not (k in other) or not (other[k]==v):
                 return 0
         return len(self)==len(other)
-
-        
-class tdict(object):
-    """
-    Thread local storage that pretends to be a dictionary, but isn't.
-    
-        >>> d = tdict()
-        >>> d.x = 1
-        >>> d.x
-        1
-        >>> import threading
-        >>> def f(): d.x = 2
-        >>> t = threading.Thread(target=f)
-        >>> t.start()
-        >>> t.join()
-        >>> d.x
-        1
-    """
-    def __init__(self, kind=adict, *args, **kw):
-        self._kind = kind
-        self._args = args
-        self._kw = kw
-    
-    def __getattr__(self, key):
-        return getattr(self._getd(), key)
-    
-    def __setattr__(self, key, value):
-        return setattr(self._getd(), key, value)
-    
-    def __delattr__(self, key):
-        return delattr(self._getd(), key)
-    
-    def __hash__(self): 
-        return id(self)
-    
-    def _getd(self):
-        t = threading.currentThread()
-        if not hasattr(t, '_d'):
-            # using __dict__ of thread as thread local storage
-            t._d = dict()
-        
-        # there could be multiple instances of ThreadedDict.
-        # use self as key
-        if self not in t._d:
-            t._d[self] = self._kind(*self._args, **self.__kw)
-        
-        return t._d[self]

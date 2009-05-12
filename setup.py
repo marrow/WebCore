@@ -5,6 +5,7 @@ if sys.version_info <= (2, 5):
     raise SystemExit("Python 2.5 or later is required.")
 
 execfile(os.path.join("web", "release.py"))
+execfile(os.path.join("web", "utils", "distrib.py"))
 
 setup(
         name = name,
@@ -65,16 +66,16 @@ setup(
         tests_require = 'pymta >= 0.3',
         
         namespace_packages = [
-                'yapwf',
-                'yapwf.extras'
-            ]
+                'web',
+                'web.extras'
+            ],
         
-        entry_points = {
-                'paste.paster_command': [
-                        'shell = yapwf.commands:ShellCommand'
-                    ],
-                'paste.paster_create_template': [
-                        'yapwf = yapwf.util:ApplicationTemplate'
-                    ]
-            },
+#        entry_points = {
+#                'paste.paster_command': [
+#                        'shell = yapwf.commands:ShellCommand'
+#                    ],
+#                'paste.paster_create_template': [
+#                        'yapwf = yapwf.util:ApplicationTemplate'
+#                    ]
+#            },
     )
