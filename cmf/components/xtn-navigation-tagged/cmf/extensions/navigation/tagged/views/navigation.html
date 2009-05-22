@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude" py:strip="True">
+    <div py:match="div[@id='nav']" py:attrs="select('@*')">
+        <div py:replace="select('*|comment()|text()')" />
+        
+        <ul class="menu primary">
+            <li py:for="obj in cmf.taggedNavigation" py:if="obj.controller.authorized"><a
+                    py:content="obj.title if 'navigation' in obj.tags else [i[11:] for i in obj.tags if i.startswith('navigation:')][0]"
+                    py:attrs="{
+                            'href': obj.path + '/',
+                            'title': obj.description if obj.description else '',
+                            'class': obj.id + ' icon ' + (obj.icon if obj.parent else 'base-site')
+                        }"
+                /></li>
+        </ul>
+    </div>
+</html>

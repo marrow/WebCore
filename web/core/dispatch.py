@@ -45,8 +45,7 @@ def dispatch(root, path):
     # TODO: Allow method-specific hooks through decoration.
     
     from web.core import http
-    from web.core import ctx
-    request = ctx.request
+    from web.core import request
     
     parts = path.strip('/').split('/') if path.strip('/') else []
     location = root

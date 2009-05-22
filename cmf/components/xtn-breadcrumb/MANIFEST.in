@@ -1,0 +1,2 @@
+recursive-include tw/timeago/templates *
+recursive-include tw/timeago/static *

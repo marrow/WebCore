@@ -1,0 +1,10 @@
+Asset names must begin with an alphanumeric character and have all non–alphanumeric characters replaced with dashes.  This replacement happens automatically, but can lead to accidental name collisions.  An asset may not be named one of the reserved words:
+
+ * lookup
+ * asset
+
+Individual types of assets may have additional reserved words.  For example, the terms “rss” and “atom” are reserved within a Feed.
+
+While automatic replacement is in place for the creation of assets by defining a title, not a name, names with extended characters -can- be created by hand.
+
+Other than the above reserved word restriction, names must -not- contain the double colon (:) symbol.

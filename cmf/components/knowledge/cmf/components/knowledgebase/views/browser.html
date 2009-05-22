@@ -1,0 +1,50 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <xi:include py:if="'master' in cmf and not isinstance(cmf.master, list)" href="${cmf.master}" />
+    <xi:include py:if="'master' in cmf and isinstance(cmf.master, list)" py:for="master in cmf.master" href="${master}" />
+    
+    <head>
+        <meta content="text/html; charset=UTF-8" http-equiv="content-type" py:replace="''"/>
+        
+        <title>Browsing Solutions — ${asset.title}</title>
+        
+        <style type="text/css" media="screen">
+            
+            #contents { width: 100%; border-collapse: collapse; line-height: 100%; }
+            #contents th, #contents td { padding: 10px; border-bottom: 1px solid #444; }
+            #contents th { padding-top: 0; border-bottom: 1px solid #999; }
+            #contents .actions { text-align: right; padding-right: 0; }
+            #contents td.actions { padding: 0; }
+            
+        </style>
+    </head>
+    
+    <body>
+        <div class="yui-b">
+            <h2>Browsing Solutions</h2>
+            
+            <div class="content">
+                <py:for each="child in assets.all()">
+                    <h3 py:content="child.parent.title" />
+                    <dl class="cmf-asset-list cmf-kb-browse">
+                        <dt><a href="${child.path}/" py:content="child.title" /></dt>
+                        <dd py:if="child.description" py:content="child.description" />
+                        <dd py:if="not child.description"><em>No description available.</em></dd>
+                        <dd class="byline">
+                            By 
+                            <span py:if="child.owner"><a py:attrs="{'href': child.owner.path + '/'}" py:content="child.owner.title">Joe Random Hacker</a></span>
+                            <span py:if="not child.owner"><i>Anonymous</i></span>
+                            on
+                            <span class="date"><abbr class="datetime" py:attrs="{'title': child.created.isoformat()}" py:content="child.created.strftime('%c')" /></span>
+                            <py:if test="child.modified and child.modified != child.created">
+                                , modified 
+                                <abbr class="datetime" py:attrs="{'title': child.modified.isoformat()}" py:content="child.modified.strftime('%c')" />
+                            </py:if>
+                            .
+                        </dd>
+                    </dl>
+                </py:for>
+            </div>
+        </div>
+    </body>
+</html>

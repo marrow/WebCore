@@ -1,0 +1,10 @@
+class ACL(Entity):
+    for = ManyToOne('Asset')
+    method = String
+    action = Grant|Deny
+    
+
+
+
+<Root ACL=((Grant, Owner, All))>
+    <Page ACL=()

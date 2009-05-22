@@ -1,0 +1,32 @@
+Request comes in for /company/about/staff/
+
+1. TurboGears attempts to find a method of the RootController instance called 'company'.
+2. Failing to find a method called 'company', TG looks for a 'default' method.
+3. Failing to find a 'default' method, TG passes 'company' and ['about', 'staff'] to the 'lookup' method.
+
+a. The lookup method examines the database, finding an Asset instance at the site root level called 'company'.
+b. Security checks are performed to ensure the visitor is allowed to access this asset.
+c. The lookup method returns a Controller instance for the loaded Asset.
+
+The above two paragraphs are repeated for 'about' and 'staff' elements.
+
+i. Not finding an 'index' method of the 'staff' Controller instance, TG asks the 'lookup' method for a handler for ''.
+ii. The CMF examines the Asset record and directs TG to use the method identified by the 'default' property.
+
+x. The user is shown the Staff Listing page.
+
+
+
+Optimized, the above would turn into:
+
+1. TurboGears attempts to find a method of the RootController instance called 'company'.
+2. Failing to find a method called 'company', TG looks for a 'default' method.
+3. Failing to find a 'default' method, TG passes 'company' and ['about', 'staff'] to the 'lookup' method.
+
+a. The lookup method examines the argument list, creating a hash of the arguments.
+b. The lookup method loads the Asset record for an Asset with this hash.
+c. Security checks are performed to ensure the visitor is allowed to access this asset.
+d. The lookup method returns a Controller instance for the loaded Asset.
+
+
+This has the added benefit of not being recursive, but the disadvantage of complicating security checking.

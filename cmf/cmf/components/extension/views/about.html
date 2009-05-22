@@ -1,0 +1,51 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <xi:include py:if="'master' in cmf and not isinstance(cmf.master, list)" href="${cmf.master}" />
+    <xi:include py:if="'master' in cmf and isinstance(cmf.master, list)" py:for="master in cmf.master" href="${master}" />
+    
+    <head>
+        <meta content="text/html; charset=UTF-8" http-equiv="content-type" py:replace="''"/>
+        
+        <title py:content="'About the ' + extension.title + ' Extension'">About Untitled Extension</title>
+    </head>
+    
+    <dl py:def="summary">
+        <dt>Version:</dt>
+        <dd py:content="extension.version" />
+        
+        <dt>Author:</dt>
+        <dd><a py:attrs="{'href': 'mailto:' + extension.email}" py:content="extension.author.decode('utf-8')" /></dd>
+        
+        <dt>URL:</dt>
+        <dd><a py:attrs="{'href': extension.url}" py:content="extension.url" /></dd>
+        
+        <dt>Copyright:</dt>
+        <dd py:content="extension.copyright" />
+        
+        <dt>License:</dt>
+        <dd py:content="extension.license" />
+    </dl>
+    
+    <div py:match="div[@class='portlets']" py:attrs="select('@*')">
+        <div class="portlet">
+            <h2>Summary</h2>
+            <div py:replace="summary()" />
+        </div>
+        <div py:replace="select('*|comment()|text()')" />
+    </div>
+    
+    <body>
+        <div class="yui-b">
+            <h2 py:content="'About the ' + extension.title + ' Extension'">Contents of Untitled</h2>
+            
+            <div class="content">
+                <p class="lead" py:if="extension.summary" py:content="extension.summary">Lead paragraph.</p>
+                
+                <div py:if="extension.description" py:content="Markup(description)" />
+            </div>
+        </div>
+    </body>
+</html>
+
+
+

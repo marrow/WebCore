@@ -1,0 +1,7 @@
+Zope + Plone -- mean time per request: 1403ms -- mean requests per second: 3.56
+TurboCMF Private Alpha -- mean time per request: 697ms -- mean requests per second: 7.17
+TurboCMF Public Trunk -- mean time per request: 368ms -- mean requests per second: 13.58
+
+Real memory usage while being hammered does not exceed 33MB.  Average is 30MB, idle after startup is 28.
+
+Average of 7 concurrent MySQL connections running an average of 21 requests per second @ testing concurrency of 5.  (Peak is 13/104.)

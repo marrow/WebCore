@@ -1,0 +1,23 @@
+All Asset instances and subclass instances have the following properties:
+
+id              A GUID/UUID permanently and randomly assigned to this asset instance.
+
+l, r            Positional information.
+parent          Positional information.
+
+name            A (generally) lower-case name containing only alphanumeric characters and hyphens.
+title           A full title for this asset.
+description     An optional description for this asset.  Displayed in searches and listings.
+
+default         The view to use if none other is given.  Can be used to designate a "index.html"-style proxy.
+
+tags            A list of strings for keywords or tags.  Used to filter searches and appears in the HTML header.
+
+properties      A dictionary (associative array) of abstract objects.  Serialized, so anything (in theory) can be stored.
+
+owner           The asset designated as this asset's owner.  Generally an Account instance.
+created         The date/time this asset was created.
+modified        The last modification date/time.
+
+published       Publication date/time used to disable access to this asset before this time has elapsed.
+retracted       Retraction date/time used to disable access to this asset after the given time has elapsed.

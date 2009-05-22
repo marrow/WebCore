@@ -1,0 +1,51 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <xi:include py:if="'master' in cmf and not isinstance(cmf.master, list)" href="${cmf.master}" />
+    <xi:include py:if="'master' in cmf and isinstance(cmf.master, list)" py:for="master in cmf.master" href="${master}" />
+    
+    <head>
+        <meta content="text/html; charset=UTF-8" http-equiv="content-type" py:replace="''"/>
+        
+        <title py:content="asset.title">Untitled</title>
+        
+        <meta py:if="asset.description" name="description" py:attrs="{'content': asset.description}" />
+        <meta py:if="asset.tags" name="keywords" py:attrs="{'content': ', '.join(asset.tags)}" />
+    </head>
+    
+    <body>
+        <div class="yui-b">
+            <h2>Sign in using an existing account.</h2>
+            
+            <div class="content">
+                <form id="form" method="post" class="serial">
+                    <input type="hidden" name="action" value="submit" />
+                    <input type="hidden" name="target" py:attrs="{'value': target.url}" />
+                    
+                    <div class="yui-g"> 
+                        <div class="yui-u first">
+                            <div class="field">
+                                <label for="account">User Name or E-Mail Address</label>
+                                <div class="help">Enter either your user name or e-mail address.</div>
+                                <div><input type="text" name="account" id="account" /></div>
+                            </div>
+                        </div>
+                        
+                        <div class="yui-u">
+                            <div class="field">
+                                <label for="password">Password</label>
+                                <div class="help">If you forget your password, click <em>Recover Password</em>.</div>
+                                <div><input type="password" name="password" id="password" /></div>
+                            </div>
+                        </div>
+                    </div>
+                            
+                    <div class="footer">
+                        <ul class="actions buttons fr"><li><button type="submit" class="button icon auth-signin positive">Sign In</button></li></ul
+                        ><ul class="actions buttons fl"><li><button type="button" class="button icon auth-lost" href="action:recover">Recover Password</button></li></ul>
+                        <div style="clear: both;" />
+                    </div>
+                </form>
+            </div>
+        </div>
+    </body>
+</html>

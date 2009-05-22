@@ -1,0 +1,32 @@
+Overview
+========
+
+Google Analytics is one of the most popular website visitor statistics
+gathering tools available on the internet today. This extension will add
+automatic Google Analytics integration to your TurboCMF site.
+
+
+Installation
+============
+
+Run the following command from your virtual environment, or drop a
+pre-compiled EGG file into the appropriate folder:
+
+    easy_install TurboCMF-Xtn-Analytics-Google
+
+
+Usage
+=====
+
+After installing the component, navigate to a protected part of your site (we
+recommend a folder called ``extensions`` off of the root or the control panel)
+and create a new instance of the Google Analytics extension. You will be
+brought to the configuration page where you must enter your analytics token.
+Remember to configure a Publication date, or the extension will not be live!
+
+Tokens look like:
+
+    ``UA-1234567-1``
+
+You can use the interface to override the token for individual sections of the
+site.

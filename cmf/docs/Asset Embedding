@@ -1,0 +1,15 @@
+You can embed any asset (that implements the IEmbeddable protocol) in XHTML using the <py:embed /> tag.  The embedded version of the asset replaces the <py:embed /> tag in your code.  You can reference assets by UUID or path with the standard syntax, and use simplified XPath to reference specific content of the referenced asset.  Referencing by UUID is strongly recommended as it is far more efficient and reliable in the event the target node is ever restructured.
+
+For example, to embed the list of directors from the Board of Directors page asset, you can use the following:
+
+    <py:embed
+        asset="/company/board/"
+        xpath="ul[@id=’board-members’]" />
+
+The same query using the UUID of the Board of Directors page asset:
+
+    <py:embed
+        asset=”urn:uuid:0fb30450-0146-4eb3-88c9-555e29fac0a0”
+        xpath=”ul[@id=’board-members’]” />
+
+When using paths, reference the asset itself, not specific views therein.  E.g. /company/board/view:contents is unacceptable.  If there are any errors processing the embed, a red error message describing the problem will be embedded instead.

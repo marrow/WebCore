@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude" py:strip="True">
+    <div py:match="div[@id='hd']" py:attrs="select('@*')">
+        <div py:replace="select('*|comment()|text()')" />
+        
+        <ul id="crumbs">
+            <li py:for="obj in list(asset.ancestors) + [asset]"><a py:content="obj.title" py:attrs="{
+                'href': obj.path + '/',
+                'title': obj.description if obj.description else '',
+                'class': 'icon ' + (obj.icon if obj.parent else 'base-site')}" /></li>
+            <li class="crumbs-end">(you are here)</li>
+        </ul>
+    </div>
+</html>
