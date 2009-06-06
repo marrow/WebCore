@@ -104,5 +104,11 @@ def get_dotted_object(target):
         # Load class Foo from example.objects
         get_dotted_object('example.objects:Foo')
     """
+    parts, target = target.split(':') if ':' in target else (target, None)
+    module = __import__(parts)
     
-    pass
+    for part in parts.split('.')[1:] + [target]:
+        module = getattr(module, part)
+    
+    return module
+        
