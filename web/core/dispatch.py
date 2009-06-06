@@ -44,8 +44,7 @@ class Controller(object):
 def dispatch(root, path):
     # TODO: Allow method-specific hooks through decoration.
     
-    from web.core import http
-    from web.core import request
+    from web.core import http, request, config
     
     parts = path.strip('/').split('/') if path.strip('/') else []
     location = root
@@ -62,6 +61,12 @@ def dispatch(root, path):
     while True:
         if not parts:
             # If the final object under consideration is a controller, not a method, attempt to call the index method, then attempt the default method, or bail with a 404.
+            if not path.endswith('/') and config.get('trailing_slashes', True):
+                location = path + '/'
+                if request.environ.get('QUERY_STRING'):
+                    location += '?' + request.environ.get('QUERY_STRING')
+                raise http.HTTPMovedPermanently(location=location)
+            
             log.debug("No parts, looking for index.")
             parts.append('index')
         
@@ -88,7 +93,7 @@ def dispatch(root, path):
         # If the URL portion exists as an attribute on the object in question, start searching again on that attribute.
         if isinstance(location, Controller):
             log.debug("Location %r is a class, continuing search.", location)
-            request['SCRIPT_NAME'] += '/' + part
+            request.environ['SCRIPT_NAME'] += '/' + part
             continue
         
         # If the current object under consideration has a “default” method then the search is ended with that method returned.
@@ -107,7 +112,7 @@ def dispatch(root, path):
             log.debug("Calling lookup method of %r for %r.", parent, [part] + parts)
             
             # TODO: This should be checked... SCRIPT_NAME goes out the window a bit with redirected lookups...
-            request['SCRIPT_NAME'] += '/' + part
+            request.environ['SCRIPT_NAME'] += '/' + part
             
             location, parts = parent.lookup(*([part] + parts), **data)
             parts = list(parts)

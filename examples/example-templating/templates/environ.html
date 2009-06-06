@@ -1,15 +1,33 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <head>
+        <title>Environment Variables</title>
+    </head>
     <body>
-        <h1>Available Environment Variables</h1>
+        <h1>Environment Variables</h1>
+        
+        <h2>WSGI / CGI Environment Variables</h2>
+        
         <table>
-            <py:for each="name, value in environ.iteritems()">
+            <py:for each="name, value in dict([(i, j) for i, j in environ.iteritems() if i == i.upper()]).iteritems()">
                 <tr>
                     <th py:content="name" />
                     <td py:content="repr(value)" />
                 </tr>
             </py:for>
         </table>
+        
+        <h2>Other Variables</h2>
+        
+        <table>
+            <py:for each="name, value in dict([(i, j) for i, j in environ.iteritems() if i != i.upper()]).iteritems()">
+                <tr>
+                    <th py:content="name" />
+                    <td py:content="repr(value)" />
+                </tr>
+            </py:for>
+        </table>
+        
         
         <h1>Parsed Arguments</h1>
         

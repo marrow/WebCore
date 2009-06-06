@@ -5,7 +5,14 @@ from datetime                           import datetime
 from web.core                           import Application, Controller, request
 
 
+class NestedController(Controller):
+    def index(self):
+        return "This is an awesome nested controller."
+
+
 class RootController(Controller):
+    nested = NestedController()
+    
     def index(self):
         return 'genshi:templates.now', dict(now=datetime.now())
     
