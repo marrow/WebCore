@@ -1,0 +1,33 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <body>
+        <h1>Available Environment Variables</h1>
+        <table>
+            <py:for each="name, value in environ.iteritems()">
+                <tr>
+                    <th py:content="name" />
+                    <td py:content="repr(value)" />
+                </tr>
+            </py:for>
+        </table>
+        
+        <h1>Parsed Arguments</h1>
+        
+        <h2>Positional</h2>
+        
+        <ol>
+            <li py:for="arg in args" py:content="repr(arg)" />
+        </ol>
+        
+        <h2>Keyword</h2>
+        
+        <table>
+            <py:for each="name, value in kw.iteritems()">
+                <tr>
+                    <th py:content="name" />
+                    <td py:content="repr(value)" />
+                </tr>
+            </py:for>
+        </table>
+    </body>
+</html>
