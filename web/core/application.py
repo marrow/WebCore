@@ -3,7 +3,8 @@
 """
 """
 
-from webob import Request, Response
+import                                          sys, os
+from webob                                      import Request, Response
 
 
 __all__ = ['Application']
@@ -22,68 +23,114 @@ class Application(object):
     environment.
     """
     
-    def __init__(self, root):
+    def __init__(self, root, **kw):
         self.root = root
+        self.config = kw
     
     @classmethod
-    def factory(cls, gconfig=dict(), root=None, complete=True, **config):
+    def factory(cls, gconfig=dict(), root=None, **config):
         """Build a full-stack framework around this WSGI application."""
         
-        from paste.deploy.converters import asbool
-        
-        from beaker.middleware import SessionMiddleware, CacheMiddleware
-        from paste.cascade import Cascade
-        from paste.registry import RegistryManager
-        from paste.gzipper import make_gzip_middleware
-        from paste.debug.profile import ProfileMiddleware
-        from weberror.errormiddleware import ErrorMiddleware
-        
+        from paste.deploy.converters import asbool, asint
         from web.utils.object import get_dotted_object
         
         # Find, build, and configure our basic Application instance.
         if isinstance(root, basestring):
             root = get_dotted_object(root)
-        app = cls(root())
+        app = cls(root(), **config)
         
-        # Beaker-supplied services.
-        app = SessionMiddleware(app, config)
-        app = CacheMiddleware(app, config)
+        # Automatically use Buffet templating engines unless explicitly forbidden.
+        if asbool(config.get('buffet', True)):
+            from web.core.middleware import TemplatingMiddleware
+            app = TemplatingMiddleware(app, config)
         
-        # app = recursive.RecursiveMiddleware(app, config)
-        
-        if asbool(complete):
-            # Handle Python exceptions.
-            app = ErrorMiddleware(app, gconfig, **config.get('errorhandler', dict(debug=config.get('debug', False))))
+        # Automatically use ToscaWidgets unless explicitly forbidden (or simply not found).
+        if asbool(config.get('widgets', True)):
+            try:
+                from tw.api import make_middleware as ToscaWidgetsMiddleware
+                
+                app = ToscaWidgetsMiddleware(app, config)
             
-            # ErrorHandler not ErrorMiddleware
-            # Display error documents for 401, 403, 404 status codes (and 500 when debug is disabled).
-            # FROM: pylons
-            #if asbool(config.get('debug', False)):
-            #    app = StatusCodeRedirect(app)
-            #else:
-            #    app = StatusCodeRedirect(app, [400, 401, 403, 404, 500])
+            except ImportError:
+                log.warn("ToscaWidgets not installed, widget framework disabled.  You can remove this warning by specifying widgets=False in your config.")
         
-        # TODO: Handle static files.
+        from paste.config import ConfigMiddleware
+        app = ConfigMiddleware(app, config)
         
+        # Automatically use beaker-supplied services unless explicitly forbidden (or simply not found).
+        if asbool(config.get('beaker', True)):
+            try:
+                from beaker.middleware import SessionMiddleware, CacheMiddleware
+                
+                beakerconfig = dict([(i[7:], j) for i, j in config.iteritems() if i.startswith('beaker.')])
+                
+                app = SessionMiddleware(app, beakerconfig)
+                app = CacheMiddleware(app, beakerconfig)
+                
+                del beakerconfig
+            
+            except ImportError:
+                log.warn("Beaker not installed, sessions and caching disabled.  You can remove this warning by specifying beaker=False in your config.")
+        
+        try:
+            if asbool(config.get('debug', False)):
+                from weberror.evalexception import EvalException
+                app = EvalException(app, gconfig)
+            
+            else:
+                from weberror.errormiddleware import ErrorMiddleware
+                app = ErrorMiddleware(app, gconfig)
+        
+        except ImportError:
+            log.warn("WebError not installed, pretty error messages disabled.")
+        
+        
+        from paste.registry import RegistryManager
         app = RegistryManager(app)
         
-        return app
         
+        if asbool(config.get('profile', False)):
+            from paste.debug.profile import ProfileMiddleware
+            app = ProfileMiddleware(app, log_filename=config.get('profile.file', 'profile.log.tmp'), limit=asint(config.get('profile.limit', 40)))
+        
+        # Enabled explicitly or while debugging so you can use Paste's HTTP server.
+        if asbool(config.get('static', False)) or asbool(config.get('debug', False)):
+            from paste.cascade import Cascade
+            from paste.fileapp import DirectoryApp
+            
+            path = config.get('static.path', None)
+            
+            if path is None:
+                # Attempt to discover the path automatically.
+                path = __import__(root.__module__).__file__
+                path = os.path.abspath(path)
+                path = os.path.dirname(path)
+                path = os.path.join(path, 'public')
+            
+            if not os.path.isdir(path):
+                log.warn("Unable to find folder to serve static content from.  Please specify static.path in your config.")
+            
+            app = Cascade([DirectoryApp(path), app], catch=[401, 403, 404])
+        
+        # Enable compression if requested.
+        if asbool(config.get('compress', False)):
+            from paste.gzipper import middleware as GzipMiddleware
+            app = GzipMiddleware(app, compress_level=asint(config.get('compress.level', 6)))
+        
+        return app
     
     def prepare(self, environment):
-        
-        log.debug("Preparing environment: %r", environment)
-        
         import web.core
         
-        request = Request(environment)
-        response = Response() # **web.core.config.response
-        
         if environment.has_key('paste.registry'):
-            environment['paste.registry'].register(web.core.request, request)
-            environment['paste.registry'].register(web.core.response, response)
-        
-        log.debug("Environment prepared: %r %r", web.core.request, web.core.response)
+            environment['paste.registry'].register(web.core.request, Request(environment))
+            environment['paste.registry'].register(web.core.response, Response())
+            
+            if environment.has_key('beaker.cache'):
+                environment['paste.registry'].register(web.core.cache, environment['beaker.cache'])
+            
+            if environment.has_key('beaker.session'):
+                environment['paste.registry'].register(web.core.session, environment['beaker.session'])
     
     def __call__(self, environment, start_response):
         import web.core, web.utils
@@ -98,6 +145,9 @@ class Application(object):
         
         else:
             # TODO: Deal with unicode responses, file-like objects, and iterators.
+            if not isinstance(content, basestring):
+                return content
+            
             web.core.response.body = content
         
         return web.core.response(environment, start_response)
