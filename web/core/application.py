@@ -148,6 +148,10 @@ class Application(object):
             if not isinstance(content, basestring):
                 return content
             
-            web.core.response.body = content
+            if isinstance(content, unicode):
+                web.core.response.unicode_body = content
+            
+            else:
+                web.core.response.body = content
         
         return web.core.response(environment, start_response)

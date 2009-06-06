@@ -66,7 +66,7 @@ setup(
         zip_safe = True,
         
         test_suite = 'nose.collector',
-        tests_require = 'pymta >= 0.3',
+        tests_require = 'coverage',
         
         namespace_packages = [
                 'web',
