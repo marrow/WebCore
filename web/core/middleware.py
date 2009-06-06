@@ -66,7 +66,7 @@ class TemplatingMiddleware(object):
                 template
             )
         
-        if isinstance(result, string):
+        if isinstance(result, str):
             web.core.response.body = result
         
         elif isinstance(result, unicode):
