@@ -13,7 +13,7 @@ from web.core.dispatch import dispatch
 from paste.registry import RegistryManager, StackedObjectProxy
 
 
-__all__ = ['Controller', 'Application', 'config', 'ctx', 'http', 'dispatch']
+__all__ = ['Controller', 'Application', 'config', 'http', 'dispatch', 'request', 'response', 'cache', 'session']
 
 
 config = adict(
@@ -22,26 +22,5 @@ config = adict(
 
 request = StackedObjectProxy()
 response = StackedObjectProxy()
-
-
-
-if __name__ == '__main__':
-    import logging
-    from paste import httpserver
-    
-    logging.basicConfig(level=logging.INFO)
-    
-    class RootController(Controller):
-        def index(self):
-            return 'Hello world!'
-        
-        def hello(self, name):
-            return "Hello, %(name)s!" % dict(name=name)
-        
-        def env(self, *args, **kw):
-            ctx.response.content_type = "text/plain"
-            return "Request:\n%s" % ( "\n".join(["%s: %r" % (i,j) for i,j in ctx.request]), )
-    
-    app = Application.factory(root=RootController, debug=True)
-    
-    httpserver.serve(app, host='127.0.0.1', port='8080')
+cache = StackedObjectProxy()
+session = StackedObjectProxy()
