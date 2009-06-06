@@ -26,6 +26,13 @@ class TemplatingMiddleware(object):
     def __call__(self, environ, start_response):
         # TODO: Set some environment variables to begin with.
         
+        environ.update({
+                'buffet.engine': self.config.get("buffet.engine", "genshi"),
+                'buffet.options': self.config.get("buffet.options", dict()),
+                'buffet.format': self.config.get("buffet.format", "html"),
+                'buffet.fragment': self.config.get("buffet.fragment", False),
+            })
+        
         result = self.application(environ, start_response)
         
         # Bail if the returned value is not a tuple.
@@ -41,28 +48,27 @@ class TemplatingMiddleware(object):
         # Determine the templating engine to use.
         # The template engine can be defined by, in order of presidence, the returned value, the environment, or the configuration.
         if ':' in template: template = template.split(':')
-        engine = template[0] if isinstance(template, list) else environ.get("buffet.engine", self.config.get("buffet.engine", "genshi"))
+        engine = template[0] if isinstance(template, list) else environ.get("buffet.engine", "genshi")
         template = template[1] if isinstance(template, list) else template
         
         # Allocate a Buffet engine to handle this template request.
         # TODO: Cache the result of this based on the input of variable callback and options.
         
-        engine = _engines[engine].load()
-        
-        options = self.config.get("buffet.options", dict())
+        options = self.config.get("buffet.%s.options" % (engine, ), dict())
         options.update(environ.get("buffet.options", dict()))
         options.update(extras)
         if 'buffet.format' in options: del options['buffet.format']
         if 'buffet.fragment' in options: del options['buffet.fragment']
         
+        engine = _engines[engine].load()
         engine = engine(self.variables, options)
         
         del options
         
         result = engine.render(
                 data,
-                extras.get("buffet.format", environ.get("buffet.format", self.config.get("buffet.format", "html"))),
-                extras.get("buffet.fragment", environ.get("buffet.fragment", self.config.get("buffet.fragment", "html"))),
+                extras.get("buffet.format", environ.get("buffet.format", "html")),
+                extras.get("buffet.fragment", environ.get("buffet.fragment", False)),
                 template
             )
         
