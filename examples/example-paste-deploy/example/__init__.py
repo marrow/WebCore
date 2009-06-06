@@ -15,4 +15,4 @@ class RootController(Controller):
     
     def time(self):
         from datetime import datetime
-        return 'sample.templates.now', dict(now=datetime.now())
+        return 'example.templates.now', dict(now=datetime.now())
