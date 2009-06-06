@@ -1,4 +1,6 @@
-from web.core                                   import Controller, request, response
+# encoding: utf-8
+
+from web.core                           import Controller
 
 
 class RootController(Controller):
@@ -13,4 +15,4 @@ class RootController(Controller):
     
     def time(self):
         from datetime import datetime
-        return 'yapwfexamples.templates.template', dict(now=datetime.now())
+        return 'sample.templates.now', dict(now=datetime.now())
