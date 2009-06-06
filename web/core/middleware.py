@@ -59,12 +59,18 @@ class TemplatingMiddleware(object):
         
         del options
         
-        web.core.response.body = engine.render(
+        result = engine.render(
                 data,
                 extras.get("buffet.format", environ.get("buffet.format", self.config.get("buffet.format", "html"))),
                 extras.get("buffet.fragment", environ.get("buffet.fragment", self.config.get("buffet.fragment", "html"))),
                 template
             )
+        
+        if isinstance(result, string):
+            web.core.response.body = result
+        
+        elif isinstance(result, unicode):
+            web.core.response.unicode_body = result
         
         return web.core.response(environ, start_response)
         
