@@ -2,12 +2,15 @@
 # encoding: utf-8
 
 from datetime                           import datetime
-from web.core                           import Application, Controller
+from web.core                           import Application, Controller, request
 
 
 class RootController(Controller):
     def index(self):
         return 'genshi:templates.now', dict(now=datetime.now())
+    
+    def environ(self, *args, **kw):
+        return 'templates.environ', dict(environ=request.environ, args=args, kw=kw)
 
 
 app = Application.factory(root=RootController, debug=False)
