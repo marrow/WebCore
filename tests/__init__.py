@@ -35,31 +35,43 @@ class BasicDispatch(TestCase):
     app = Application.factory(root=RootController, buffet=False, widgets=False, beaker=False, debug=False)
     
     def test_index(self):
-        assert Request.blank('/').get_response(self.app).status == "200 OK"
-        assert Request.blank('/').get_response(self.app).content_type == "text/plain"
-        assert Request.blank('/').get_response(self.app).body == "success"
+        response = Request.blank('/').get_response(self.app)
+        
+        assert response.status == "200 OK"
+        assert response.content_type == "text/plain"
+        assert response.body == "success"
     
     def test_arguments(self):
-        assert Request.blank('/arg/bar').get_response(self.app).status == "200 OK"
-        assert Request.blank('/arg/bar').get_response(self.app).content_type == "text/plain"
-        assert Request.blank('/arg/bar').get_response(self.app).body == "got bar"
+        response = Request.blank('/arg/bar').get_response(self.app)
         
-        assert Request.blank('/arg?foo=baz').get_response(self.app).status == "200 OK"
-        assert Request.blank('/arg?foo=baz').get_response(self.app).content_type == "text/plain"
-        assert Request.blank('/arg?foo=baz').get_response(self.app).body == "got baz"
+        assert response.status == "200 OK"
+        assert response.content_type == "text/plain"
+        assert response.body == "got bar"
+        
+        response = Request.blank('/arg?foo=baz').get_response(self.app)
+        
+        assert response.status == "200 OK"
+        assert response.content_type == "text/plain"
+        assert response.body == "got baz"
     
     def test_unicode(self):
-        assert Request.blank('/unicode').get_response(self.app).status == "200 OK"
-        assert Request.blank('/unicode').get_response(self.app).content_type == "text/plain"
-        assert Request.blank('/unicode').get_response(self.app).charset.lower() == "utf-8"
-        assert Request.blank('/unicode').get_response(self.app).unicode_body == u"Unicode text."
+        response = Request.blank('/unicode').get_response(self.app)
+        
+        assert response.status == "200 OK"
+        assert response.content_type == "text/plain"
+        assert response.charset.lower() == "utf-8"
+        assert response.unicode_body == u"Unicode text."
     
     def test_nested(self):
-        assert Request.blank('/nested/').get_response(self.app).status == "200 OK"
-        assert Request.blank('/nested/').get_response(self.app).content_type == "text/plain"
-        assert Request.blank('/nested/').get_response(self.app).body == "success"
+        response = Request.blank('/nested/').get_response(self.app)
         
-        assert Request.blank('/nested').get_response(self.app).status == "301 Moved Permanently"
-        assert 'moved permanently' in Request.blank('/nested').get_response(self.app).body.lower()
-        assert Request.blank('/nested').get_response(self.app).location == 'http://localhost/nested/'
+        assert response.status == "200 OK"
+        assert response.content_type == "text/plain"
+        assert response.body == "success"
+        
+        response = Request.blank('/nested').get_response(self.app)
+        
+        assert response.status == "301 Moved Permanently"
+        assert 'moved permanently' in response.body.lower()
+        assert response.location == 'http://localhost/nested/'
     
