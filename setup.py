@@ -24,11 +24,14 @@ setup(
                 'Paste',
                 'PasteScript',
                 'PasteDeploy',
-                'Routes',
                 'WebOb',
                 'WebError'
             ],
+        
         extras_require = {
+                'routes': ["Routes"],
+                'sessions': ["Beaker"],
+                'cache': ["Beaker"],
                 
                 # Templating Languages
                 'cheetah': ["TurboCheetah"],
@@ -42,7 +45,7 @@ setup(
                 'xslt': ['BuffetXSLT'],
                 
                 # A sane set of default extras.
-                'default': ['TurboJson', 'Genshi']
+                'default': ['Beaker', 'TurboJson', 'Genshi']
             },
         
         classifiers = [
@@ -69,6 +72,12 @@ setup(
                 'web',
                 'web.extras'
             ],
+        
+        entry_points = {
+                'paste.app_factory': [
+                        'main = web.core:Application.factory'
+                    ]
+            }
         
 #        entry_points = {
 #                'paste.paster_command': [
