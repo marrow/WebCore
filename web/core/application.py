@@ -66,13 +66,17 @@ class Application(object):
                 log.warn("ToscaWidgets not installed, widget framework disabled.  You can remove this warning by explicitly defining widgets=False in your config.")
         
         # Determine if a database engine has been requested, and load the appropriate middleware.
-        # Todo: YAPWF entry point for database engine middleware.
+        # TODO: YAPWF entry point for database engine middleware.
         if config.get('db.engine', None) == 'sqlalchemy':
             try:
                 log.debug("Loading SQLAlchemy session middleware.")
+                from web.db.sa import SQLAlchemyMiddleware
+                
+                model = get_dotted_object(config.get('db.model'))
+                app = SQLAlchemyMiddleware(app, model, **config)
             
-            except ImportError:
-                log.error("Unable to load requested database engine middleware, %s.", config.get('db.engine', None))
+            except:
+                log.exception("Unable to load requested database engine middleware, %s.", config.get('db.engine', None))
         
         
         from paste.config import ConfigMiddleware
