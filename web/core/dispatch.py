@@ -76,7 +76,7 @@ def dispatch(root, path):
         
         log.debug("Dispatching part %r in %r, found %r.", part, parent, location)
         
-        if part.startswith('_'):
+        if part.startswith('_') and callable(location):
             raise http.HTTPForbidden('Access to private properties is not allowed.')
         
         # If the current object under consideration is a decorated controller method, the search is ended.
