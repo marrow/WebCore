@@ -76,11 +76,8 @@ def dispatch(root, path):
         
         log.debug("Dispatching part %r in %r, found %r.", part, parent, location)
         
-        if part.startswith('_') and callable(location):
-            raise http.HTTPForbidden('Access to private properties is not allowed.')
-        
         # If the current object under consideration is a decorated controller method, the search is ended.
-        if callable(location):
+        if callable(location) and not part.startswith('_'):
             log.debug("Location %r is callable.", location)
             
             request.script_name += '/' + part
@@ -91,7 +88,7 @@ def dispatch(root, path):
             return parent.__after__(result, *parts, **data)
         
         # If the URL portion exists as an attribute on the object in question, start searching again on that attribute.
-        if isinstance(location, Controller):
+        if isinstance(location, Controller) and not part.startswith('_'):
             log.debug("Location %r is a class, continuing search.", location)
             request.environ['SCRIPT_NAME'] += '/' + part
             continue
