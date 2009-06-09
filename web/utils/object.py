@@ -5,6 +5,8 @@
 """
 
 
+from pkg_resources import resource_filename
+
 __all__ = ['yield_property', 'isgenerator', 'CounterMeta', 'DottedFileNameFinder', 'get_dotted_object']
 
 

@@ -6,12 +6,14 @@
 
 import                                          pkg_resources, web
 from web.utils.object                           import DottedFileNameFinder
+from web.utils.dictionary                       import adict
 
 
 __all__ = ['TemplatingMiddleware']
 log = __import__('logging').getLogger(__name__)
 
 _engines = dict((_engine.name, _engine) for _engine in pkg_resources.iter_entry_points('python.templating.engines'))
+_lookup = DottedFileNameFinder()
 
 
 class TemplatingMiddleware(object):
@@ -21,7 +23,17 @@ class TemplatingMiddleware(object):
         self.application = application
     
     def variables(self):
-        return dict()
+        def template(template_name, template_extension='.html'):
+            return _lookup.get_dotted_filename(template_name, template_extension)
+        
+        return dict(
+                web=adict(
+                        request = web.core.request,
+                        response = web.core.response,
+                        session = web.core.session
+                    ),
+                lookup = template,
+            )
     
     def __call__(self, environ, start_response):
         # TODO: Set some environment variables to begin with.
