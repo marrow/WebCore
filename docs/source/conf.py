@@ -12,6 +12,7 @@
 # serve to show the default.
 
 import sys, os
+import web
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -22,7 +23,7 @@ import sys, os
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.intersphinx', 'sphinx.ext.todo', 'sphinx.ext.coverage']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosummary', 'sphinx.ext.coverage', 'sphinx.ext.doctest', 'sphinx.ext.intersphinx', 'sphinx.ext.todo']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -31,7 +32,7 @@ templates_path = ['_templates']
 source_suffix = '.rst'
 
 # The encoding of source files.
-#source_encoding = 'utf-8'
+source_encoding = 'utf-8'
 
 # The master toctree document.
 master_doc = 'index'
@@ -164,16 +165,15 @@ htmlhelp_basename = 'YAPWFdoc'
 # -- Options for LaTeX output --------------------------------------------------
 
 # The paper size ('letter' or 'a4').
-#latex_paper_size = 'letter'
+latex_paper_size = 'letter'
 
 # The font size ('10pt', '11pt' or '12pt').
-#latex_font_size = '10pt'
+latex_font_size = '10pt'
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'YAPWF.tex', u'YAPWF Documentation',
-   u'Alice Bevan-McGregor', 'manual'),
+  ('index', 'YAPWF.tex', u'YAPWF Documentation', u'Alice Bevan-McGregor', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -194,5 +194,9 @@ latex_documents = [
 #latex_use_modindex = True
 
 
-# Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'http://docs.python.org/': None}
+intersphinx_mapping = {'http://docs.python.org/dev': None,
+                       'http://www.sqlalchemy.org/docs/05/':None,
+                       'http://sprox.org/': None,
+                       'http://toscawidgets.org/documentation/tw.forms/':None,
+                       'http://toscawidgets.org/documentation/ToscaWidgets/':None,
+                       }

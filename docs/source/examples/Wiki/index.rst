@@ -6,14 +6,6 @@ It's that time again; yet another Python web framework has been created to add t
 Using YAPWF
 ===========
 
-.. toctree::
-   :maxdepth: 2
-   
-   core/GettingYAPWF
-   
-   core/NewProject
-   
-   examples/Wiki/index
 
 Indices and tables
 ==================
