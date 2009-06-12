@@ -9,11 +9,12 @@ from web.core.application import Application
 from web.utils.dictionary import adict
 from webob import exc as http
 from web.core.dispatch import dispatch
+from web.core.middleware import template
 
 from paste.registry import RegistryManager, StackedObjectProxy
 
 
-__all__ = ['Controller', 'Application', 'config', 'http', 'dispatch', 'request', 'response', 'cache', 'session']
+__all__ = ['Controller', 'Application', 'config', 'http', 'dispatch', 'template', 'config', 'request', 'response', 'cache', 'session']
 
 
 config = adict(
