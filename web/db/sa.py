@@ -36,11 +36,12 @@ class SQLAlchemyMiddleware(IManager):
         #    )
     
     def __call__(self, environ, start_response):
+        log.debug("Preparing database session.")
+        
         environ.update({
                 'orm': scoped_session(sessionmaker(
                         bind = self.model.engine,
                         autoflush = asbool(self.config.get('db.autoflush', True)),
-                        transactional = asbool(self.config.get('db.transactional', True)),
                         twophase = asbool(self.config.get('db.twophase', False))
                     ))
             })
@@ -48,15 +49,23 @@ class SQLAlchemyMiddleware(IManager):
         try:
             return self.application(environ, start_response)
         
+        except web.core.http.HTTPServerError:
+            log.exception("Rolling back database session due to internal error.")
+            environ['orm'].rollback()
+            raise
+        
         except web.core.http.HTTPException:
+            log.exception("Committing database session for safe HTTP exception.")
             environ['orm'].commit()
             raise
         
         except:
+            log.exception("Rolling back database session due to unknown error.")
             environ['orm'].rollback()
             raise
         
         finally:
+            log.debug("Committing database session.")
             # If we still have a session, commit.
             environ['orm'].commit()
             
