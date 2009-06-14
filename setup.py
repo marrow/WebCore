@@ -28,6 +28,14 @@ setup(
                 'WebError'
             ],
         
+        test_suite = 'nose.collector',
+        tests_require = [
+                'nose',
+                'coverage',
+                'Genshi',
+                'SQLAlchemy'
+            ],
+        
         extras_require = {
                 'routes': ["Routes"],
                 'sessions': ["Beaker"],
@@ -64,9 +72,6 @@ setup(
         package_data = find_package_data(where='web', package='web'),
         include_package_data = True,
         zip_safe = True,
-        
-        test_suite = 'nose.collector',
-        tests_require = 'coverage',
         
         namespace_packages = [
                 'web',
