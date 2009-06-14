@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from setuptools import setup, find_packages
 import sys, os
 
@@ -33,7 +35,9 @@ setup(
                 'nose',
                 'coverage',
                 'Genshi',
-                'SQLAlchemy'
+                'SQLAlchemy',
+                'Beaker',
+                'ToscaWidgets'
             ],
         
         extras_require = {
