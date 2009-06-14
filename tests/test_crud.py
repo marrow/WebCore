@@ -7,11 +7,8 @@ from webob import Request
 import web
 from web.core import Application, Controller
 
+from common import PlainController
 
-class PlainController(Controller):
-    def __before__(self, *parts, **data):
-        web.core.response.content_type = "text/plain"
-        return super(PlainController, self).__before__(*parts, **data)
 
 class ObjectController(PlainController):
     def __init__(self, last, first):
@@ -26,7 +23,13 @@ class ObjectController(PlainController):
     def delete(self):
         return "deleting %s %s" % (self.first, self.last)
 
+class DefController(PlainController):
+    def default(self, *args, **kw):
+        return "default controller for %s" % (" ".join(args), )
+
 class RootController(PlainController):
+    catchall = DefController()
+    
     def index(self):
         return "listing records"
     
@@ -35,6 +38,8 @@ class RootController(PlainController):
     
     def lookup(self, last, first, *parts, **data):
         return ObjectController(last, first), parts
+    
+    
 
 
 class CRUDDispatch(TestCase):
@@ -71,3 +76,11 @@ class CRUDDispatch(TestCase):
         assert response.status == "200 OK"
         assert response.content_type == "text/plain"
         assert response.body == "deleting Bob Dole"
+    
+    def test_default(self):
+        response = Request.blank('/catchall/foo/bar').get_response(self.app)
+        
+        assert response.status == "200 OK"
+        assert response.content_type == "text/plain"
+        assert response.body == "default controller for foo bar"
+    

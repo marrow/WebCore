@@ -5,21 +5,17 @@ from unittest import TestCase
 from webob import Request
 
 import web
-from web.core import Application, Controller
+from web.core import Application
+
+from common import PlainController
 
 
-class NestedController(Controller):
+class NestedController(PlainController):
     def index(self):
-        web.core.response.content_type = "text/plain"
         return "success"
 
-class RootController(Controller):
+class RootController(PlainController):
     nested = NestedController()
-    
-    def __before__(self, *parts, **data):
-        web.core.response.content_type = "text/plain"
-        
-        return super(RootController, self).__before__(*parts, **data)
     
     def index(self):
         return "success"
@@ -31,8 +27,34 @@ class RootController(Controller):
         return u"Unicode text."
 
 
+class TestApplication(TestCase):
+    def test_profile(self):
+        app = Application.factory(root=RootController, **{'web.profle': True})
+        
+    def test_dotload(self):
+        try:
+            app = Application.factory(root='web.core.application:Application')
+        
+        except ValueError:
+            pass
+        
+        else:
+            raise Exception
+    
+    def test_autostatic(self):
+        try:
+            app = Application.factory(root=RootController, **{'web.static': True})
+        
+        except AssertionError:
+            # The DirectoryApp raises an AssertionError in response to the target folder (./public/) not existing.
+            pass
+        
+        else:
+            raise Exception
+
+
 class BasicDispatch(TestCase):
-    app = Application.factory(root=RootController, buffet=False, widgets=False, beaker=False, debug=False)
+    app = Application.factory(root=RootController, **{'web.widgets': True, 'web.beaker': True, 'web.debug': True, 'web.compress': True, 'static.path': '/tmp'})
     
     def test_index(self):
         response = Request.blank('/').get_response(self.app)
@@ -74,4 +96,3 @@ class BasicDispatch(TestCase):
         assert response.status == "301 Moved Permanently"
         assert 'moved permanently' in response.body.lower()
         assert response.location == 'http://localhost/nested/'
-    
