@@ -3,7 +3,7 @@
 """Standard management interface for threading-sensitive database connections."""
 
 
-class IManager(object):
+class IManager(object): # pragma: no cover
     def __init__(self, application, model, **config):
         self.application, self.model, self.config = application, model, config.copy()
         self.uri = self.config.get('db.uri')
