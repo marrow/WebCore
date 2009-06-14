@@ -38,13 +38,14 @@ class Application(object):
         from web.utils.object import get_dotted_object
         from paste.deploy.converters import asbool, asint
         
-        if 'web.root' in config: root = config.get('web.root')
+        root = config.get('web.root', root)
+        log.debug("Root configured as %r.", root)
         
         # Find, build, and configure our basic Application instance.
         if isinstance(root, basestring):
             log.debug("Loading root controller from '%s'.", root)
             root = get_dotted_object(root)
-        elif not isinstance(root, Controller):
+        elif not issubclass(root, Controller):
             raise ValueError("The root controller must be defined using package dot-colon-notation or direct reference.")
         app = cls(root(), **config)
         
