@@ -17,7 +17,7 @@ class NestedController(PlainController):
 class RootController(PlainController):
     nested = NestedController()
     
-    def index(self):
+    def index(self, *args, **kw):
         return "success"
     
     def arg(self, foo):
@@ -71,7 +71,6 @@ class BasicDispatch(TestCase):
         
         assert response.status == "200 OK"
         assert response.content_type == "text/plain"
-        print repr(response.body)
         assert response.body == "it works"
     
     def test_arguments(self):
@@ -107,3 +106,16 @@ class BasicDispatch(TestCase):
         assert response.status == "301 Moved Permanently"
         assert 'moved permanently' in response.body.lower()
         assert response.location == 'http://localhost/nested/'
+    
+    def test_moved_query_string(self):
+        response = Request.blank('/nested?foo=bar').get_response(self.app)
+        
+        assert response.status == "301 Moved Permanently"
+        assert 'moved permanently' in response.body.lower()
+        assert response.location == 'http://localhost/nested/?foo=bar'
+    
+    def test_404(self):
+        response = Request.blank('/nex').get_response(self.app)
+        
+        assert response.status == "404 Not Found"
+        assert 'not found' in response.body.lower()
