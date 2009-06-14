@@ -45,7 +45,8 @@ class Application(object):
         if isinstance(root, basestring):
             log.debug("Loading root controller from '%s'.", root)
             root = get_dotted_object(root)
-        elif not issubclass(root, Controller):
+        
+        if not issubclass(root, Controller):
             raise ValueError("The root controller must be defined using package dot-colon-notation or direct reference.")
         app = cls(root(), **config)
         
@@ -73,7 +74,9 @@ class Application(object):
                 log.debug("Loading SQLAlchemy session middleware.")
                 from web.db.sa import SQLAlchemyMiddleware
                 
-                model = get_dotted_object(config.get('db.model'))
+                model = config.get('db.model')
+                model = get_dotted_object(model) if isinstance(model, str) else model
+                
                 app = SQLAlchemyMiddleware(app, model, **config)
             
             except:
@@ -130,7 +133,7 @@ class Application(object):
             from paste.cascade import Cascade
             from paste.fileapp import DirectoryApp
             
-            path = config.get('web.static.path', None)
+            path = config.get('static.path', None)
             
             if path is None:
                 # Attempt to discover the path automatically.
