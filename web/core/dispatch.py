@@ -101,7 +101,7 @@ def dispatch(root, path):
             request.path_info = '/'.join([part] + parts)
             
             parts, data = parent.__before__(*([part] + parts),**data)
-            result = location.default(*parts, **data)
+            result = parent.default(*parts, **data)
             return parent.__after__(result, *parts, **data)
         
         # If the current object under consideration has a “lookup” method then execute the “lookup” method, and start the search again on the return value of that method.

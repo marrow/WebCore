@@ -28,6 +28,7 @@ class SQLAlchemyMiddleware(IManager):
         
         self.model.engine = engine_from_config(self.config, prefix="db.sqlalchemy.")
         self.model.metadata.bind = self.model.engine
+        
         #create_engine(
         #        web.config.db.connection,
         #        encoding = self.config.get('db.encoding', 'utf-8'),
