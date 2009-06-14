@@ -25,11 +25,14 @@ class RootController(PlainController):
     
     def unicode(self):
         return u"Unicode text."
+    
+    def abnormal(self):
+        return ['it works']
 
 
 class TestApplication(TestCase):
     def test_profile(self):
-        app = Application.factory(root=RootController, **{'web.profle': True})
+        app = Application.factory(root=RootController, debug=True, **{'web.static': False, 'web.profile': True})
         
     def test_dotload(self):
         try:
@@ -62,6 +65,14 @@ class BasicDispatch(TestCase):
         assert response.status == "200 OK"
         assert response.content_type == "text/plain"
         assert response.body == "success"
+    
+    def test_abnormal(self):
+        response = Request.blank('/abnormal').get_response(self.app)
+        
+        assert response.status == "200 OK"
+        assert response.content_type == "text/plain"
+        print repr(response.body)
+        assert response.body == "it works"
     
     def test_arguments(self):
         response = Request.blank('/arg/bar').get_response(self.app)

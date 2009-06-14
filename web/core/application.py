@@ -64,7 +64,7 @@ class Application(object):
                 log.debug("Loading ToscaWidgets middleware.")
                 app = ToscaWidgetsMiddleware(app, config)
             
-            except ImportError:
+            except ImportError: # pragma: no cover
                 log.warn("ToscaWidgets not installed, widget framework disabled.  You can remove this warning by explicitly defining widgets=False in your config.")
         
         # Determine if a database engine has been requested, and load the appropriate middleware.
@@ -99,7 +99,7 @@ class Application(object):
                 
                 del beakerconfig
             
-            except ImportError:
+            except ImportError: # pragma: no cover
                 log.warn("Beaker not installed, sessions and caching disabled.  You can remove this warning by specifying beaker=False in your config.")
         
         try:
@@ -115,7 +115,7 @@ class Application(object):
                 from weberror.errormiddleware import ErrorMiddleware
                 app = ErrorMiddleware(app, gconfig)
         
-        except ImportError:
+        except ImportError: # pragma: no cover
             log.warn("WebError not installed, interactive exception handling and messaging disabled.")
         
         
@@ -129,7 +129,7 @@ class Application(object):
             app = ProfileMiddleware(app, log_filename=config.get('web.profile.file', 'profile.log.tmp'), limit=asint(config.get('web.profile.limit', 40)))
         
         # Enabled explicitly or while debugging so you can use Paste's HTTP server.
-        if asbool(config.get('web.static', False)) or asbool(config.get('debug', False)):
+        if asbool(config.get('web.static', False)) or (config.get('web.static', None) is None and asbool(config.get('debug', False))):
             from paste.cascade import Cascade
             from paste.fileapp import DirectoryApp
             
@@ -185,8 +185,9 @@ class Application(object):
             return e(environment, start_response)
         
         else:
-            # TODO: Deal with unicode responses, file-like objects, and iterators.
+            # TODO: Handle file-like objects and iterators.
             if not isinstance(content, basestring):
+                start_response(web.core.response.status, web.core.response.headerlist)
                 return content
             
             if isinstance(content, unicode):
