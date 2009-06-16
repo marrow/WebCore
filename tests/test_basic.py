@@ -28,6 +28,9 @@ class RootController(PlainController):
     
     def abnormal(self):
         return ['it works']
+    
+    def _private(self):
+        return "no method for you"
 
 
 class TestApplication(TestCase):
@@ -116,6 +119,11 @@ class BasicDispatch(TestCase):
     
     def test_404(self):
         response = Request.blank('/nex').get_response(self.app)
+        
+        assert response.status == "404 Not Found"
+        assert 'not found' in response.body.lower()
+        
+        response = Request.blank('/_private').get_response(self.app)
         
         assert response.status == "404 Not Found"
         assert 'not found' in response.body.lower()
