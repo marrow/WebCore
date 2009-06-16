@@ -79,7 +79,7 @@ class Application(object):
                 
                 app = SQLAlchemyMiddleware(app, model, **config)
             
-            except:
+            except: # pragma: no cover
                 log.exception("Unable to load requested database engine middleware, %s.", config.get('db.engine', None))
         
         

@@ -33,7 +33,7 @@ class TemplatingMiddleware(object):
     
     @classmethod
     def variables(cls):
-        def template(template_name, template_extension='.html'):
+        def lookup(template_name, template_extension='.html'):
             return _lookup.get_dotted_filename(template_name, template_extension)
         
         return dict(
@@ -42,7 +42,7 @@ class TemplatingMiddleware(object):
                         response = web.core.response,
                         session = web.core.session
                     ),
-                lookup = template,
+                lookup = lookup,
             )
     
     @classmethod
@@ -56,8 +56,7 @@ class TemplatingMiddleware(object):
         # Allocate a Buffet engine to handle this template request.
         # TODO: Cache the result of this based on the input of variable callback and options.
         
-        options = web.core.request.environ.get("buffet.%s.options" % (engine, ), dict())
-        options.update(web.core.request.environ.get("buffet.options", dict()))
+        options = web.core.request.environ.get("buffet.options", dict())
         options.update(kw)
         
         if 'buffet.format' in options: del options['buffet.format']
@@ -86,8 +85,6 @@ class TemplatingMiddleware(object):
         return web.core.response(environ, start_response)
     
     def __call__(self, environ, start_response):
-        # TODO: Set some environment variables to begin with.
-        
         environ.update({
                 'buffet.engine': self.config.get("buffet.engine", "genshi"),
                 'buffet.options': self.config.get("buffet.options", dict()),
@@ -99,17 +96,12 @@ class TemplatingMiddleware(object):
         
         # Bail if the returned value is not a tuple.
         if not isinstance(result, tuple):
-            if isinstance(result, basestring):
-                return self.response(result, environ, start_response)
-            
             return result
         
         if len(result) == 2: template, data, extras = result + (dict(), )
         elif len(result) == 3: template, data, extras = result
-        else: return result # We can't deal with this.
         
         if not isinstance(template, str) or not isinstance(data, dict) or not isinstance(extras, dict):
             raise TypeError("Invalid tuple values returned to TemplatingMiddleware.")
         
         return self.response(self.render(template, data, **extras), environ, start_response)
-        
