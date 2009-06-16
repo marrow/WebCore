@@ -5,7 +5,9 @@ from unittest import TestCase
 from webob import Request
 
 import web
-from web.core import Application, Controller
+from web.core import Application, Controller, request
+
+from common import PlainController
 
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -15,23 +17,23 @@ metadata = Base.metadata
 
 
 
-class RootController(Controller):
-    def __before__(self, *parts, **data):
-        web.core.response.content_type = "text/plain"
-        return super(RootController, self).__before__(*parts, **data)
-    
+class RootController(PlainController):
     def index(self):
         return "success"
     
-    def arg(self, foo):
-        return "got %s" % (foo, )
+    def in_session(self):
+        session = request.environ.get('orm')
+        return repr(session)
     
-    def unicode(self):
-        return u"Unicode text."
+    def http_error(self):
+        raise web.core.http.HTTPInternalServerError
+    
+    def http_exception(self):
+        raise web.core.http.HTTPNoContent()
 
 
-class SASessions(TestCase):
-    app = Application.factory(root=RootController, debug=False, **{'db.engine': 'sqlalchemy', 'db.model': locals(), 'db.sqlalchemy.url': 'sqlite:///:memory:'})
+class TestSASession(TestCase):
+    app = Application.factory(root=RootController, debug=False, **{'db.engine': 'sqlalchemy', 'db.model': RootController.__module__, 'db.cache': False, 'db.sqlalchemy.url': 'sqlite:///:memory:'})
     
     def test_index(self):
         response = Request.blank('/').get_response(self.app)
@@ -39,3 +41,19 @@ class SASessions(TestCase):
         assert response.status == "200 OK"
         assert response.content_type == "text/plain"
         assert response.body == "success"
+    
+    def test_in_session(self):
+        response = Request.blank('/in_session').get_response(self.app)
+        
+        assert response.status == "200 OK"
+        assert response.content_type == "text/plain"
+        assert response.body.startswith('<sqlalchemy.orm.scoping.ScopedSession')
+    
+    def test_http_error(self):
+        response = Request.blank('/http_error').get_response(self.app)
+        assert response.status == "500 Internal Server Error"
+    
+    def test_http_exception(self):
+        response = Request.blank('/http_exception').get_response(self.app)
+        assert response.status == "204 No Content"
+        

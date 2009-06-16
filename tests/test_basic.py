@@ -60,7 +60,7 @@ class TestApplication(TestCase):
 
 
 class BasicDispatch(TestCase):
-    app = Application.factory(root=RootController, **{'web.widgets': True, 'web.beaker': True, 'web.debug': True, 'web.compress': True, 'static.path': '/tmp'})
+    app = Application.factory(root=RootController, **{'web.widgets': True, 'web.beaker': True, 'debug': True, 'web.compress': True, 'static.path': '/tmp'})
     
     def test_index(self):
         response = Request.blank('/').get_response(self.app)
