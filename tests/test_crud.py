@@ -83,4 +83,10 @@ class CRUDDispatch(TestCase):
         assert response.status == "200 OK"
         assert response.content_type == "text/plain"
         assert response.body == "default controller for foo bar"
+        
+        response = Request.blank('/catchall/_private').get_response(self.app)
+        
+        assert response.status == "200 OK"
+        assert response.content_type == "text/plain"
+        assert response.body == "default controller for _private"
     
