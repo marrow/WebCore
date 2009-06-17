@@ -11,7 +11,7 @@ from webob import exc as http
 from web.core.dispatch import dispatch
 from web.core.middleware import template
 
-from paste.registry import RegistryManager, StackedObjectProxy
+from paste.registry import StackedObjectProxy
 
 
 __all__ = ['Controller', 'Application', 'config', 'http', 'dispatch', 'template', 'config', 'request', 'response', 'cache', 'session']
