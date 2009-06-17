@@ -85,6 +85,9 @@ setup(
         entry_points = {
                 'paste.app_factory': [
                         'main = web.core:Application.factory'
+                    ],
+                'toscawidgets.host_frameworks': [
+                        'yapwf = web.extras.twframework:YAPWFHostFramework'
                     ]
             }
         
