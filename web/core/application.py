@@ -3,7 +3,7 @@
 """
 """
 
-import                                          sys, os
+import                                          sys, os, pkg_resources
 from webob                                      import Request, Response
 
 
@@ -36,7 +36,7 @@ class Application(object):
         
         from web.core import Controller
         from web.utils.object import get_dotted_object
-        from paste.deploy.converters import asbool, asint
+        from paste.deploy.converters import asbool, asint, aslist
         
         root = config.get('web.root', root)
         log.debug("Root configured as %r.", root)
@@ -68,19 +68,39 @@ class Application(object):
                 log.warn("ToscaWidgets not installed, widget framework disabled.  You can remove this warning by explicitly defining widgets=False in your config.")
         
         # Determine if a database engine has been requested, and load the appropriate middleware.
-        # TODO: YAPWF entry point for database engine middleware.
-        if config.get('db.engine', None) == 'sqlalchemy':
+        if config.get('db.connections', None):
             try:
-                log.debug("Loading SQLAlchemy session middleware.")
-                from web.db.sa import SQLAlchemyMiddleware
+                for connection in aslist(config.get('db.connections')):
+                    engine = config.get('db.%s.engine' % (connection, ), 'sqlalchemy')
                 
-                model = config.get('db.model')
-                model = get_dotted_object(model) if isinstance(model, str) else model
+                    try:
+                        # FIXME: This shouldn't be restricted to core db engine middleware.
+                        engine = pkg_resources.load_entry_point('YAPWF', 'yapwf.db.engines', engine)
                 
-                app = SQLAlchemyMiddleware(app, model, **config)
+                    except:
+                        log.exception("Unable to load engine middleware: %r.", engine)
+                        raise
+                
+                    try:
+                        model = config.get('db.%s.model' % (connection, ))
+                        model = get_dotted_object(model) if isinstance(model, basestring) else model
+                
+                    except:
+                        log.exception("Unable to load application model: %r.", model)
+                        raise
+                
+                    try:
+                        session = config.get('db.%s.session' % (connection, ), '%s:session' % ('db.%s.model' % (connection, ), ))
+                        session = get_dotted_object(session) if isinstance(session, basestring) else session
+                
+                    except:
+                        log.exception("Unable to load application model session: %r.", session)
+                        raise
+                
+                    app = engine(app, 'db.%s' % (connection, ), model, session, **config)
             
-            except: # pragma: no cover
-                log.exception("Unable to load requested database engine middleware, %s.", config.get('db.engine', None))
+            except:
+                log.exception("Database connections not available.")
         
         
         from paste.config import ConfigMiddleware

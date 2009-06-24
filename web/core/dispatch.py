@@ -51,8 +51,7 @@ def dispatch(root, path):
     data = request.params.mixed()
     parent = None
     
-    request.script_name = ''
-    
+    request.environ['SCRIPT_NAME'] = ""
     #request['SCRIPT_NAME'] += '/' + next
     #request['PATH_INFO'] = rest
     
@@ -90,7 +89,7 @@ def dispatch(root, path):
         # If the URL portion exists as an attribute on the object in question, start searching again on that attribute.
         if isinstance(location, Controller) and not part.startswith('_'):
             log.debug("Location %r is a class, continuing search.", location)
-            request.environ['SCRIPT_NAME'] += '/' + part
+            #request.environ['SCRIPT_NAME'] += '/' + part
             continue
         
         # If the current object under consideration has a “default” method then the search is ended with that method returned.
@@ -109,7 +108,7 @@ def dispatch(root, path):
             log.debug("Calling lookup method of %r for %r.", parent, [part] + parts)
             
             # TODO: This should be checked... SCRIPT_NAME goes out the window a bit with redirected lookups...
-            request.environ['SCRIPT_NAME'] += '/' + part
+            #request.environ['SCRIPT_NAME'] += '/' + part
             
             location, parts = parent.lookup(*([part] + parts), **data)
             parts = list(parts)
