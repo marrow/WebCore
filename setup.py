@@ -88,6 +88,10 @@ setup(
                     ],
                 'toscawidgets.host_frameworks': [
                         'yapwf = web.extras.twframework:YAPWFHostFramework'
+                    ],
+                'yapwf.db.engines': [
+                        'sqlalchemy = web.db.sa:SQLAlchemyMiddleware',
+                        'sqlsoup = web.db.sa:SQLSoupMiddleware'
                     ]
             }
         
