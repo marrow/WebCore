@@ -57,7 +57,7 @@ setup(
                 'xslt': ['BuffetXSLT'],
                 
                 # A sane set of default extras.
-                'default': ['Beaker', 'TurboJson', 'Genshi']
+                'default': ['Beaker', 'TurboJson', 'Genshi', 'SQLAlchemy']
             },
         
         classifiers = [
