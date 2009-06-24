@@ -18,7 +18,7 @@ Prerequisites for all methods
 Python
 ~~~~~~
 
-TurboGears works with any version of python between 2.5 and 2.6. The most widely deployed version of python at the moment of this writing is version 2.5.  Python 2.6 will require additional steps which will be covered in the appropriate sections.  Python 3.0 is currently unsupported due to lack of support in many of our upstream packages.
+YAPWF works with any version of python between 2.5 and 2.6. The most widely deployed version of python at the moment of this writing is version 2.5.  Python 2.6 will require additional steps which will be covered in the appropriate sections.  Python 3.0 is currently unsupported due to lack of support in many of our upstream packages.
 
 We recommend you use your system's default Python install or follow the instructions provided here: http://python.org/download/
 
@@ -44,7 +44,11 @@ On Unix
 
     $ wget http://peak.telecommunity.com/dist/ez_setup.py | sudo python
 
-You may also use your system's package for setuptools.
+You may also use your system's package for setuptools, for example, on Gentoo:
+
+.. code-block:: bash
+
+    $ emerge -av setuptools
 
 On Unix (non-root)
 """"""""""""""""""
@@ -54,19 +58,18 @@ TODO
 Post Install
 """"""""""""
 
-.. hint:: 
-   You most likely want setuptools 0.6c9 or greater as this one provides fixes to work with svn1.5.  If you ever get an error regarding 'log' please run:
-   
-   $ easy_install -U setuptools
+You most likely want setuptools 0.6c9 or greater as this one provides fixes to work with svn1.5.  If you ever get an error regarding 'log' please run:
+
+.. code-block:: bash
+
+    $ easy_install -U setuptools
 
 To confirm this worked run:
    
 .. code-block:: bash
 
-    $ python 
-    >>> import setuptools
-    >>> setuptools.__version__
-    '0.6c9'
+    $ python -c "print __import__('setuptools').__version__"
+    0.6c9
 
 Installing Database and Drivers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -74,7 +77,7 @@ Installing Database and Drivers
 .. hint::
     The installation of the database back-end is a topic outside of the scope of this document.
 
-YAPWF uses SQLAlchemy as its default ORM (Object Relational Mapper) layer.  SQLAlchemy maintains excellent documentation on all the `engines supported`_.
+YAPWF uses SQLAlchemy as its default ORM (Object Relational Mapper) layer, although a number of database libraries are supported.  SQLAlchemy maintains excellent documentation on all the `engines supported`_.
 
 .. _engines supported: http://www.sqlalchemy.org/docs/05/reference/dialects/index.html
 
@@ -172,7 +175,7 @@ will output something like:
 Installing YAPWF
 ----------------
 
-We provide several methods for installing TurboGears which depend on the level of control you want over it 
+We provide several methods for installing YAPWF which depend on the level of control you want over it:
 
     1. plain virtualenv
     2. development version
@@ -185,7 +188,7 @@ Basic Installation
 
 First, ``cd`` to the directory where you want your virtual environment for YAPWF. Note the virtualenv will be created as a subdirectory here.
 
-Now create a new virtual environment named `yapwf`:
+Now create a new virtual environment named ``yapwf``:
 
 .. code-block:: bash
 
@@ -238,7 +241,13 @@ You'll be able to install the latest released version of YAPWF via:
 
         (tg2env)$ easy_install -U YAPWF
 
-YAPWF and all of its dependencies should download and install themselves.
+YAPWF and all of its dependencies should download and install themselves.  YAPWF offers a few default configurations, if you want the standard group of packages out-of-the-box, you can install YAPWF using the following:
+
+.. code-block:: bash
+
+    (yapwf)$ easy_install YAPWF[default]
+
+This will install YAPWF and the following packages: Beaker, simplejson, Genshi, and SQLAlchemy.
 
 Deactivating the Environment
 """"""""""""""""""""""""""""
@@ -263,7 +272,7 @@ Getting Git
 Getting the Source
 """"""""""""""""""
 
-Check out the latest code from the subversion repositories:
+Check out the latest code from the Github repository:
 
 .. code-block:: bash
 
@@ -314,6 +323,6 @@ Notice the "YAPWF" command section at the end of the output -- this indicates th
 
 What's next?
 ============
-.. If you are new to YAPWF you will want to continue with the `Quick Start Guide <QuickStart.html>`_
+If you are new to YAPWF you will want to continue with the `Quick Start Guide <NewProject.html>`_
 
 .. If you are a TG1 user be sure to check out our `What's new in TurboGears 2.0 <WhatsNew.html>`_ page to get a picture of what's changed in TurboGears2 so far.
