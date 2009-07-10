@@ -7,7 +7,6 @@ if sys.version_info <= (2, 5):
     raise SystemExit("Python 2.5 or later is required.")
 
 execfile(os.path.join("web", "release.py"))
-execfile(os.path.join("web", "utils", "distrib.py"))
 
 setup(
         name = name,
@@ -65,7 +64,7 @@ setup(
                 "Environment :: Console",
                 "Framework :: Paste",
                 "Intended Audience :: Developers",
-                "License :: OSI Approved :: BSD License",
+                "License :: OSI Approved :: MIT License",
                 "Operating System :: OS Independent",
                 "Programming Language :: Python",
                 "Topic :: Internet :: WWW/HTTP :: WSGI",
@@ -73,7 +72,6 @@ setup(
             ],
         
         packages = find_packages(exclude=['ez_setup', 'examples', 'tests', 'tests.*', 'docs']),
-        package_data = find_package_data(where='web', package='web'),
         include_package_data = True,
         zip_safe = True,
         
