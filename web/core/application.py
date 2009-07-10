@@ -71,32 +71,34 @@ class Application(object):
         if config.get('db.connections', None):
             try:
                 for connection in aslist(config.get('db.connections')):
+                    connection = connection.strip(',')
+                    
                     engine = config.get('db.%s.engine' % (connection, ), 'sqlalchemy')
-                
+                    
                     try:
                         # FIXME: This shouldn't be restricted to core db engine middleware.
                         engine = pkg_resources.load_entry_point('YAPWF', 'yapwf.db.engines', engine)
-                
+                    
                     except:
                         log.exception("Unable to load engine middleware: %r.", engine)
                         raise
-                
+                    
                     try:
                         model = config.get('db.%s.model' % (connection, ))
                         model = get_dotted_object(model) if isinstance(model, basestring) else model
-                
+                    
                     except:
                         log.exception("Unable to load application model: %r.", model)
                         raise
-                
+                    
                     try:
-                        session = config.get('db.%s.session' % (connection, ), '%s:session' % ('db.%s.model' % (connection, ), ))
+                        session = config.get('db.%s.session' % (connection, ), '%s:session' % (config.get('db.%s.model' % (connection, )), ))
                         session = get_dotted_object(session) if isinstance(session, basestring) else session
-                
+                    
                     except:
                         log.exception("Unable to load application model session: %r.", session)
                         raise
-                
+                    
                     app = engine(app, 'db.%s' % (connection, ), model, session, **config)
             
             except:
