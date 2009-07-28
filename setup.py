@@ -84,6 +84,12 @@ setup(
                 'paste.app_factory': [
                         'main = web.core:Application.factory'
                     ],
+                'paste.paster_command': [
+                        'shell = web.shell:ShellCommand'
+                    ],
+                'yapwf.command': [
+                        'shell = web.shell:ShellCommand'
+                    ],
                 'toscawidgets.host_frameworks': [
                         'yapwf = web.extras.twframework:YAPWFHostFramework'
                     ],
