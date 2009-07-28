@@ -32,6 +32,9 @@ class SQLAlchemyMiddleware(object):
         
         self.model.engine = engine_from_config(self.config, prefix="%s.sqlalchemy." % (self.prefix, ))
         self.model.metadata.bind = self.model.engine
+        
+        if hasattr(self.model, 'prepare') and callable(self.model.prepare):
+            self.model.prepare()
     
     def __call__(self, environ, start_response):
         log.debug("Preparing database session.")
