@@ -17,7 +17,7 @@ def yield_property(iterable, name):
 
 def isgenerator(func):
     try:
-        return hasattr(func, '__iter__') or ( func.func_code.co_flags & CO_GENERATOR != 0 )
+        return hasattr(func, '__iter__') or ( func.func_code.co_flags & 0x20 != 0 )
     
     except AttributeError:
         return False
