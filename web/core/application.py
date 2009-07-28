@@ -3,7 +3,7 @@
 """
 """
 
-import                                          sys, os, pkg_resources
+import                                          sys, os, pkg_resources, paste
 from webob                                      import Request, Response
 
 
@@ -26,6 +26,9 @@ class Application(object):
     def __init__(self, root, **kw):
         self.root = root
         self.config = kw
+        
+        from web.core import config
+        config.update(kw)
     
     @classmethod
     def factory(cls, gconfig=dict(), root=None, **config):
@@ -48,7 +51,8 @@ class Application(object):
         
         if not issubclass(root, Controller):
             raise ValueError("The root controller must be defined using package dot-colon-notation or direct reference.")
-        app = cls(root(), **config)
+        
+        app = cls(root, **config)
         
         # Automatically use Buffet templating engines unless explicitly forbidden.
         if asbool(config.get('web.buffet', True)):
@@ -71,32 +75,34 @@ class Application(object):
         if config.get('db.connections', None):
             try:
                 for connection in aslist(config.get('db.connections')):
+                    connection = connection.strip(',')
+                    
                     engine = config.get('db.%s.engine' % (connection, ), 'sqlalchemy')
-                
+                    
                     try:
                         # FIXME: This shouldn't be restricted to core db engine middleware.
                         engine = pkg_resources.load_entry_point('YAPWF', 'yapwf.db.engines', engine)
-                
+                    
                     except:
                         log.exception("Unable to load engine middleware: %r.", engine)
                         raise
-                
+                    
                     try:
                         model = config.get('db.%s.model' % (connection, ))
                         model = get_dotted_object(model) if isinstance(model, basestring) else model
-                
+                    
                     except:
                         log.exception("Unable to load application model: %r.", model)
                         raise
-                
+                    
                     try:
-                        session = config.get('db.%s.session' % (connection, ), '%s:session' % ('db.%s.model' % (connection, ), ))
+                        session = config.get('db.%s.session' % (connection, ), '%s:session' % (config.get('db.%s.model' % (connection, )), ))
                         session = get_dotted_object(session) if isinstance(session, basestring) else session
-                
+                    
                     except:
                         log.exception("Unable to load application model session: %r.", session)
                         raise
-                
+                    
                     app = engine(app, 'db.%s' % (connection, ), model, session, **config)
             
             except:
@@ -198,6 +204,15 @@ class Application(object):
         
         try:
             self.prepare(environment)
+            
+            if environment['PATH_INFO'] == '/_test_vars':
+                paste.registry.restorer.save_registry_state(environment)
+                start_response('200 OK', [('Content-type', 'text/plain')])
+                return ['%s' % paste.registry.restorer.get_request_id(environment)]
+            
+            # Allow loading of the root instance to be delayed or programatically adjusted.
+            if callable(self.root):
+                self.root = self.root()
             
             content = web.core.dispatch(self.root, web.core.request.path_info)
         

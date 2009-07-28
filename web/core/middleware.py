@@ -21,6 +21,13 @@ def template(template, **extras):
     def outer(func):
         def inner(*args, **kw):
             return TemplatingMiddleware.render(template, func(*args, **kw), **extras)
+        
+        # Become more transparent.
+        inner.__name__ = func.__name__
+        inner.__doc__ = func.__doc__
+        inner.__dict__ = func.__dict__
+        inner.__module__ = func.__module__
+        
         return inner
     return outer
 
@@ -61,6 +68,19 @@ class TemplatingMiddleware(object):
         
         if 'buffet.format' in options: del options['buffet.format']
         if 'buffet.fragment' in options: del options['buffet.fragment']
+        
+        if template == 'json':
+            from simplejson import dumps
+            
+            web.core.response.content_type = 'application/json; charset=utf-8'
+            return dumps(data, **options)
+        
+        elif template == 'bencode':
+            from web.extras.bencode import EnhancedBencode
+            engine = EnhancedBencode()
+            
+            web.core.response.content_type = 'application/x-bencode; charset=utf-8'
+            return engine.encode(data)
         
         engine = _engines[engine].load()
         engine = engine(cls.variables, options)

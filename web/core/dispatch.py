@@ -60,7 +60,7 @@ def dispatch(root, path):
     while True:
         if not parts:
             # If the final object under consideration is a controller, not a method, attempt to call the index method, then attempt the default method, or bail with a 404.
-            if not path.endswith('/') and config.get('trailing_slashes', True):
+            if not path.endswith('/') and getattr(location, '__trailing_slash__', config.get('trailing_slashes', True)):
                 location = path + '/'
                 if request.environ.get('QUERY_STRING'):
                     location += '?' + request.environ.get('QUERY_STRING')
