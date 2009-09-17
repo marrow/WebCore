@@ -3,8 +3,9 @@
 """
 """
 
-import                                          sys, os, pkg_resources, paste
+import                                          sys, os, pkg_resources, paste, types
 from webob                                      import Request, Response
+from web.core.dialects                          import Dialect
 
 
 __all__ = ['Application']
@@ -29,6 +30,13 @@ class Application(object):
         
         from web.core import config
         config.update(kw)
+        
+        # Allow loading of the root instance to be delayed or programatically adjusted.
+        if callable(self.root) and not isinstance(self.root, Dialect):
+            self.root = self.root()
+        
+        if not isinstance(self.root, Dialect):
+            raise TypeError('Root controller must be dialect subclass.')
     
     @classmethod
     def factory(cls, gconfig=dict(), root=None, **config):
@@ -151,8 +159,15 @@ class Application(object):
         
         if asbool(config.get('web.profile', False)):
             log.debug("Enabling profiling support.")
-            from paste.debug.profile import ProfileMiddleware
-            app = ProfileMiddleware(app, log_filename=config.get('web.profile.file', 'profile.log.tmp'), limit=asint(config.get('web.profile.limit', 40)))
+            from repoze.profile.profiler import AccumulatingProfileMiddleware
+            
+            app = AccumulatingProfileMiddleware(
+                   app,
+                   log_filename='profile.prof',
+                   discard_first_request=True,
+                   flush_at_shutdown=True,
+                   path='/__profile__'
+               )
         
         # Enabled explicitly or while debugging so you can use Paste's HTTP server.
         if asbool(config.get('web.static', False)) or (config.get('web.static', None) is None and asbool(config.get('debug', False))):
@@ -186,49 +201,46 @@ class Application(object):
         
         return app
     
-    def prepare(self, environment):
-        import web.core
-        
-        if environment.has_key('paste.registry'):
-            environment['paste.registry'].register(web.core.request, Request(environment))
-            environment['paste.registry'].register(web.core.response, Response())
-            
-            if environment.has_key('beaker.cache'):
-                environment['paste.registry'].register(web.core.cache, environment['beaker.cache'])
-            
-            if environment.has_key('beaker.session'):
-                environment['paste.registry'].register(web.core.session, environment['beaker.session'])
-    
     def __call__(self, environment, start_response):
         import web.core, web.utils
         
         try:
-            self.prepare(environment)
+            if environment.has_key('paste.registry'):
+                environment['paste.registry'].register(web.core.request, Request(environment))
+                environment['paste.registry'].register(web.core.response, Response())
+                
+                if environment.has_key('beaker.cache'):
+                    environment['paste.registry'].register(web.core.cache, environment['beaker.cache'])
+                
+                if environment.has_key('beaker.session'):
+                    environment['paste.registry'].register(web.core.session, environment['beaker.session'])
             
             if environment['PATH_INFO'] == '/_test_vars':
                 paste.registry.restorer.save_registry_state(environment)
                 start_response('200 OK', [('Content-type', 'text/plain')])
                 return ['%s' % paste.registry.restorer.get_request_id(environment)]
             
-            # Allow loading of the root instance to be delayed or programatically adjusted.
-            if callable(self.root):
-                self.root = self.root()
-            
-            content = web.core.dispatch(self.root, web.core.request.path_info)
+            content = self.root(web.core.request._current_obj())
         
         except web.core.http.HTTPException, e:
             return e(environment, start_response)
         
+        # TODO: Handle file-like objects, iterators, and generators.
+        # if is_generator(content): ...
+        
+        # if isinstance(content, types.GeneratorType):
+        #     for i in content:
+        #         yield i
+        #     return
+        
+        if not isinstance(content, basestring):
+            start_response(web.core.response.status, web.core.response.headerlist)
+            return content
+        
+        if isinstance(content, unicode):
+            web.core.response.unicode_body = content
+        
         else:
-            # TODO: Handle file-like objects and iterators.
-            if not isinstance(content, basestring):
-                start_response(web.core.response.status, web.core.response.headerlist)
-                return content
-            
-            if isinstance(content, unicode):
-                web.core.response.unicode_body = content
-            
-            else:
-                web.core.response.body = content
+            web.core.response.body = content
         
         return web.core.response(environment, start_response)
