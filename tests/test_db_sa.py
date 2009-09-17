@@ -1,19 +1,21 @@
 # encoding: utf-8
 
-from unittest import TestCase
+from unittest                                   import TestCase
 
-from webob import Request
+from webob                                      import Request
+from paste.registry                             import StackedObjectProxy
 
 import web
-from web.core import Application, Controller, request
+from web.core                                   import Application, Controller, request
 
-from common import PlainController
+from common                                     import PlainController
 
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.declarative                 import declarative_base
 
 
 Base = declarative_base()
 metadata = Base.metadata
+session = StackedObjectProxy()
 
 
 
@@ -22,7 +24,6 @@ class RootController(PlainController):
         return "success"
     
     def in_session(self):
-        session = request.environ.get('orm')
         return repr(session)
     
     def http_error(self):
@@ -33,7 +34,7 @@ class RootController(PlainController):
 
 
 class TestSASession(TestCase):
-    app = Application.factory(root=RootController, debug=False, **{'db.engine': 'sqlalchemy', 'db.model': RootController.__module__, 'db.cache': False, 'db.sqlalchemy.url': 'sqlite:///:memory:'})
+    app = Application.factory(root=RootController, debug=False, **{'db.connections': 'test', 'db.test.engine': 'sqlalchemy', 'db.test.model': RootController.__module__, 'db.test.cache': False, 'db.test.sqlalchemy.url': 'sqlite:///:memory:'})
     
     def test_index(self):
         response = Request.blank('/').get_response(self.app)
