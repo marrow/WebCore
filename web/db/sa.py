@@ -71,3 +71,4 @@ class SQLAlchemyMiddleware(object):
             # Optionally clear the cache.
             if not self.config.get('%s.cache' % (self.prefix, ), True):
                 self.session.expunge_all()
+            self.session.close()
