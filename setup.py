@@ -88,7 +88,7 @@ setup(
                         'shell = web.shell:ShellCommand'
                     ],
                 'yapwf.command': [
-                        'shell = web.shell:ShellCommand'
+                        'shell = web.commands.shell:ShellCommand'
                     ],
                 'toscawidgets.host_frameworks': [
                         'yapwf = web.extras.twframework:YAPWFHostFramework'
