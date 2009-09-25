@@ -57,7 +57,7 @@ class Application(object):
             log.debug("Loading root controller from '%s'.", root)
             root = get_dotted_object(root)
         
-        if not issubclass(root, Controller):
+        if not issubclass(root, Dialect):
             raise ValueError("The root controller must be defined using package dot-colon-notation or direct reference.")
         
         app = cls(root, **config)
