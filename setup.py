@@ -1,12 +1,17 @@
 #!/usr/bin/env python
+# encoding: utf-8
+
+import sys, os
 
 from setuptools import setup, find_packages
-import sys, os
+
 
 if sys.version_info <= (2, 5):
     raise SystemExit("Python 2.5 or later is required.")
 
 execfile(os.path.join("web", "release.py"))
+
+
 
 setup(
         name = name,
@@ -38,26 +43,6 @@ setup(
                 'Beaker',
                 'ToscaWidgets'
             ],
-        
-        extras_require = {
-                'routes': ["Routes"],
-                'sessions': ["Beaker"],
-                'cache': ["Beaker"],
-                
-                # Templating Languages
-                'cheetah': ["TurboCheetah"],
-                'myghty': ["BuffetMyghty"],
-                'kid': ["TurboKid"],
-                'genshi': ["Genshi"],
-                'jinja2': ['Jinja2'], # TODO: a python.templating.engines compatible entry point
-                'json': ['TurboJson'],
-                'mako': ['Mako'],
-                'string': ['BuffetString'],
-                'xslt': ['BuffetXSLT'],
-                
-                # A sane set of default extras.
-                'default': ['Beaker', 'TurboJson', 'Genshi', 'SQLAlchemy']
-            },
         
         classifiers = [
                 "Development Status :: 1 - Planning",
@@ -98,13 +83,4 @@ setup(
                         'sqlsoup = web.db.sa:SQLSoupMiddleware'
                     ]
             }
-        
-#        entry_points = {
-#                'paste.paster_command': [
-#                        'shell = yapwf.commands:ShellCommand'
-#                    ],
-#                'paste.paster_create_template': [
-#                        'yapwf = yapwf.util:ApplicationTemplate'
-#                    ]
-#            },
     )
