@@ -33,17 +33,26 @@ class SQLAlchemyMiddleware(object):
         self.model.engine = engine_from_config(self.config, prefix="%s.sqlalchemy." % (self.prefix, ))
         self.model.metadata.bind = self.model.engine
         
+        if config.get('%s.sqlalchemy.sqlsoup' % (self.prefix, ), False):
+            from sqlalchemy.ext.sqlsoup import SqlSoup
+            self.model.__dict__['soup'] = SqlSoup(self.model.metadata)
+        
         if hasattr(self.model, 'prepare') and callable(self.model.prepare):
             self.model.prepare()
     
     def __call__(self, environ, start_response):
         log.debug("Preparing database session.")
         
-        environ['paste.registry'].register(self.session, scoped_session(sessionmaker(
-                bind = self.model.engine,
-                autoflush = asbool(self.config.get('%s.autoflush' % (self.prefix, ), True)),
-                twophase = asbool(self.config.get('%s.twophase' % (self.prefix, ), False))
-            )))
+        if config.get('%s.sqlsoup' % (self.prefix, ), False):
+            from sqlalchemy.ext.sqlsoup import objectstore
+            environ['paste.registry'].register(self.session, objectstore.current)
+        
+        else:
+            environ['paste.registry'].register(self.session, scoped_session(sessionmaker(
+                    bind = self.model.engine,
+                    autoflush = asbool(self.config.get('%s.autoflush' % (self.prefix, ), True)),
+                    twophase = asbool(self.config.get('%s.twophase' % (self.prefix, ), False))
+                )))
         
         try:
             return self.application(environ, start_response)
