@@ -4,9 +4,11 @@
 """
 
 
-import                                          pkg_resources, web
-from web.utils.object                           import DottedFileNameFinder
-from web.utils.dictionary                       import adict
+import pkg_resources
+
+import web
+from web.utils.object import DottedFileNameFinder
+from web.utils.dictionary import adict
 
 
 __all__ = ['template', 'TemplatingMiddleware']

@@ -32,7 +32,6 @@ class Dialect(object):
         raise NotImplementedError
 
 
-
 class Controller(Dialect):
     """Object dispatch mechanism engineered from the TurboGears 2 documentation.
 

@@ -1,16 +1,16 @@
 # encoding: utf-8
 
-from unittest                                   import TestCase
+from unittest import TestCase
 
-from webob                                      import Request
-from paste.registry                             import StackedObjectProxy
+from webob import Request
+from paste.registry import StackedObjectProxy
 
 import web
-from web.core                                   import Application, Controller, request
+from web.core import Application, Controller, request
 
-from common                                     import PlainController
+from common import PlainController
 
-from sqlalchemy.ext.declarative                 import declarative_base
+from sqlalchemy.ext.declarative import declarative_base
 
 
 Base = declarative_base()

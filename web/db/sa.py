@@ -4,12 +4,16 @@
 """
 
 
-import                                          re, web
+import re
+
+import web
+
 from paste.deploy.converters                    import asbool, asint
 from paste.registry                             import StackedObjectProxy
 
 from sqlalchemy                                 import engine_from_config
 from sqlalchemy.orm                             import scoped_session, sessionmaker
+
 
 
 __all__ = ['SQLAlchemyMiddleware']

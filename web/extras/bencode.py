@@ -14,8 +14,10 @@ __all__ = ['CodecError', 'EncodeError', 'DecodeError', 'Encoding', 'ChunkedEncod
 class CodecError(Exception):
     """Useful superclass to group all codec-related errors."""
 
+
 class EncodeError(CodecError):
     """Raised by C{Encoding} implementations if encode fails."""
+
 
 class DecodeError(CodecError):
     """Raised by C{Encoding} implementations if decode fails."""

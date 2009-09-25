@@ -3,9 +3,11 @@
 """
 """
 
-import                                          sys, os, pkg_resources, paste, types
-from webob                                      import Request, Response
-from web.core.dialects                          import Dialect
+import sys, os, pkg_resources, types
+
+import paste
+from webob import Request, Response
+from web.core.dialects import Dialect
 
 
 __all__ = ['Application']
