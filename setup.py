@@ -62,7 +62,8 @@ setup(
         
         namespace_packages = [
                 'web',
-                'web.extras'
+                'web.extras',
+                'web.db'
             ],
         
         entry_points = {
