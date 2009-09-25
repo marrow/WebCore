@@ -1,6 +1,7 @@
 # encoding: utf-8
 
-from web.core                           import Controller
+from web.core import Controller
+
 
 
 class RootController(Controller):
