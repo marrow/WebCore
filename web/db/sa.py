@@ -43,7 +43,7 @@ class SQLAlchemyMiddleware(object):
     def __call__(self, environ, start_response):
         log.debug("Preparing database session.")
         
-        if config.get('%s.sqlsoup' % (self.prefix, ), False):
+        if self.config.get('%s.sqlsoup' % (self.prefix, ), False):
             from sqlalchemy.ext.sqlsoup import objectstore
             environ['paste.registry'].register(self.session, objectstore.current)
         
