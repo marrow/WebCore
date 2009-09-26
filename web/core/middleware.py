@@ -72,7 +72,10 @@ class TemplatingMiddleware(object):
         if 'buffet.fragment' in options: del options['buffet.fragment']
         
         if template == 'json':
-            from simplejson import dumps
+            try:
+                from json import dumps
+            except ImportError:
+                from simplejson import dumps
             
             web.core.response.content_type = 'application/json; charset=utf-8'
             return dumps(data, **options)
