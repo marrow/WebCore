@@ -41,6 +41,10 @@ class SQLAlchemyMiddleware(object):
             from sqlalchemy.ext.sqlsoup import SqlSoup
             self.model.__dict__['soup'] = SqlSoup(self.model.metadata)
         
+        if hasattr(self.model, 'populate') and callable(self.model.populate):
+            for table in self.model.metadata.sorted_tables:
+                table.append_ddl_listener('after-create', self.populate_table)
+        
         if hasattr(self.model, 'prepare') and callable(self.model.prepare):
             self.model.prepare()
     
@@ -85,3 +89,20 @@ class SQLAlchemyMiddleware(object):
             if not self.config.get('%s.cache' % (self.prefix, ), True):
                 self.session.expunge_all()
             self.session.close()
+    
+    def populate_table(self, action, table, bind):
+        session = scoped_session(sessionmaker(
+                bind = bind,
+                autoflush = asbool(self.config.get('%s.autoflush' % (self.prefix, ), True)),
+                twophase = asbool(self.config.get('%s.twophase' % (self.prefix, ), False))
+            ))
+        
+        try:
+            self.model.populate(session, table.name)
+        
+        except:
+            session.rollback()
+            raise
+        
+        session.commit()
+        
