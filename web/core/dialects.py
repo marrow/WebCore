@@ -147,3 +147,31 @@ class Controller(Dialect):
     def __after__(self, result, *args, **kw):
         """The __after__ method can modify the value returned by the final method call."""
         return result
+
+
+def RESTMethod(object):
+    """Enable the writing of individual methods that map to REST verbs.
+    
+    Any HTTP method is allowed: GET PUT POST DELETE
+    
+    HEAD is written for you.
+    """
+    
+    def __call__(self, *args, **kw):
+        verb = web.core.request.method.lower()
+        
+        if verb not in self._available_methods:
+            raise web.core.http.HTTPMethodNotAllowed()
+        
+        getattr(self, verb)(*args, **kw)
+    
+    
+    @property
+    def _available_methods(self):
+        available = []
+        
+        for i in ['GET', 'PUT', 'POST', 'DELETE', 'HEAD']:
+            if hasattr(self, i) and callable(self, i):
+                available.append(check)
+        
+        return available

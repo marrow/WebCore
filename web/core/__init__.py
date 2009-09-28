@@ -13,7 +13,7 @@ from web.core.middleware import template
 from paste.registry import StackedObjectProxy
 
 
-__all__ = ['Dialect', 'Controller', 'Application', 'config', 'http', 'template', 'config', 'request', 'response', 'cache', 'session']
+__all__ = ['Dialect', 'Controller', 'RESTMethod', 'Application', 'config', 'http', 'template', 'config', 'request', 'response', 'cache', 'session']
 
 
 config = adict(
