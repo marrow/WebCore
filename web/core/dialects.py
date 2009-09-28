@@ -164,22 +164,26 @@ class RESTMethod(object):
         methods = self._available_methods
         web.core.response.headers['Allow'] = ', '.join([i.upper() for i in methods])
         
-        if verb not in methods:
+        print methods
+        
+        if verb.upper() not in methods:
             raise web.core.http.HTTPMethodNotAllowed()
         
         try:
-            return getattr(self, verb)(*args, **kw)
+            method = getattr(self, verb)
         
         except AttributeError:
             raise web.core.http.HTTPNotImplemented()
+        
+        return method(*args, **kw)
     
     @property
     def _available_methods(self):
         available = []
         
-        for i in ['GET', 'PUT', 'POST', 'DELETE', 'HEAD', 'TRACE', 'OPTIONS']:
-            if hasattr(self, i) and callable(self, i):
-                available.append(i)
+        for i in ['get', 'put', 'post', 'delete', 'head', 'trace', 'options']:
+            if hasattr(self, i) and callable(getattr(self, i)):
+                available.append(i.upper())
         
         return available
     
