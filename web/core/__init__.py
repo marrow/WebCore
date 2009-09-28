@@ -4,7 +4,7 @@
 
 """
 
-from web.core.dialects import Dialect, Controller
+from web.core.dialects import Dialect, Controller, RESTMethod
 from web.core.application import Application
 from web.utils.dictionary import adict
 from webob import exc as http

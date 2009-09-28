@@ -149,7 +149,7 @@ class Controller(Dialect):
         return result
 
 
-def RESTMethod(object):
+class RESTMethod(object):
     """Enable the writing of individual methods that map to REST verbs.
     
     Any HTTP method is allowed: GET PUT POST DELETE HEAD TRACE OPTIONS
