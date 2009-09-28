@@ -179,7 +179,7 @@ class RESTMethod(object):
         
         for i in ['GET', 'PUT', 'POST', 'DELETE', 'HEAD', 'TRACE', 'OPTIONS']:
             if hasattr(self, i) and callable(self, i):
-                available.append(check)
+                available.append(i)
         
         return available
     
