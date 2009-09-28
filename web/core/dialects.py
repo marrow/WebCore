@@ -152,26 +152,41 @@ class Controller(Dialect):
 def RESTMethod(object):
     """Enable the writing of individual methods that map to REST verbs.
     
-    Any HTTP method is allowed: GET PUT POST DELETE
+    Any HTTP method is allowed: GET PUT POST DELETE HEAD TRACE OPTIONS
     
-    HEAD is written for you.
+    HEAD is written for you, but can be overridden.
+    
+    With this it would possible to create a WebDAV system.
     """
     
     def __call__(self, *args, **kw):
         verb = web.core.request.method.lower()
         
-        if verb not in self._available_methods:
+        methods = self._available_methods
+        
+        if verb not in methods:
             raise web.core.http.HTTPMethodNotAllowed()
         
-        getattr(self, verb)(*args, **kw)
-    
+        web.core.response.headers['Allow'] = ', '.join([i.upper() for i in methods])
+        
+        return getattr(self, verb)(*args, **kw)
     
     @property
     def _available_methods(self):
         available = []
         
-        for i in ['GET', 'PUT', 'POST', 'DELETE', 'HEAD']:
+        for i in ['GET', 'PUT', 'POST', 'DELETE', 'HEAD', 'TRACE', 'OPTIONS']:
             if hasattr(self, i) and callable(self, i):
                 available.append(check)
         
         return available
+    
+    def head(self, *args, **kw):
+        """Allow the get method to set headers, but return no content.
+        
+        TODO: Set the content-length header to match the actual output content length.
+        """
+        
+        self.get(*args, **kw)
+        
+        return ""
