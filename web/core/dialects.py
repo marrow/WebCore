@@ -161,15 +161,17 @@ def RESTMethod(object):
     
     def __call__(self, *args, **kw):
         verb = web.core.request.method.lower()
-        
         methods = self._available_methods
+        web.core.response.headers['Allow'] = ', '.join([i.upper() for i in methods])
         
         if verb not in methods:
             raise web.core.http.HTTPMethodNotAllowed()
         
-        web.core.response.headers['Allow'] = ', '.join([i.upper() for i in methods])
+        try:
+            return getattr(self, verb)(*args, **kw)
         
-        return getattr(self, verb)(*args, **kw)
+        except AttributeError:
+            raise web.core.http.HTTPMethodNotAllowed()
     
     @property
     def _available_methods(self):
