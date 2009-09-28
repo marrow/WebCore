@@ -171,7 +171,7 @@ def RESTMethod(object):
             return getattr(self, verb)(*args, **kw)
         
         except AttributeError:
-            raise web.core.http.HTTPMethodNotAllowed()
+            raise web.core.http.HTTPNotImplemented()
     
     @property
     def _available_methods(self):
