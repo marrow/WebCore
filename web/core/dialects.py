@@ -81,6 +81,7 @@ class Controller(Dialect):
             
             log.debug("Looking for %r attribute of %r.", part, last)
             protected, part = part.startswith('_'), getattr(last, part, None)
+            request.charset = 'utf8'
             data = request.params.mixed()
             remaining = request.path_info.strip('/')
             remaining = remaining.split('/') if remaining else []
