@@ -164,8 +164,6 @@ class RESTMethod(object):
         methods = self._available_methods
         web.core.response.headers['Allow'] = ', '.join([i.upper() for i in methods])
         
-        print methods
-        
         if verb.upper() not in methods:
             raise web.core.http.HTTPMethodNotAllowed()
         
@@ -189,10 +187,6 @@ class RESTMethod(object):
     
     def head(self, *args, **kw):
         """Allow the get method to set headers, but return no content.
-        
-        TODO: Set the content-length header to match the actual output content length.
         """
         
         self.get(*args, **kw)
-        
-        return ""
