@@ -1,0 +1,33 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:py="http://genshi.edgewall.org/"
+        xmlns:xi="http://www.w3.org/2001/XInclude" py:strip="">
+    
+    <py:match path="title" once="True"><title>${select('*|comment()|text()')} — Wiki</title></py:match>
+    
+    <head py:match="head" py:attrs="select('@*')">
+        <link rel="stylesheet" href="http://yui.yahooapis.com/3.0.0b1/build/cssreset/reset.css" type="text/css" />
+        <link rel="stylesheet" href="http://yui.yahooapis.com/3.0.0b1/build/cssfonts/fonts.css" type="text/css" />
+        <link rel="stylesheet" href="http://yui.yahooapis.com/3.0.0b1/build/cssbase/base.css" type="text/css" />
+        
+        <style type="text/css" media="screen">
+            
+        </style>
+        
+        <meta py:replace="select('*')" />
+    </head>
+    
+    <body py:match="body" py:attrs="select('@*')">
+        <div id="header" align="center">
+            <h1><a href="/WikiHome" alt="Home">Wiki</a></h1>
+        </div>
+        
+        <div py:replace="select('*|text()')"/>
+        
+        <div id="colophon">
+            <p>
+                Powered by <a href="http://www.yapwf.org/">Yet Another Python Web Framework</a>.
+            </p>
+        </div>
+    </body>
+</html>
