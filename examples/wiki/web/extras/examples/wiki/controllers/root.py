@@ -12,6 +12,25 @@ log = __import__('logging').getLogger(__name__)
 
 
 
+class AJAXArticleForm(web.core.RESTMethod):
+    def __init__(self, name, article):
+        self.name = name
+        self.article = article
+    
+    def get(self):
+        return 'web.extras.examples.wiki.templates.modify_form', dict(name=self.name, article=self.article)
+    
+    def post(self, name, content, **kw):
+        if not self.article:
+            self.article = db.Article()
+            db.session.add(self.article)
+        
+        self.article.name = name
+        self.article.content = content
+        
+        return textile.textile(self.article.content)
+
+
 class ArticleForm(web.core.RESTMethod):
     def __init__(self, name, article):
         self.name = name
@@ -40,6 +59,9 @@ class ArticleController(web.core.Controller):
         
         self.modify = ArticleForm(self.name, self.article)
         self.create = self.modify
+        
+        self.modify_ajax = AJAXArticleForm(self.name, self.article)
+        self.create_ajax = self.modify_ajax
     
     def index(self):
         if not self.article:

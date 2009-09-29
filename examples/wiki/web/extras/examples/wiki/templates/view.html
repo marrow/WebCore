@@ -9,13 +9,37 @@
         <meta content="text/html; charset=UTF-8" http-equiv="content-type" py:replace="''" />
         
         <title py:content="article.name">Article Name</title>
+        
+        <script type="text/javascript" charset="utf-8">
+            $(function(){
+                
+                $('.modify-link').click(function(){
+                    $('.content').load('/${article.name}/modify_ajax', function(){
+                        $('.links').hide();
+                        $('textarea').focus();
+                        $('.modify').submit(function(){
+                            $('.content').load('/${article.name}/modify_ajax', {
+                                    'name': $('input:first').val(),
+                                    'content': $('textarea:first').val()
+                                }, function(){ $('.links').show(); });
+                            return false;
+                        });
+                    });
+                    return false;
+                });
+                
+                $('.delete-link').click(function(){ return confirm('Are you sure you wish to delete this article?  This action can not be un-done.'); })
+                
+            });
+        </script>
     </head>
     
-    <body>
-        <div py:content="HTML(content)">Wiki page content goes here.</div>
+    <body class="wiki article">
         <div class="links">
-            <a href="/${article.name}/modify">Modify</a> |
-            <a href="/${article.name}/delete">Delete</a>
+            <a class="modify-link" href="/${article.name}/modify">Modify</a> |
+            <a class="delete-link" href="/${article.name}/delete">Delete</a>
         </div>
+        
+        <div class="content" py:content="HTML(content)">Wiki page content goes here.</div>
     </body>
 </html>

@@ -10,21 +10,45 @@
         <link rel="stylesheet" href="http://yui.yahooapis.com/3.0.0b1/build/cssfonts/fonts.css" type="text/css" />
         <link rel="stylesheet" href="http://yui.yahooapis.com/3.0.0b1/build/cssbase/base.css" type="text/css" />
         
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3/jquery.min.js"></script>
+        
         <style type="text/css" media="screen">
+            body {  }
             
+            dl { margin: 0; margin-top: 1em; }
+            dl dt { margin: 0; }
+            dl dd { margin: 0; margin-bottom: 1em; }
+            
+            li { margin-bottom: 0.5em; }
+            
+            textarea { width: 100%; height: 400px; }
+            
+            .header { background-color: black; margin-bottom: 1em; padding: 1em; }
+            .header h1 { margin: 0; }
+            .header h1 a { color: white; text-decoration: none; }
+            .header h1 a:hover { text-shadow: 0px 0px 4px white; }
+            .links { float: right; margin-right: 1em;}
+            .content { padding: 0 1em; }
+            .content :first-child { margin-top: 0; }
+            .colophon { padding: 1em; background-color: #CABFAC; margin-top: 1em; }
+            .colophon p { margin: 0; }
+            
+            
+            
+            .modify-article 
         </style>
         
         <meta py:replace="select('*')" />
     </head>
     
     <body py:match="body" py:attrs="select('@*')">
-        <div id="header" align="center">
-            <h1><a href="/WikiHome" alt="Home">Wiki</a></h1>
+        <div class="header">
+            <h1><a href="/WikiHome" alt="Home">YAPWF Wiki</a></h1>
         </div>
         
         <div py:replace="select('*|text()')"/>
         
-        <div id="colophon">
+        <div class="colophon">
             <p>
                 Powered by <a href="http://www.yapwf.org/">Yet Another Python Web Framework</a>.
             </p>
