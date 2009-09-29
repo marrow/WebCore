@@ -99,16 +99,6 @@ class TemplatingMiddleware(object):
                 template
             )
     
-    @classmethod
-    def response(cls, result, environ, start_response):
-        if isinstance(result, str):
-            web.core.response.body = result
-        
-        elif isinstance(result, unicode):
-            web.core.response.unicode_body = result
-        
-        return web.core.response(environ, start_response)
-    
     def __call__(self, environ, start_response):
         environ.update({
                 'buffet.engine': self.config.get("buffet.engine", "genshi"),
@@ -129,4 +119,14 @@ class TemplatingMiddleware(object):
         if not isinstance(template, str) or not isinstance(data, dict) or not isinstance(extras, dict):
             raise TypeError("Invalid tuple values returned to TemplatingMiddleware.")
         
-        return self.response(self.render(template, data, **extras), environ, start_response)
+        result = self.render(template, data, **extras)
+        
+        if isinstance(result, str):
+            log.debug("Received string response.")
+            web.core.response.body = result
+        
+        elif isinstance(result, unicode):
+            log.debug("Received unicode response.")
+            web.core.response.unicode_body = result
+        
+        return web.core.response(environ, start_response)

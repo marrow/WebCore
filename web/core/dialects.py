@@ -164,6 +164,8 @@ class RESTMethod(object):
         methods = self._available_methods
         web.core.response.headers['Allow'] = ', '.join([i.upper() for i in methods])
         
+        log.debug("Performing REST dispatch to %s(%r, %r)", verb, args, kw)
+        
         if verb.upper() not in methods:
             raise web.core.http.HTTPMethodNotAllowed()
         

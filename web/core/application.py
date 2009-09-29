@@ -236,7 +236,6 @@ class Application(object):
         #     return
         
         if not isinstance(content, basestring):
-            start_response(web.core.response.status, web.core.response.headerlist)
             return content
         
         if isinstance(content, unicode):
