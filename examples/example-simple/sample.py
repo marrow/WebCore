@@ -28,7 +28,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     
     app = Application.factory(root=RootController, debug=False, **{
-            'web.buffet': False,
+            'web.sessions': False,
             'web.widgets': False,
             'web.beaker': False,
             'web.profile': False,
