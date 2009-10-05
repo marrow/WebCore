@@ -41,22 +41,14 @@ class TestApplication(TestCase):
         try:
             app = Application.factory(root='web.core.application:Application')
         
-        except ValueError:
+        except TypeError:
             pass
         
         else:
             raise Exception
     
     def test_autostatic(self):
-        try:
-            app = Application.factory(root=RootController, **{'web.static': True})
-        
-        except AssertionError:
-            # The DirectoryApp raises an AssertionError in response to the target folder (./public/) not existing.
-            pass
-        
-        else:
-            raise Exception
+        app = Application.factory(root=RootController, **{'web.static': True})
 
 
 class BasicDispatch(TestCase):
