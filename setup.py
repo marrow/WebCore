@@ -80,8 +80,7 @@ setup(
                         'yapwf = web.extras.twframework:YAPWFHostFramework'
                     ],
                 'yapwf.db.engines': [
-                        'sqlalchemy = web.db.sa:SQLAlchemyMiddleware',
-                        'sqlsoup = web.db.sa:SQLSoupMiddleware'
+                        'sqlalchemy = web.db.sa:SQLAlchemyMiddleware'
                     ]
             }
     )
