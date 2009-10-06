@@ -8,13 +8,16 @@
     <head>
         <meta content="text/html; charset=UTF-8" http-equiv="content-type" py:replace="''" />
         
-        <title py:if="article">Modifying <span py:replace="article.name">Article Name</span></title>
-        <title py:if="not article">Creating a New Article</title>
+        <title>Index</title>
     </head>
     
     <body>
         <div class="content">
-            <xi:include href="${relative('web.extras.examples.wiki.templates.modify_form')}" />
+            <h1>Article Index</h1>
+            
+            <ul>
+                <li py:for="name in articles"><a py:attrs="{'href': '/' + name[0]}" py:content="name">Article Name</a></li>
+            </ul>
         </div>
     </body>
 </html>

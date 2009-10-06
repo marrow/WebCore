@@ -83,5 +83,10 @@ class RootController(web.core.Controller):
     def index(self):
         raise web.core.http.HTTPMovedPermanently(location="/WikiHome")
     
+    def Index(self):
+        return 'web.extras.examples.wiki.templates.index', dict(
+                articles = db.session.query(db.Article.name)
+            )
+    
     def lookup(self, article, *parts, **data):
         return ArticleController(unicode(article)), parts
