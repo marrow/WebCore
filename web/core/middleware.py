@@ -64,11 +64,39 @@ class middleware(object):
 @middleware('templating')
 def buffet(app, config):
     # Automatically use Buffet templating engines unless explicitly forbidden.
-    if not defaultbool(config.get('web.templating', True), ['templateinterface']):
+    if not defaultbool(config.get('web.templating', False), ['buffet']):
         return app
     
     log.debug("Loading Buffet template engine middleware.")
     return TemplatingMiddleware(app, config)
+
+
+@middleware('templating')
+def templateinterface(app, config):
+    # Automatically use TemplateInterface templating engines unless explicitly forbidden.
+    if not defaultbool(config.get('web.templating', True), ['templateinterface']):
+        return app
+    
+    log.debug("Loading TemplateInterface template engine middleware.")
+    
+    try:
+        from cti.middleware import TemplatingMiddleware, registry
+        
+        registry.append(dict(
+                web = web.utils.dictionary.adict(
+                        request = web.core.request,
+                        response = web.core.response,
+                        session = web.core.session
+                    )
+            ))
+        
+        return TemplatingMiddleware(app, config)
+    
+    except ImportError: # pragma: no cover
+        log.error("TemplateMiddleware not installed; your application is not likely to work.")
+        raise
+    
+    return app
 
 
 @middleware('widgets', after="templating")
@@ -93,13 +121,18 @@ def toscawidgets(app, config):
 def authkit(app, config):
     # Use AuthKit if requested.
     if not defaultbool(config.get('web.auth', False), ['authkit']):
+        config.update({'web.auth.enabled': False})
         return app
     
     try:
         import authkit.authenticate
         
         log.debug("Loading AuthKit middleware.")
-        return authkit.authenticate.middleware(app, config)
+        config.update({'web.auth.enabled': True})
+        
+        app = authkit.authenticate.middleware(app, config, prefix="web.auth.")
+        
+        return app
     
     except ImportError: # pragma: no cover
         log.warn("AuthKit not installed, authentication and authorization disabled.  Your authorization checks, if any, will fail.")
@@ -301,7 +334,7 @@ def profiling(app, config):
 
 
 
-
+"""
 
 
 def template(template, **extras):
@@ -415,3 +448,4 @@ class TemplatingMiddleware(object):
             web.core.response.unicode_body = result
         
         return web.core.response(environ, start_response)
+"""
