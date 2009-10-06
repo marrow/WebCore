@@ -71,7 +71,7 @@ setup(
                         'main = web.core:Application.factory'
                     ],
                 'paste.paster_command': [
-                        'shell = web.shell:ShellCommand'
+                        'shell = web.commands.shell:ShellCommand'
                     ],
                 'yapwf.command': [
                         'shell = web.commands.shell:ShellCommand'
