@@ -176,10 +176,11 @@ def database(app, config):
                 session = web.utils.object.get_dotted_object(session) if isinstance(session, basestring) else session
             
             except:
-                log.exception("Unable to load application model session: %r.", session)
-                raise
+                log.info("No session defined for the %s database connection.", connection)
             
-            return engine(app, 'db.%s' % (connection, ), model, session, **config)
+            app = engine(app, 'db.%s' % (connection, ), model, session, **config)
+        
+        return app
     
     except:
         log.exception("Database connections not available.")
