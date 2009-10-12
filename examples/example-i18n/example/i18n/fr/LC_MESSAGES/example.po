@@ -1,0 +1,37 @@
+# French translations for YAPWF-Example-i18n.
+# Copyright (C) 2009 ORGANIZATION
+# This file is distributed under the same license as the YAPWF-Example-i18n
+# project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2009.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: YAPWF-Example-i18n 0.1\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2009-10-11 21:55+0700\n"
+"PO-Revision-Date: 2009-10-11 22:00-0700\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 0.9.4\n"
+
+#: example/__init__.py:10
+msgid "Hello world!"
+msgstr "Bonjour monde !"
+
+#: example/__init__.py:13
+#, python-format
+msgid "Hello, %(name)s!"
+msgstr "Bonjour %(name)s !"
+
+#: example/templates/template.html:4
+msgid "This is a template!"
+msgstr "C'est un descripteur !"
+
+#: example/templates/template.html:5
+msgid "The current time is:"
+msgstr "Le temps actuel est :"
+

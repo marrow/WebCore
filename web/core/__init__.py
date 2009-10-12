@@ -20,7 +20,9 @@ config = adict(
         response=adict(content_type='text/html', charset='utf8')
     )
 
-request = StackedObjectProxy()
-response = StackedObjectProxy()
-cache = StackedObjectProxy()
-session = StackedObjectProxy()
+request = StackedObjectProxy(name="request")
+response = StackedObjectProxy(name="response")
+cache = StackedObjectProxy(name="cache")
+session = StackedObjectProxy(name="session")
+
+translator = StackedObjectProxy(name="translator")

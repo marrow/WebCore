@@ -53,11 +53,13 @@ class Application(object):
         
         queue = [i for i in middleware.registry if i.after is None]
         satisfied = []
+        available = [i.name for i in middleware.registry]
         
         while queue:
             obj = queue.pop(0)
             satisfied.append(obj.name)
             
+            log.debug("Loading middleware: %r", obj)
             yield obj
             
             for obj in middleware.registry:
@@ -65,7 +67,7 @@ class Application(object):
                     continue
                 
                 if isinstance(obj.after, list):
-                    deps = [(i in satisfied) for i in obj.after]
+                    deps = [(i in satisfied) for i in obj.after if i in available]
                     if not all(deps):
                         continue
                 
@@ -93,6 +95,7 @@ class Application(object):
         
         # Find, build, and configure our basic Application instance.
         if isinstance(root, basestring):
+            config['web.root.package'] = root.split('.', 1)[0]
             log.debug("Loading root controller from '%s'.", root)
             root = get_dotted_object(root)
         

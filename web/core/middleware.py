@@ -189,7 +189,7 @@ def database(app, config):
     return app
 
 
-@middleware('configuration', after="widgets")
+@middleware('configuration', after=["sessions", "i18n"])
 def configuration(app, config):
     if not defaultbool(config.get('web.config', True), ['paste']):
         return app
@@ -198,7 +198,7 @@ def configuration(app, config):
     return ConfigMiddleware(app, config)
 
 
-@middleware('sessions', after="widgets")
+@middleware('sessions', after=["widgets", "i18n"])
 def sessions(app, config):
     if not defaultbool(config.get('web.sessions', True), ['beaker']):
         return app
@@ -207,7 +207,8 @@ def sessions(app, config):
     try:
         from beaker.middleware import SessionMiddleware, CacheMiddleware
         
-        beakerconfig = dict([(i[8:], j) for i, j in config.iteritems() if i.startswith('session.')])
+        beakerconfig = {} # 'session.type': "file"
+        beakerconfig.update(config)
         
         log.debug("Loading Beaker session and cache middleware.")
         bapp = SessionMiddleware(app, beakerconfig)
@@ -261,7 +262,7 @@ def static(app, config):
     from paste.cascade import Cascade
     from paste.fileapp import DirectoryApp
     
-    path = config.get('static.path', None)
+    path = config.get('web.static.path', None)
     
     if path is None:
         # Attempt to discover the path automatically.
@@ -287,7 +288,7 @@ def static(app, config):
             path = module.__file__
     
     if not os.path.isdir(path):
-        log.warn("Unable to find folder to serve static content from.  Please specify static.path in your config.")
+        log.warn("Unable to find folder to serve static content from.  Please specify web.static.path in your config.")
         return app
     
     log.debug("Serving static files from '%s'.", path)
