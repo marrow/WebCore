@@ -41,7 +41,7 @@ class ShellCommand(Command):
     usage = '\n' + __doc__
 
     min_args = 0
-    max_args = 1
+    max_args = 2
     group_name = 'yapwf'
 
     parser = Command.standard_parser(simulate=True)
@@ -94,6 +94,10 @@ class ShellCommand(Command):
         
         exec 'import web' in locs
         exec 'from web.core import http, Controller, request, response, cache, session' in locs
+        
+        if len(self.args) == 2:
+            execfile(self.args[1], {}, locs)
+            return
         
         banner = "Welcome to the YAPWF shell."
         
