@@ -6,44 +6,57 @@ from web.utils.object import *
 from web.utils.dictionary import *
 
 
+class TestPropertyIterator(TestCase):
+    class MyObj(object):
+        def __init__(self, name):
+            self.name = name
+    
+    def test_property_iterator(self):
+        objs = [self.MyObj('a'), self.MyObj('b'), self.MyObj('c')]
+        self.assertEqual([i for i in yield_property(objs, 'name')], ['a', 'b', 'c'])
+
+
+class TestCounterMeta(TestCase):
+    class MyObj(object):
+        __metaclass__ = CounterMeta
+    
+    def test_counter_meta(self):
+        objs = [self.MyObj(), self.MyObj(), self.MyObj()]
+        self.assertEqual([i._counter for i in objs], [0, 1, 2])
+
+
 class TestAttributeDictionary(TestCase):
-    def test_creation(self):
+    def test_empty_creation(self):
         d = adict()
         assert not d
     
-    def test_creation_assignment(self):
+    def test_populated_creation(self):
         d = adict(name='value')
-        assert d['name'] == 'value'
+        self.assertEqual(d['name'], 'value')
         
         d = adict({'name': 'value'})
-        assert d['name'] == 'value'
+        self.assertEqual(d['name'], 'value')
     
     def test_attribute_assignment(self):
         d = adict()
         d.name = 'value'
         assert hasattr(d, 'name')
-        assert d['name'] == 'value'
-        
-        assert hasattr(d, '__repr__')
+        self.assertEqual(d['name'], 'value')
     
     def test_attribute_read(self):
         d = adict()
         d.name = 'value'
         assert d.name == 'value'
-        
-        assert callable(d.__repr__)
     
     def test_repr(self):
         d = adict()
         assert repr(d) == 'adict({})'
         
         d.name = 'value'
-        assert repr(d) == "adict({'name': 'value'})"
+        self.assertEqual(repr(d), "adict({'name': 'value'})")
     
     def test_delete(self):
         d = adict(name='value')
         del d.name
         
-        assert repr(d) == 'adict({})'
-    
-
+        self.assertEqual(repr(d), 'adict({})')

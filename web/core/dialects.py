@@ -1,5 +1,6 @@
 # encoding: utf-8
 
+from webob import Request, Response
 import web.core
 
 
@@ -122,13 +123,9 @@ class Controller(Dialect):
             if fallback:
                 # If the current object under consideration has a “lookup” method then execute the “lookup” method, and start the search again on the return value of that method.
                 log.debug("Calling lookup method of %r.", last)
-                try:
-                    part, remaining = fallback(*remaining, **data)
-                    request.path_info = '/' + '/'.join(remaining) + ('/' if request.path.endswith('/') else '')
-                    continue
-                except:
-                    log.exception("Error calling lookup method.")
-                    raise
+                part, remaining = fallback(*remaining, **data)
+                request.path_info = '/' + '/'.join(remaining) + ('/' if request.path.endswith('/') else '')
+                continue
             
             raise web.core.http.HTTPNotFound()
     
@@ -155,41 +152,41 @@ class RESTMethod(object):
     
     Any HTTP method is allowed: GET PUT POST DELETE HEAD TRACE OPTIONS
     
-    HEAD is written for you, but can be overridden.
+    HEAD and OPTIONS are written for you, but can be overridden.
     
     With this it would possible to create a WebDAV system.
     """
     
-    def __call__(self, *args, **kw):
-        verb = web.core.request.method.lower()
-        methods = self._available_methods
-        web.core.response.headers['Allow'] = ', '.join([i.upper() for i in methods])
+    def __init__(self):
+        super(RESTMethod, self).__init__()
         
-        log.debug("Performing REST dispatch to %s(%r, %r)", verb, args, kw)
-        
-        if verb.upper() not in methods:
-            raise web.core.http.HTTPMethodNotAllowed()
-        
-        try:
-            method = getattr(self, verb)
-        
-        except AttributeError:
-            raise web.core.http.HTTPNotImplemented()
-        
-        return method(*args, **kw)
-    
-    @property
-    def _available_methods(self):
-        available = []
+        methods = []
         
         for i in ['get', 'put', 'post', 'delete', 'head', 'trace', 'options']:
             if hasattr(self, i) and callable(getattr(self, i)):
-                available.append(i.upper())
+                methods.append(i.upper())
         
-        return available
+        self.methods = methods
+    
+    def __call__(self, *args, **kw):
+        verb = web.core.request.method.lower()
+        web.core.response.allow = self.methods
+        
+        log.debug("Performing REST dispatch to %s(%r, %r)", verb, args, kw)
+        
+        if verb.upper() not in self.methods:
+            raise web.core.http.HTTPMethodNotAllowed()
+        
+        return getattr(self, verb)(*args, **kw)
     
     def head(self, *args, **kw):
         """Allow the get method to set headers, but return no content.
-        """
         
-        self.get(*args, **kw)
+        This performs an internal GET and strips the body from the response.
+        """
+        return self.get(*args, **kw)
+    
+    def options(self, *args, **kw):
+        """The allowed methods are present in the returned headers."""
+        
+        return ''

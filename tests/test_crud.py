@@ -7,7 +7,7 @@ from webob import Request
 import web
 from web.core import Application, Controller
 
-from common import PlainController
+from common import PlainController, WebTestCase
 
 
 class ObjectController(PlainController):
@@ -23,9 +23,11 @@ class ObjectController(PlainController):
     def delete(self):
         return "deleting %s %s" % (self.first, self.last)
 
+
 class DefController(PlainController):
     def default(self, *args, **kw):
         return "default controller for %s" % (" ".join(args), )
+
 
 class RootController(PlainController):
     catchall = DefController()
@@ -38,55 +40,23 @@ class RootController(PlainController):
     
     def lookup(self, last, first, *parts, **data):
         return ObjectController(last, first), parts
-    
-    
 
 
-class CRUDDispatch(TestCase):
-    app = Application.factory(root=RootController, buffet=False, widgets=False, beaker=False, debug=False)
+test_config = {'debug': True, 'web.widgets': False, 'web.beaker': False, 'web.compress': False, 'web.static': False}
+
+
+class CRUDDispatch(WebTestCase):
+    app = Application.factory(root=RootController, **test_config)
     
     def test_basic(self):
-        response = Request.blank('/').get_response(self.app)
-        
-        assert response.status == "200 OK"
-        assert response.content_type == "text/plain"
-        assert response.body == "listing records"
-        
-        response = Request.blank('/create').get_response(self.app)
-        
-        assert response.status == "200 OK"
-        assert response.content_type == "text/plain"
-        assert response.body == "creating a record"
+        self.assertResponse('/', body="listing records")
+        self.assertResponse('/create', body="creating a record")
     
     def test_object(self):
-        response = Request.blank('/Dole/Bob/').get_response(self.app)
-        
-        assert response.status == "200 OK"
-        assert response.content_type == "text/plain"
-        assert response.body == "viewing Bob Dole"
-        
-        response = Request.blank('/Dole/Bob/modify').get_response(self.app)
-        
-        assert response.status == "200 OK"
-        assert response.content_type == "text/plain"
-        assert response.body == "modifying Bob Dole"
-        
-        response = Request.blank('/Dole/Bob/delete').get_response(self.app)
-        
-        assert response.status == "200 OK"
-        assert response.content_type == "text/plain"
-        assert response.body == "deleting Bob Dole"
+        self.assertResponse('/Dole/Bob/', body="viewing Bob Dole")
+        self.assertResponse('/Dole/Bob/modify', body="modifying Bob Dole")
+        self.assertResponse('/Dole/Bob/delete', body="deleting Bob Dole")
     
     def test_default(self):
-        response = Request.blank('/catchall/foo/bar').get_response(self.app)
-        
-        assert response.status == "200 OK"
-        assert response.content_type == "text/plain"
-        assert response.body == "default controller for foo bar"
-        
-        response = Request.blank('/catchall/_private').get_response(self.app)
-        
-        assert response.status == "200 OK"
-        assert response.content_type == "text/plain"
-        assert response.body == "default controller for _private"
-    
+        self.assertResponse('/catchall/foo/bar', body="default controller for foo bar")
+        self.assertResponse('/catchall/_private', body="default controller for _private")

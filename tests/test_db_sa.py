@@ -33,8 +33,12 @@ class RootController(PlainController):
         raise web.core.http.HTTPNoContent()
 
 
+test_config = {'debug': True, 'web.widgets': False, 'web.beaker': False, 'web.compress': False, 'web.static': False,
+    'db.connections': 'test', 'db.test.engine': 'sqlalchemy', 'db.test.model': RootController.__module__, 'db.test.cache': False, 'db.test.sqlalchemy.url': 'sqlite:///:memory:'}
+
+
 class TestSASession(TestCase):
-    app = Application.factory(root=RootController, debug=False, **{'db.connections': 'test', 'db.test.engine': 'sqlalchemy', 'db.test.model': RootController.__module__, 'db.test.cache': False, 'db.test.sqlalchemy.url': 'sqlite:///:memory:'})
+    app = Application.factory(root=RootController, **test_config)
     
     def test_index(self):
         response = Request.blank('/').get_response(self.app)

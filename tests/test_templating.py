@@ -27,10 +27,14 @@ class RootController(Controller):
         return 'foo', 'bar'
 
 
+test_config = {'debug': True, 'web.widgets': False, 'web.beaker': False, 'web.compress': False, 'web.static': False}
+
+
 class TestTemplates(TestCase):
-    app = Application.factory(root=RootController, **{'web.widgets': False, 'web.beaker': False, 'debug': False, 'web.compress': False})
+    app = Application.factory(root=RootController, **test_config)
     
     def test_decorator(self):
+        """Test decorator template generation."""
         response = Request.blank('/decorator').get_response(self.app)
         
         assert response.status == "200 OK"
@@ -38,6 +42,7 @@ class TestTemplates(TestCase):
         assert response.body == '<html xmlns="http://www.w3.org/1999/xhtml"><body><h1>It works!</h1></body></html>'
     
     def test_tuple(self):
+        """Test """
         response = Request.blank('/tuple').get_response(self.app)
         
         assert response.status == "200 OK"

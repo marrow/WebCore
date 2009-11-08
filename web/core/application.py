@@ -30,14 +30,14 @@ class Application(object):
     """
     
     def __init__(self, root=None, config=dict()):
+        self.app = self
         self.root = root
         self.config = config
         
-        from web.core import config
-        config.update(config)
+        web.core.config = config
         
-        if not isinstance(self.root, Dialect):
-            raise TypeError('Root controller must be dialect subclass.')
+        if not isinstance(self.root, Dialect) and not callable(self.root):
+            raise TypeError('Root controller must be dialect subclass or executable.')
     
     @classmethod
     def middleware(cls):
@@ -99,18 +99,21 @@ class Application(object):
             log.debug("Loading root controller from '%s'.", root)
             root = get_dotted_object(root)
         
-        if not issubclass(root, Dialect) and not callable(root):
-            raise ValueError("The root controller must be defined using package dot-colon-notation or direct reference and must be either a WSGI app or Dialect.")
-        
         if isinstance(root, type):
             root = root()
+        
+        if not isinstance(root, Dialect) and not callable(root):
+            raise ValueError("The root controller must be defined using package dot-colon-notation or direct reference and must be either a WSGI app or Dialect.")
         
         config['web.root'] = root
         
         app = cls(root, config)
+        base_app = app
         
         for mware in cls.middleware():
             app = mware(app, config)
+        
+        base_app.app = app
         
         log.info("YAPWF WSGI middleware stack ready.")
         
@@ -119,10 +122,12 @@ class Application(object):
     def __call__(self, environment, start_response):
         import web.core, web.utils
         
+        environment['web.app'] = self.app
+        
         try:
             if environment.has_key('paste.registry'):
                 environment['paste.registry'].register(web.core.request, Request(environment))
-                environment['paste.registry'].register(web.core.response, Response())
+                environment['paste.registry'].register(web.core.response, Response(request=web.core.request))
                 
                 if environment.has_key('beaker.cache'):
                     environment['paste.registry'].register(web.core.cache, environment['beaker.cache'])
@@ -144,17 +149,23 @@ class Application(object):
         except web.core.http.HTTPException, e:
             return e(environment, start_response)
         
+        if isinstance(content, Response):
+            return content(environment, start_response)
+        
+        if not isinstance(self.root, Dialect):
+            return content
+        
         if isinstance(content, list) or isinstance(content, types.GeneratorType):
             web.core.response.app_iter = content
             return web.core.response(environment, start_response)
-        
+    
         if not isinstance(content, basestring):
             return content
-        
+    
         if isinstance(content, unicode):
             web.core.response.unicode_body = content
-        
+    
         else:
             web.core.response.body = content
-        
+    
         return web.core.response(environment, start_response)
