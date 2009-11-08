@@ -58,16 +58,6 @@ class middleware(object):
 
 
 @middleware('templating')
-def buffet(app, config):
-    # Automatically use Buffet templating engines unless explicitly forbidden.
-    if not defaultbool(config.get('web.templating', False), ['buffet']):
-        return app
-    
-    log.debug("Loading Buffet template engine middleware.")
-    return TemplatingMiddleware(app, config)
-
-
-@middleware('templating')
 def templateinterface(app, config):
     # Automatically use TemplateInterface templating engines unless explicitly forbidden.
     if not defaultbool(config.get('web.templating', True), ['templateinterface']):
@@ -91,8 +81,6 @@ def templateinterface(app, config):
     except ImportError: # pragma: no cover
         log.error("TemplateMiddleware not installed; your application is not likely to work.")
         raise
-    
-    return app
 
 
 @middleware('widgets', after="templating")
@@ -109,8 +97,6 @@ def toscawidgets(app, config):
     
     except ImportError: # pragma: no cover
         log.warn("ToscaWidgets not installed, widget framework disabled.  You can remove this warning by explicitly defining widgets=False in your config.")
-    
-    return app
 
 
 @middleware('authentication', after="widgets")
@@ -132,8 +118,6 @@ def authkit(app, config):
     
     except ImportError: # pragma: no cover
         log.warn("AuthKit not installed, authentication and authorization disabled.  Your authorization checks, if any, will fail.")
-    
-    return app
 
 
 @middleware('database', after="widgets")
@@ -181,8 +165,6 @@ def database(app, config):
     except:
         log.exception("Database connections not available.")
         raise
-    
-    return app
 
 
 @middleware('configuration', after=["sessions", "i18n"])
@@ -212,8 +194,6 @@ def sessions(app, config):
     
     except ImportError: # pragma: no cover
         log.warn("Beaker not installed, sessions and caching disabled.  You can remove this warning by specifying web.session=False in your config.")
-    
-    return app
 
 
 @middleware('debugging', after=["sessions", "configuration"])
@@ -236,8 +216,6 @@ def debugging(app, config):
     
     except ImportError: # pragma: no cover
         log.warn("WebError not installed, interactive exception handling and messaging disabled.  You can remove this warning by specifying web.debugging=False in your config.")
-    
-    return app
 
 
 @middleware('registry', after="debugging")
@@ -324,8 +302,6 @@ def profiling(app, config):
     
     except ImportError: # pragma: no cover
         log.error("Repoze profiling middleware not installed.")
-    
-    return app
 
 
 
@@ -337,6 +313,16 @@ from web.utils.object import DottedFileNameFinder
 
 _engines = dict((_engine.name, _engine) for _engine in pkg_resources.iter_entry_points('python.templating.engines'))
 _lookup = web.utils.object.DottedFileNameFinder()
+
+
+@middleware('templating')
+def buffet(app, config):
+    # Automatically use Buffet templating engines unless explicitly forbidden.
+    if not defaultbool(config.get('web.templating', False), ['buffet']):
+        return app
+    
+    log.debug("Loading Buffet template engine middleware.")
+    return TemplatingMiddleware(app, config)
 
 
 class DottedFileNameFinder(object):
