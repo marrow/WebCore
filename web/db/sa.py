@@ -62,33 +62,25 @@ class SQLAlchemyMiddleware(object):
                     twophase = asbool(self.config.get('%s.twophase' % (self.prefix, ), False))
                 )))
         
-        try:
-            return self.application(environ, start_response)
+        result = self.application(environ, start_response)
         
-        except web.core.http.HTTPError:
-            log.exception("Rolling back database session due to internal error.")
+        status = web.core.response.status_int
+        
+        if status >= 400:
+            log.warn("Rolling back database session due to unknown error.")
             self.session.rollback()
-            raise
+            return result
+
+        log.debug("Committing database session.")
+        # If we still have a session, commit.
+        self.session.commit()
         
-        except web.core.http.HTTPOk, web.core.http.HTTPRedirection:
-            log.exception("Committing database session for safe HTTP exception.")
-            self.session.commit()
-            raise
+        # Optionally clear the cache.
+        if not self.config.get('%s.cache' % (self.prefix, ), True):
+            self.session.expunge_all()
+        self.session.close()
         
-        except:
-            log.exception("Rolling back database session due to unknown error.")
-            self.session.rollback()
-            raise
-        
-        finally:
-            log.debug("Committing database session.")
-            # If we still have a session, commit.
-            self.session.commit()
-            
-            # Optionally clear the cache.
-            if not self.config.get('%s.cache' % (self.prefix, ), True):
-                self.session.expunge_all()
-            self.session.close()
+        return result
     
     def populate_table(self, action, table, bind):
         session = scoped_session(sessionmaker(
@@ -100,7 +92,7 @@ class SQLAlchemyMiddleware(object):
         try:
             self.model.populate(session, table.name)
         
-        except:
+        except: # pragma: no cover
             session.rollback()
             raise
         

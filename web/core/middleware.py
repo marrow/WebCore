@@ -196,7 +196,7 @@ def sessions(app, config):
         log.warn("Beaker not installed, sessions and caching disabled.  You can remove this warning by specifying web.session=False in your config.")
 
 
-@middleware('debugging', after=["sessions", "configuration"])
+@middleware('debugging', after=["database", "sessions", "configuration"])
 def debugging(app, config):
     if not defaultbool(config.get('web.debug', True), ['weberror']):
         return app
@@ -240,11 +240,11 @@ def static(app, config):
     
     if path is None:
         # Attempt to discover the path automatically.
-        log.info(config['web.root'].__module__)
-        
         module = __import__(config['web.root'].__module__)
         parts = config['web.root'].__module__.split('.')[1:]
         path = module.__file__
+        
+        if not parts: parts = ['.']
         
         while parts:
             # Search up the package tree, in case this is an application in a sub-module.
@@ -258,6 +258,7 @@ def static(app, config):
             if os.path.isdir(path):
                 break
             
+            if parts[0] == '.': break
             module = getattr(module, parts.pop(0))
             path = module.__file__
     

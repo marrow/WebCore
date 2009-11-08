@@ -147,6 +147,7 @@ class Application(object):
                 content = self.root(environment, start_response)
         
         except web.core.http.HTTPException, e:
+            environment['paste.registry'].register(web.core.response, e)
             return e(environment, start_response)
         
         if isinstance(content, Response):
