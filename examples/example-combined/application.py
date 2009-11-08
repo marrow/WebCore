@@ -37,7 +37,7 @@ if __name__ == '__main__':
     app = Application.factory(root=RootController, debug=False, **{
             'web.buffet': False,
             'web.widgets': False,
-            'web.beaker': False,
+            'web.sessions': False,
             'web.profile': False,
             'web.static': False,
             'web.compress': False

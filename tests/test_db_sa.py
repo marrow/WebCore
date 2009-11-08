@@ -33,7 +33,7 @@ class RootController(PlainController):
         raise web.core.http.HTTPNoContent()
 
 
-test_config = {'debug': True, 'web.widgets': False, 'web.beaker': False, 'web.compress': False, 'web.static': False,
+test_config = {'debug': True, 'web.widgets': False, 'web.sessions': False, 'web.compress': False, 'web.static': False,
     'db.connections': 'test', 'db.test.engine': 'sqlalchemy', 'db.test.model': RootController.__module__, 'db.test.cache': False, 'db.test.sqlalchemy.url': 'sqlite:///:memory:'}
 
 

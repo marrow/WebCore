@@ -31,7 +31,7 @@ class RootController(PlainController):
     test = Hello()
 
 
-test_config = {'debug': True, 'web.widgets': False, 'web.beaker': False, 'web.compress': False, 'web.static': False}
+test_config = {'debug': True, 'web.widgets': False, 'web.sessions': False, 'web.compress': False, 'web.static': False}
 
 
 class TestRESTfulDispatch(WebTestCase):

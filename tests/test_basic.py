@@ -10,7 +10,7 @@ from web.core import Application
 from common import PlainController, WebTestCase
 
 
-test_config = {'debug': True, 'web.widgets': False, 'web.beaker': False, 'web.compress': False, 'web.static': False}
+test_config = {'debug': True, 'web.widgets': False, 'web.compress': False, 'web.static.path': '/tmp'}
 
 
 class TestApplication(TestCase):
