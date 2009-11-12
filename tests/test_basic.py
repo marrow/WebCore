@@ -103,7 +103,7 @@ class TestBasicDispatch(WebTestCase):
         self.assertResponse('/nex', '404 Not Found', 'text/html', body='404 Not Found\n\nThe resource could not be found.\n\n   ')
     
     def test_private(self):
-        self.assertResponse('/_private', '404 Not Found', 'text/html')
+        self.assertResponse('/_private', '403 Forbidden', 'text/html')
     
     def test_explicit_response(self):
         self.assertResponse('/explicit', '200 OK', 'text/html', body="hello")

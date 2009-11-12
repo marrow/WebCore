@@ -15,12 +15,6 @@ test_config = {
         'web.compress': True,
         'web.profile': True,
         
-        'web.auth': True,
-        'web.auth.enable': True,
-        'web.auth.setup.method': 'form, cookie',
-        'web.auth.form.authenticate.user.data': 'visitor:open_sesame',
-        'web.auth.cookie.secret': 'magical wiki',
-        
         'web.static': True,
         'web.static.path': '/tmp'
     }
