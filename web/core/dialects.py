@@ -127,6 +127,9 @@ class Controller(Dialect):
                 request.path_info = '/' + '/'.join(remaining) + ('/' if request.path.endswith('/') else '')
                 continue
             
+            if protected:
+                raise web.core.http.HTTPForbidden()
+            
             raise web.core.http.HTTPNotFound()
     
     def __before__(self, *args, **kw):
