@@ -68,13 +68,7 @@ def templateinterface(app, config):
     try:
         from cti.middleware import TemplatingMiddleware, registry
         
-        registry.append(dict(
-                web = web.utils.dictionary.adict(
-                        request = web.core.request,
-                        response = web.core.response,
-                        session = web.core.session
-                    )
-            ))
+        registry.append(web.core.namespace)
         
         return TemplatingMiddleware(app, config)
     
@@ -100,9 +94,24 @@ def toscawidgets(app, config):
 
 
 @middleware('authentication', after="widgets")
+def webauth(app, config):
+    # Use WebAuth (WebCore) authentication and authorization.
+    if not defaultbool(config.get('web.auth', False), ['webauth']):
+        return app
+    
+    log.debug("Loading WebAuth middleware.")
+    
+    from web.auth.middleware import WebAuth
+    app = WebAuth(app, config, prefix="web.auth.")
+    
+    return app
+    
+
+
+@middleware('authentication', after="widgets")
 def authkit(app, config):
     # Use AuthKit if requested.
-    if not defaultbool(config.get('web.auth', False), ['authkit']):
+    if not config.get('web.auth', False) == 'authkit':
         config.update({'web.auth.enabled': False})
         return app
     
@@ -120,7 +129,7 @@ def authkit(app, config):
         log.warn("AuthKit not installed, authentication and authorization disabled.  Your authorization checks, if any, will fail.")
 
 
-@middleware('database', after="widgets")
+@middleware('database', after=["widgets", "authentication"])
 def database(app, config):
     # Determine if a database engine has been requested, and load the appropriate middleware.
     if not config.get('db.connections', None):
@@ -137,7 +146,7 @@ def database(app, config):
                     engine = web.utils.object.get_dotted_object(engine)
                 
                 else:
-                    engine = pkg_resources.load_entry_point('YAPWF', 'yapwf.db.engines', engine)
+                    engine = pkg_resources.load_entry_point('WebCore', 'webcore.db.engines', engine)
             
             except:
                 log.exception("Unable to load engine middleware: %r.", engine)
@@ -176,7 +185,7 @@ def configuration(app, config):
     return ConfigMiddleware(app, config)
 
 
-@middleware('sessions', after=["widgets", "i18n"])
+@middleware('sessions', after=["authentication", "widgets", "i18n"])
 def sessions(app, config):
     if not defaultbool(config.get('web.sessions', True), ['beaker']):
         return app
@@ -283,7 +292,7 @@ def compression(app, config):
     return GzipMiddleware(app, compress_level=asint(config.get('web.compress.level', 6)))
 
 
-@middleware('profiling', after="*")
+@middleware('profiling', after="compression")
 def profiling(app, config):
     if not defaultbool(config.get('web.profile', False), ['repoze']):
         return app
@@ -303,6 +312,7 @@ def profiling(app, config):
     
     except ImportError: # pragma: no cover
         log.error("Repoze profiling middleware not installed.")
+
 
 
 

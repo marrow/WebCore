@@ -26,3 +26,13 @@ cache = StackedObjectProxy(name="cache")
 session = StackedObjectProxy(name="session")
 
 translator = StackedObjectProxy(name="translator")
+
+namespace = dict(
+        web = adict(
+                request = request,
+                response = response,
+                cache = cache,
+                session = session,
+                i18n = translator
+            )
+    )
