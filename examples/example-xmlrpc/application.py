@@ -1,7 +1,7 @@
 #!/usr/bin/env python2.5
 # encoding: utf-8
 
-"""Basic XML-RPC service for YAPWF.
+"""Basic XML-RPC service for WebCore.
 
 The classic "hello world" example, and simple mathematical formulae.
 """

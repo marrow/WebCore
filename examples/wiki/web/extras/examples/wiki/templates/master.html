@@ -34,8 +34,6 @@
             .colophon p { margin: 0; }
             
             pre { padding: 1em; border: 1px solid #ddd; background-color: #eee; }
-            
-            .modify-article 
         </style>
         
         <meta py:replace="select('*')" />
@@ -43,14 +41,14 @@
     
     <body py:match="body" py:attrs="select('@*')">
         <div class="header">
-            <h1><a href="/WikiHome" alt="Home">YAPWF Wiki</a></h1>
+            <h1><a href="/WikiHome" alt="Home">WebCore Wiki</a></h1>
         </div>
         
         <div py:replace="select('*|text()')"/>
         
         <div class="colophon">
             <p>
-                Powered by <a href="http://www.yapwf.org/">Yet Another Python Web Framework</a>.
+                Powered by <a href="http://www.web-core.org/">WebCore</a>.
             </p>
         </div>
     </body>

@@ -1,7 +1,7 @@
 #!/usr/bin/env python2.5
 # encoding: utf-8
 
-"""Combined HTML and XML-RPC service for YAPWF.
+"""Combined HTML and XML-RPC service for WebCore.
 
 The classic "hello world" example on drugs.
 """

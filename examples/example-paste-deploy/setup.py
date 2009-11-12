@@ -1,9 +1,9 @@
 from setuptools import setup, find_packages
 
 setup(
-        name = "YAPWF-Example-Deploy",
+        name = "WebCore-Example-Deploy",
         version = "0.1",
-        description = "An example of YAPWF using Paste Deploy configuration files.",
+        description = "An example of WebCore using Paste Deploy configuration files.",
         author = "Alice Bevan-McGregor",
         author_email = "alice@gothcandy.com",
         license = "MIT",

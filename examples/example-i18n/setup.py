@@ -1,9 +1,9 @@
 from setuptools import setup, find_packages
 
 setup(
-        name = "YAPWF-Example-i18n",
+        name = "WebCore-Example-i18n",
         version = "0.1",
-        description = "An example of YAPWF using Paste Deploy configuration files.",
+        description = "An example of WebCore using Paste Deploy configuration files.",
         author = "Alice Bevan-McGregor",
         author_email = "alice@gothcandy.com",
         license = "MIT",
@@ -16,7 +16,7 @@ setup(
                     ]
             },
         zip_safe = False,
-        install_requires = ['YAPWF', 'Babel', 'Beaker', 'Genshi'],
+        install_requires = ['WebCore', 'Babel', 'Beaker', 'Genshi'],
         message_extractors = {
                 'example': [
                         ('**.py', 'python', None),
@@ -24,5 +24,5 @@ setup(
                         ('public/**', 'ignore', None)
                     ]
             },
-        paster_plugins = ['PasteScript', 'YAPWF']
+        paster_plugins = ['PasteScript', 'WebCore']
     )

@@ -1,12 +1,12 @@
-# German translations for YAPWF-Example-i18n.
+# German translations for WebCore-Example-i18n.
 # Copyright (C) 2009 ORGANIZATION
-# This file is distributed under the same license as the YAPWF-Example-i18n
+# This file is distributed under the same license as the WebCore-Example-i18n
 # project.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2009.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: YAPWF-Example-i18n 0.1\n"
+"Project-Id-Version: WebCore-Example-i18n 0.1\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2009-10-11 21:55+0700\n"
 "PO-Revision-Date: 2009-10-11 22:01-0700\n"
