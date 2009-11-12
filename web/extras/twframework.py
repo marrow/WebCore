@@ -4,6 +4,6 @@ from tw.mods.base import HostFramework
 
 
 
-class YAPWFHostFramework(HostFramework):
+class WebCoreHostFramework(HostFramework):
     def url(self, url):
         return ''.join([self.request_local.environ['toscawidgets.prefix'], url])
