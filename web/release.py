@@ -1,16 +1,16 @@
 # encoding: utf-8
 
-"""Release information about YAPWF."""
+"""Release information about WebCore."""
 
 
-name = "YAPWF"
+name = "WebCore"
 version = "0.1"
 
-summary = "Yet another Python web framework."
+summary = "A full-stack, light-weight and efficient web development framework."
 description = """"""
 author = "Alice Bevan-McGregor"
-email = "alice+yapwf@gothcandy.com"
-url = "http://github.com/GothAlice/YAPWF/"
-download_url = "http://cheeseshop.python.org/pypi/YAPWF/"
+email = "alice@gothcandy.com"
+url = "http://www.web-core.org/"
+download_url = "http://cheeseshop.python.org/pypi/WebCore/"
 copyright = "© 2009 Alice Bevan-McGregor"
 license = "MIT"

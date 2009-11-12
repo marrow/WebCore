@@ -73,13 +73,13 @@ setup(
                 'paste.paster_command': [
                         'shell = web.commands.shell:ShellCommand'
                     ],
-                'yapwf.command': [
+                'webcore.command': [
                         'shell = web.commands.shell:ShellCommand'
                     ],
                 'toscawidgets.host_frameworks': [
-                        'yapwf = web.extras.twframework:YAPWFHostFramework'
+                        'webcore = web.extras.twframework:WebCoreHostFramework'
                     ],
-                'yapwf.db.engines': [
+                'webcore.db.engines': [
                         'sqlalchemy = web.db.sa:SQLAlchemyMiddleware',
                         'mongo = web.db.mongo:MongoMiddleware'
                     ]

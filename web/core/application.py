@@ -84,7 +84,7 @@ class Application(object):
         """Build a full-stack framework around this WSGI application."""
         
         log = __import__('logging').getLogger(__name__ + ':factory')
-        log.info("Preparing YAPWF WSGI middleware stack.")
+        log.info("Preparing WebCore WSGI middleware stack.")
         
         from web.core import Controller
         from web.utils.object import get_dotted_object
@@ -115,7 +115,7 @@ class Application(object):
         
         base_app.app = app
         
-        log.info("YAPWF WSGI middleware stack ready.")
+        log.info("WebCore WSGI middleware stack ready.")
         
         return app
     

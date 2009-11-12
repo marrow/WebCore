@@ -42,7 +42,7 @@ class ShellCommand(Command):
 
     min_args = 0
     max_args = 2
-    group_name = 'yapwf'
+    group_name = 'webcore'
 
     parser = Command.standard_parser(simulate=True)
     parser.add_option('-d', '--disable-ipython', action='store_true', dest='disable_ipython', help="Don't use IPython if it is available")
@@ -90,7 +90,7 @@ class ShellCommand(Command):
         
         paste.registry.restorer.restoration_begin(request_id)
         
-        locs = dict(__name__="yapwf-admin", application=wsgiapp, test=test_app)
+        locs = dict(__name__="webcore-admin", application=wsgiapp, test=test_app)
         
         exec 'import web' in locs
         exec 'from web.core import http, Controller, request, response, cache, session' in locs
@@ -99,7 +99,7 @@ class ShellCommand(Command):
             execfile(self.args[1], {}, locs)
             return
         
-        banner = "Welcome to the YAPWF shell."
+        banner = "Welcome to the WebCore shell."
         
         try:
             if self.options.disable_ipython:
@@ -118,7 +118,7 @@ class ShellCommand(Command):
         except ImportError:
             import code
             py_prefix = sys.platform.startswith('java') and 'J' or 'P'
-            newbanner = "YAPWF Interactive Shell\n%sython %s\n\n" % (py_prefix, sys.version)
+            newbanner = "WebCore Interactive Shell\n%sython %s\n\n" % (py_prefix, sys.version)
             banner = newbanner + banner
             shell = code.InteractiveConsole(locals=locs)
             try:

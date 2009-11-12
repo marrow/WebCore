@@ -1,3 +1,23 @@
-Yet Another Python Web Framework
+h1. WebCore
 
-A light-weight, extremely fast, and Pythonic pure WSGI web framework based on Paste.
+bq. A lightweight and extremely fast Python web framework.
+
+h2. Core Features
+
+* *Extreme performance.* Benchmarked on the same system, WebCore is 2-10 times faster than other frameworks on a bare-bones "Hello World" test, while offering the same core features.
+
+* *Everything you need, out of the box.* Sessions, authentication, database, JSON, internationalization, form generation, templating, and more, without locking you into any given component. _Use as much or as little as you want._
+
+* *Makes complex things easy.* From multiple database connections to dynamic template selection, many of WebCore's features were taken directly from community discussion.
+
+* *Follows the Zen of Python.* WebCore follows all of the guidelines outlined in the "Zen of Python":http://www.python.org/dev/peps/pep-0020/ as closely as possible. This helps everything just make sense.
+
+* *Rapid web _application_ development.* The web has grown to be more complicated than simple HTML pages and forms. YAPWF includes alternate dialects for things like XML-RPC and Flash AMF to help you develop powerful applications.
+
+* *Simple applications.* WebCore can host an application as simple as a single file, or as complicated as you like.  (We like setuptools packages, though.)
+
+* *Easy to extend, but already covers a lot.* Using namespaces it's easy to create additions that blend in with the core package.
+
+* *Simple installation with few dependancies.* A full stack (sessions, caching, templating, etc.) installs just 10 packages, a light-weight installation installs just 6.
+
+* *Production quality components.* WebCore is built on top of Paste and WebOb, two of the most widely deployed components for the creation of web frameworks in Python.
