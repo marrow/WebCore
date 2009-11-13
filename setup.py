@@ -34,7 +34,8 @@ setup(
                 'PasteDeploy',
                 'PasteScript',
                 'WebOb',
-                'WebError'
+                'WebError',
+                'TemplateInterface'
             ],
         
         test_suite = 'nose.collector',
