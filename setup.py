@@ -3,6 +3,9 @@
 
 import sys, os
 
+from distribute_setup import use_setuptools
+use_setuptools()
+
 from setuptools import setup, find_packages
 
 
@@ -28,8 +31,8 @@ setup(
         
         install_requires = [
                 'Paste',
-                'PasteScript',
                 'PasteDeploy',
+                'PasteScript',
                 'WebOb',
                 'WebError'
             ],
