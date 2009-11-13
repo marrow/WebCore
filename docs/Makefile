@@ -30,59 +30,64 @@ clean:
 	-rm -rf build/*
 
 html:
+	@mkdir -p build/html
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) build/html
 	@echo
 	@echo "Build finished. The HTML pages are in build/html."
 
 dirhtml:
+	@mkdir -p build/dirhtml
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) build/dirhtml
 	@echo
 	@echo "Build finished. The HTML pages are in build/dirhtml."
 
 pickle:
+	@mkdir -p build/pickle
 	$(SPHINXBUILD) -b pickle $(ALLSPHINXOPTS) build/pickle
 	@echo
 	@echo "Build finished; now you can process the pickle files."
 
 json:
+	@mkdir -p build/json
 	$(SPHINXBUILD) -b json $(ALLSPHINXOPTS) build/json
 	@echo
 	@echo "Build finished; now you can process the JSON files."
 
 htmlhelp:
+	@mkdir -p build/htmlhelp
 	$(SPHINXBUILD) -b htmlhelp $(ALLSPHINXOPTS) build/htmlhelp
 	@echo
-	@echo "Build finished; now you can run HTML Help Workshop with the" \
-	      ".hhp project file in build/htmlhelp."
+	@echo "Build finished; now you can run HTML Help Workshop with the .hhp project file in build/htmlhelp."
 
 qthelp:
+	@mkdir -p build/qthelp
 	$(SPHINXBUILD) -b qthelp $(ALLSPHINXOPTS) build/qthelp
 	@echo
-	@echo "Build finished; now you can run "qcollectiongenerator" with the" \
-	      ".qhcp project file in build/qthelp, like this:"
-	@echo "# qcollectiongenerator build/qthelp/YAPWF.qhcp"
+	@echo "Build finished; now you can run "qcollectiongenerator" with the .qhcp project file in build/qthelp, like this:"
+	@echo "# qcollectiongenerator build/qthelp/WebCore.qhcp"
 	@echo "To view the help file:"
-	@echo "# assistant -collectionFile build/qthelp/YAPWF.qhc"
+	@echo "# assistant -collectionFile build/qthelp/WebCore.qhc"
 
 latex:
+	@mkdir -p build/latex
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) build/latex
 	@echo
 	@echo "Build finished; the LaTeX files are in build/latex."
-	@echo "Run \`make all-pdf' or \`make all-ps' in that directory to" \
-	      "run these through (pdf)latex."
+	@echo "Run \`make all-pdf' or \`make all-ps' in that directory to run these through (pdf)latex."
 
 changes:
+	@mkdir -p build/changes
 	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) build/changes
 	@echo
 	@echo "The overview file is in build/changes."
 
 linkcheck:
+	@mkdir -p build/linkcheck
 	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) build/linkcheck
 	@echo
-	@echo "Link check complete; look for any errors in the above output " \
-	      "or in build/linkcheck/output.txt."
+	@echo "Link check complete; look for any errors in the above output or in build/linkcheck/output.txt."
 
 doctest:
+	@mkdir -p build/doctest
 	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) build/doctest
-	@echo "Testing of doctests in the sources finished, look at the " \
-	      "results in build/doctest/output.txt."
+	@echo "Testing of doctests in the sources finished, look at the results in build/doctest/output.txt."

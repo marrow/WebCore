@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# YAPWF documentation build configuration file, created by
+# WebCore documentation build configuration file, created by
 # sphinx-quickstart on Fri Jun 12 12:45:34 2009.
 #
 # This file is execfile()d with the current directory set to its containing dir.
@@ -38,7 +38,7 @@ source_encoding = 'utf-8'
 master_doc = 'index'
 
 # General information about the project.
-project = u'YAPWF'
+project = u'WebCore'
 copyright = u'2009, Alice Bevan-McGregor'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -159,7 +159,7 @@ html_static_path = ['_static']
 #html_file_suffix = ''
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'YAPWFdoc'
+htmlhelp_basename = 'WebCore-Doc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -173,7 +173,7 @@ latex_font_size = '10pt'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'YAPWF.tex', u'YAPWF Documentation', u'Alice Bevan-McGregor', 'manual'),
+  ('index', 'WebCore.tex', u'WebCore Documentation', u'Alice Bevan-McGregor', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

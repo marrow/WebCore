@@ -1,21 +1,35 @@
-Yet Another Python Web Framework
-================================
+WebCore
+=======
 
-It's that time again; yet another Python web framework has been created to add to the growing collection.  YAPWF primary goals are to be fast, efficient, and as Pythonic as possible, and is entirely written as a simple (or full-stack) :term:`WSGI` application with middleware.
+A lightweight and extremely fast Python web framework.  WebCore is based on the :term:`WSGI` standard and is comprised of the WebCore WSGI application, multiple middleware layers when operating "full-stack", and a front-end WSGI server of your choice.
 
-Using YAPWF
-===========
+Table of Contents
+=================
 
 .. toctree::
    :maxdepth: 2
    
-   core/GettingYAPWF
-   
-   core/NewProject
-   
-   examples/Wiki/index
+   core/basic/index
 
-Indices and tables
+.. toctree::
+   :maxdepth: 2
+
+   core/intermediate/index
+
+.. toctree::
+   :maxdepth: 2
+
+   core/advanced/index
+
+Tutorials
+=========
+
+.. toctree::
+   :maxdepth: 1
+
+   tutorial/wiki/index
+
+Indices and Tables
 ==================
 
 * :ref:`genindex`
@@ -28,4 +42,6 @@ Glossary
 .. glossary::
 
     WSGI
-        Web Server Gateway Interface
+        Web Server Gateway Interface, defined by `Python PEP 333`_ (Python Web Server Gateway Interface v1.0).
+
+.. _Python PEP 333: http://www.python.org/dev/peps/pep-0333/

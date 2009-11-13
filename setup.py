@@ -58,6 +58,10 @@ setup(
         
         packages = find_packages(exclude=['ez_setup', 'examples', 'tests', 'tests.*', 'docs']),
         include_package_data = True,
+        package_data = {
+                '': ['README.textile', 'LICENSE'],
+                'docs': ['Makefile', 'source/*']
+            },
         zip_safe = True,
         
         namespace_packages = [

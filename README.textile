@@ -21,3 +21,4 @@ h2. Core Features
 * *Simple installation with few dependancies.* A full stack (sessions, caching, templating, etc.) installs just 10 packages, a light-weight installation installs just 6.
 
 * *Production quality components.* WebCore is built on top of Paste and WebOb, two of the most widely deployed components for the creation of web frameworks in Python.
+
