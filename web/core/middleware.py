@@ -79,15 +79,24 @@ def templateinterface(app, config):
 
 @middleware('widgets', after="templating")
 def toscawidgets(app, config):
-    # Automatically use ToscaWidgets unless explicitly forbidden (or simply not found).
-    if not defaultbool(config.get('web.widgets', True), ['toscawidgets']):
+    if not defaultbool(config.get('web.widgets', False), ['toscawidgets']):
         return app
     
     try:
         from tw.api import make_middleware as ToscaWidgetsMiddleware
         
+        twconfig = {
+                'toscawidgets.framework': 'webcore',
+                'toscawidgets.framework.default_view': config.get('web.templating.engine', 'genshi'),
+                'toscawidgets.framework.enable_runtime_checks': config.get('debug', False),
+                'toscawidgets.middleware.prefix': config.get('web.widgets.prefix', '/_tw'),
+                'toscawidgets.middleware.inject_resources': config.get('web.widgets.inject', True),
+                'toscawidgets.middleware.serve_resources': config.get('web.widgets.serve', True)
+            }
+        
+        
         log.debug("Loading ToscaWidgets middleware.")
-        return ToscaWidgetsMiddleware(app, config)
+        return ToscaWidgetsMiddleware(app, twconfig)
     
     except ImportError: # pragma: no cover
         log.warn("ToscaWidgets not installed, widget framework disabled.  You can remove this warning by explicitly defining widgets=False in your config.")
@@ -187,25 +196,64 @@ def configuration(app, config):
 
 @middleware('sessions', after=["authentication", "widgets", "i18n"])
 def sessions(app, config):
-    if not defaultbool(config.get('web.sessions', True), ['beaker']):
+    if not defaultbool(config.get('web.sessions', False), ['beaker']):
         return app
     
-    # Automatically use beaker-supplied services unless explicitly forbidden (or simply not found).
     try:
-        from beaker.middleware import SessionMiddleware, CacheMiddleware
+        from beaker.middleware import SessionMiddleware
         
-        beakerconfig = {} # 'session.type': "file"
-        beakerconfig.update(config)
+        beakerconfig = {
+                'session.type': "file",
+                'session.key': "session"
+            }
+        
+        for i, j in config:
+            if i.startswith('web.sessions.'):
+                beakerconfig['session.' + i[13:]] = j
+        
+        if 'session.cookie_expires' in beakerconfig and isinstance(beakerconfig['session.cookie_expires'], basestring):
+            value = beakerconfig['session.cookie_expires']
+            if value.lower() in ['yes', 'on', 'true']:
+                beakerconfig['session.cookie_expires'] = True
+            elif value.lower() in ['no', 'off', 'false']:
+                beakerconfig['session.cookie_expires'] = False
+            else:
+                # Try to treat it as a number of minutes...
+                from datetime import timedelta
+                beakerconfig['session.cookie_expires'] = timedelta(minutes=int(value))
         
         log.debug("Loading Beaker session and cache middleware.")
-        bapp = SessionMiddleware(app, beakerconfig)
-        return CacheMiddleware(bapp, beakerconfig)
+        return SessionMiddleware(app, beakerconfig)
     
     except ImportError: # pragma: no cover
-        log.warn("Beaker not installed, sessions and caching disabled.  You can remove this warning by specifying web.session=False in your config.")
+        log.warn("Beaker not installed, sessions disabled.  You can remove this warning by specifying web.sessions = False in your config.")
 
 
-@middleware('debugging', after=["database", "sessions", "configuration"])
+@middleware('caching', after=["sessions"])
+def caching(app, config):
+    if not defaultbool(config.get('web.sessions', False), ['beaker']):
+        return app
+    
+    try:
+        from beaker.middleware import CacheMiddleware
+        
+        beakerconfig = {
+                'cache.type': "file"
+            }
+        
+        for i, j in config:
+            if i.startswith('web.cache.'):
+                beakerconfig['cache.' + i[11:]] = j
+        
+        log.debug("Loading Beaker cache middleware.")
+        return CacheMiddleware(app, beakerconfig)
+    
+    except ImportError: # pragma: no cover
+        log.warn("Beaker not installed, caching disabled.  You can remove this warning by specifying web.cache = False in your config.")
+    
+
+
+@middleware('debugging', after=["database", "caching", "sessions", "configuration"])
 def debugging(app, config):
     if not defaultbool(config.get('web.debug', True), ['weberror']):
         return app
@@ -224,7 +272,7 @@ def debugging(app, config):
             return ErrorMiddleware(app, config)
     
     except ImportError: # pragma: no cover
-        log.warn("WebError not installed, interactive exception handling and messaging disabled.  You can remove this warning by specifying web.debugging=False in your config.")
+        log.warn("WebError not installed, interactive exception handling and messaging disabled.  You can remove this warning by specifying web.debugging = False in your config.")
 
 
 @middleware('registry', after="debugging")
