@@ -86,7 +86,7 @@ You'll need a working version of the GCC compiler installed, as well as the Pyth
 Installation using the Bootstrap Script
 =======================================
 
-Download http://www.web-core.org/webcore-bootstrap.py and run it from a command prompt.  The bootstrap script accepts the same arguments as the ``virtualenv`` command, and defaults to using the ``--distribute`` and ``--no-site-packages`` options.  Pass the name of your desired virtual environment as the last argument.
+Download http://www.web-core.org/webcore-bootstrap.py and run it from a command prompt.  The bootstrap script accepts the same arguments as the ``virtualenv`` command, and defaults to using the ``--distribute`` and ``--no-site-packages`` options.  Pass the name of your desired virtual environment as the last argument.  Additionally, the ``WebCore-Start`` package will be installed unless you pass the ``--production`` argument.
 
 For example:
 
@@ -266,13 +266,20 @@ Tell distribute to use these versions that you have just cloned:
 
 
 Validate an Installation
-------------------------
+========================
 
-To check if you installed WebCore correctly, type
+To check if you installed WebCore correctly, type:
 
 .. code-block:: bash
 
-    (core)$ paster --help
+   (core)$ python -c 'print __import__("web.release").release.version'
+   0.1
+
+If you installed the WebCore-Start development package, type the following:
+
+.. code-block:: bash
+
+   (core)$ paster --help
 
 and you should see something like::
 
