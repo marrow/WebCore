@@ -3,6 +3,8 @@ Creating a new Web Application
 ******************************
 
 .. contents:: Table of Contents
+   :depth: 2
+   :local:
 
 
 Light-Weight Applications

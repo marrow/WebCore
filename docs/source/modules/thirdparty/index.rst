@@ -7,6 +7,5 @@ Third-party components
 .. toctree::
    :maxdepth: 1
 
-   beaker
    weberror
    

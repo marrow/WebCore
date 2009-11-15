@@ -4,20 +4,26 @@ Installing WebCore
 
 This document provides several methods of installing WebCore; the method you choose will depend on your level of experience and platform.
 
-We recommend installing WebCore into a virtual environment which will prevent any interference with your system's installed packages and won't unknowingly upgrade any Python libraries that your system needs.
+We recommend installing WebCore into a virtual environment which will prevent any interference with your system's installed packages and won't unknowingly upgrade any Python libraries that your system needs.  The bootstrap script (the preferred installation method) will create a virtual environment for you automatically.
 
 If you want to build packages of WebCore for your system please send an email to webcore-devel@webcore.org.
 
 .. contents:: Table of Contents
+   :depth: 2
+   :local:
 
 
 Prerequisites
 =============
 
   1. Python 2.5
-  2. Setuptools
-  3. virtualenv
-  4. Application dependancies
+  2. application dependancies
+
+If you prefer to install WebCore manually, you will additionally require:
+
+  1. distribute
+  2. virtualenv
+
 
 Python
 ------
@@ -32,53 +38,6 @@ If you don't know which version of python you have installed you can find out wi
 
    $ python --version
    Python 2.5.2
-
-
-Installing setuptools
----------------------
-
-On Windows
-^^^^^^^^^^
-
-Download http://peak.telecommunity.com/dist/ez_setup.py and then run it from the command line.
-
-On Unix
-^^^^^^^
-
-.. code-block:: bash
-
-    $ wget http://peak.telecommunity.com/dist/ez_setup.py | sudo python
-
-You may also use your system's package for setuptools, for example, on Gentoo:
-
-.. code-block:: bash
-
-    $ sudo emerge -av setuptools
-
-On Debian or Ubuntu:
-
-.. code-block:: bash
-
-    $ sudo apt-get python-setuptools
-
-
-Additional Packages
--------------------
-
-Most packages are defined as dependancies within your own application, not the framework.  As such, the first time you prepare your web application's build environment (using `setup.py develop`) packages will be automatically downloaded an installed.
-
-Object Relational Mapper Database Layer
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. note:: The installation of the database back-end is a topic outside of the scope of this document.
-
-WebCore uses SQLAlchemy as its default ORM (Object Relational Mapper) layer, although a number of database libraries are supported.  SQLAlchemy maintains excellent documentation on all the `engines supported`_.
-
-.. _engines supported: http://www.sqlalchemy.org/docs/05/reference/dialects/index.html
-
-Cygwin users can't use sqlite as it does not include the necessary binary file (``sqlite3.dll``).  If you want to run Cygwin you'll need to install a different database.
-
-The database layer will be installed automatically
 
 
 Installing non-Python Dependencies
@@ -124,6 +83,32 @@ Other Linux and UNIX
 You'll need a working version of the GCC compiler installed, as well as the Python headers.  
 
 
+Installation using the Bootstrap Script
+=======================================
+
+Download http://www.web-core.org/webcore-bootstrap.py and run it from a command prompt.  The bootstrap script accepts the same arguments as the ``virtualenv`` command, and defaults to using the ``--distribute`` and ``--no-site-packages`` options.  Pass the name of your desired virtual environment as the last argument.
+
+For example:
+
+.. code-block:: bash
+
+   $ wget http://www.web-core.org/webcore-bootstrap.py
+   $ python webcore-bootstrap.py myenv
+
+
+Manual Installation
+===================
+
+Installing distribute
+---------------------
+
+Download http://python-distribute.org/distribute_setup.py and then run it from the command line.
+
+.. code-block:: bash
+
+   $ curl http://python-distribute.org/distribute_setup.py | sudo python
+
+
 Installing virtualenv
 ---------------------
 
@@ -164,38 +149,38 @@ You should see output similar to:
     Processing dependencies for virtualenv
     Finished processing dependencies for virtualenv
 
+
 Installing WebCore
-==================
-
-We provide several methods for installing WebCore which depend on the level of control you want over it:
-
-    1. plain virtualenv
-    2. development version
+------------------
 
 .. hint::
     Please note we are using ``core`` as the name of the virtual environment.  This is simply a convention in our documentation, the name of the virtualenv depends totally on the user and should be named according to the project it contains.
 
-Basic Installation
-------------------
 
-First, ``cd`` to the directory where you want your virtual environment for WebCore. Note the virtualenv will be created as a subdirectory here.
+.. _create_virtualenv:
+
+Create a Virtual Environment
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+First, ``cd`` to the directory where you want your virtual environment for WebCore. The environment will be created as a subdirectory here.
 
 Now create a new virtual environment named ``core``:
 
 .. code-block:: bash
 
-    $ virtualenv --no-site-packages core
+    $ virtualenv --distribute --no-site-packages core
 
 that produces something like this::
 
      Using real prefix '/usr/local'
      New python executable in core/bin/python
-     Installing setuptools............done.
+     Installing distribute............done.
 
 .. _activate_virtualenv:
 
 Activate your virtualenv 
 ^^^^^^^^^^^^^^^^^^^^^^^^
+
 First go inside the virtualenv::
 
     $ cd core
@@ -210,47 +195,44 @@ On Unix you activate a virtualenv with the command:
 
     $ . bin/activate
 
-If you are on Unix your prompt should change to indicate that you're in a virtualenv.
-It will look something like this::
+If you are on Unix your prompt should change to indicate that you're in a virtualenv.  It will look something like this::
 
     (core)username@host:~/core$
 
-The net result of activating your virtualenv is that your PATH variable now points to the tools in `core/bin` and your python will look for libraries in `core/lib`.
+The net result of activating your virtualenv is that your PATH variable now points to the tools in ``core/bin`` and your python will look for libraries in ``core/lib``.
 
 Therefore you need to reactivate your virtualenv every time you want to work on your ``core`` environment. 
 
 Install WebCore
 ^^^^^^^^^^^^^^^
+
 You'll be able to install the latest released version of WebCore via:
 
 .. code-block:: bash
 
-    (core)$ easy_install WebCore WebCore-Start
+    (core)$ pip install WebCore WebCore-Start
 
 .. warning:: If you are upgrading from a previous version your command should be:
 
     .. code-block:: bash
 
-        (core)$ easy_install -U WebCore WebCore-Start
+        (core)$ pip install -U WebCore WebCore-Start
 
 .. note:: In a production environment you probably do not want to install WebCore-Start; simply omit it from this command line.  The WebCore-Start package contains templates used to build new projects.
 
-WebCore and all of its dependencies should download and install themselves.  WebCore offers a few default configurations, if you want the standard group of packages out-of-the-box, you can install using the following command:
+WebCore and all of its dependencies should download and install themselves.
 
-.. code-block:: bash
-
-    (core)$ easy_install WebCore[default] WebCore-Start
-
-This will install WebCore and the following packages: Beaker, simplejson, Genshi, and SQLAlchemy.
 
 Deactivating the Environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 When you are done working simply run the ``deactivate`` virtualenv shell command::
 
     (core)user@host:~/core$ deactivate 
     user@host:~/core$
 
 This isn't really needed but it's good practice if you want to switch your shell to do some other work.
+
 
 Installing the Development Version of WebCore
 ---------------------------------------------
@@ -266,7 +248,7 @@ Getting Git
 Getting the Source
 ^^^^^^^^^^^^^^^^^^
 
-Check out the latest code from the Github repository:
+Check out the latest code from the Github repository into your virtual environment:
 
 .. code-block:: bash
 
@@ -275,7 +257,7 @@ Check out the latest code from the Github repository:
 Installing the Sources
 ^^^^^^^^^^^^^^^^^^^^^^
 
-Tell setuptools to use these versions that you have just cloned:
+Tell distribute to use these versions that you have just cloned:
 
 .. code-block:: bash
 
@@ -285,6 +267,7 @@ Tell setuptools to use these versions that you have just cloned:
 
 Validate an Installation
 ------------------------
+
 To check if you installed WebCore correctly, type
 
 .. code-block:: bash

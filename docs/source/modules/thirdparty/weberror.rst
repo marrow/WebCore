@@ -26,6 +26,12 @@
 .. autoclass:: weberror.evalexception.EvalException
     :members:
 
+:mod:`webob.exc`
+-------------------------
+.. currentmodule:: webob.exc
+.. automodule:: webob.exc
+
+
 :mod:`weberror.formatter`
 -------------------------
 .. currentmodule:: weberror.formatter
