@@ -11,16 +11,6 @@ if sys.version_info <= (2, 5):
 development_packages = ['WebCore-Start']
 production_packages = ['WebCore']
 
-def filter_python_develop(line):
-    if not line.strip():
-        return Logger.DEBUG
-    for prefix in ['Searching for', 'Reading ', 'Best match: ', 'Processing ',
-                   'Moving ', 'Adding ', 'running ', 'writing ', 'Creating ',
-                   'creating ', 'Copying ']:
-        if line.startswith(prefix):
-            return Logger.DEBUG
-    return Logger.NOTIFY
-
 def extend_parser(parser):
     parser.add_option(
             '--production',
