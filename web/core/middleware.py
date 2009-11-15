@@ -207,7 +207,7 @@ def sessions(app, config):
                 'session.key': "session"
             }
         
-        for i, j in config:
+        for i, j in config.iteritems():
             if i.startswith('web.sessions.'):
                 beakerconfig['session.' + i[13:]] = j
         
@@ -241,7 +241,7 @@ def caching(app, config):
                 'cache.type': "file"
             }
         
-        for i, j in config:
+        for i, j in config.iteritems():
             if i.startswith('web.cache.'):
                 beakerconfig['cache.' + i[11:]] = j
         

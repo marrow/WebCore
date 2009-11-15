@@ -4,6 +4,7 @@
 
 """
 
+from web import release
 from web.core.dialects import Dialect, Controller, RESTMethod
 from web.core.application import Application
 from web.utils.dictionary import adict
@@ -33,6 +34,7 @@ namespace = dict(
                 response = response,
                 cache = cache,
                 session = session,
-                i18n = translator
+                i18n = translator,
+                release = release
             )
     )
