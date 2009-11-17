@@ -7,7 +7,12 @@ Table of Contents
 =================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
+   
+   core/installation.rst
+
+.. toctree::
+   :maxdepth: 3
    
    core/basic/index
 
@@ -27,7 +32,8 @@ Tutorials
 .. toctree::
    :maxdepth: 1
 
-   tutorial/wiki/index
+   tutorials/wiki/index
+   tutorials/blog/index
 
 Indices and Tables
 ==================
