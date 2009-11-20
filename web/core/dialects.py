@@ -108,7 +108,7 @@ class Controller(Dialect):
             
             fallback = None
             
-            try: fallback = last.default
+            try: fallback = last.__default__
             except AttributeError: pass
             
             if fallback:
@@ -117,7 +117,7 @@ class Controller(Dialect):
                 remaining, data = last.__before__(*remaining, **data)
                 return last.__after__(fallback(*remaining, **data))
             
-            try: fallback = last.lookup
+            try: fallback = last.__lookup__
             except AttributeError: pass
             
             if fallback:
