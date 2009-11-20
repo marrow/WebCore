@@ -1,3 +1,5 @@
+.. _templating-section:
+
 **************************
 Templating & Serialization
 **************************

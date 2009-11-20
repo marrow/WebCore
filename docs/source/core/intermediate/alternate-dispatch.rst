@@ -1,3 +1,5 @@
+.. _dispatch-section:
+
 *****************************
 Alternate Dispatch Mechanisms
 *****************************

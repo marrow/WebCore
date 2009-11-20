@@ -1,7 +1,7 @@
 .. _core_components:
 
 ===============
-Core components
+Core Components
 ===============
 
 .. toctree::
@@ -9,5 +9,6 @@ Core components
 
    application
    dispatch
+   i18n
    middleware
    

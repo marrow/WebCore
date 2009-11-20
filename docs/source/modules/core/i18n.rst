@@ -1,0 +1,8 @@
+:mod:`web.core.i18n` -- Internationalization
+============================================
+
+.. automodule:: web.core.i18n
+   :members:
+   :undoc-members:
+   :inherited-members:
+   :show-inheritance:

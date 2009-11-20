@@ -1,7 +1,7 @@
-:mod:`web.core.middleware` -- Middleware Stack
+:mod:`web.auth.authkit` -- AuthKit Integration
 ==============================================
 
-.. automodule:: web.core.middleware
+.. automodule:: web.auth.authkit
    :members:
    :undoc-members:
    :inherited-members:

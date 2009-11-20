@@ -1,3 +1,5 @@
+.. _databases-section:
+
 *********
 Databases
 *********
