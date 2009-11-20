@@ -1,6 +1,9 @@
 # encoding: utf-8
 
 """
+The base WSGI application definition.
+
+Applications which use the WebCore framework plug into this base application.
 """
 
 import sys, os, pkg_resources, types
