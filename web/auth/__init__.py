@@ -1,16 +1,15 @@
 # encoding: utf-8
 
-import web
+import web.core
 import webob.exc
 from paste.registry import StackedObjectProxy
 
 import middleware
-import predicates
 
 from predicates import *
 
 
-__all__ = ['middleware', 'config', 'user', 'authenticate', 'deauthenticate', 'authorize'] + predicates.__all__
+__all__ = ['config', 'user', 'authenticate', 'deauthenticate', 'authorize'] + predicates.__all__
 log = __import__('logging').getLogger(__name__)
 
 config = None
