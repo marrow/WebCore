@@ -259,17 +259,23 @@ def debugging(app, config):
         return app
     
     try:
+        localconfig = dict(debug=config.get('debug', False))
+        
+        for i, j in config.iteritems():
+            if i.startswith('debug.'):
+                localconfig[i[6:]] = j
+        
         if asbool(config.get('debug', False)):
             log.debug("Debugging enabled; exceptions raised will display an interactive traceback.")
             
             from weberror.evalexception import EvalException
-            return EvalException(app, config)
+            return EvalException(app, localconfig)
         
         else:
             log.debug("Debugging disabled; exceptions raised will display a 500 error.")
             
             from weberror.errormiddleware import ErrorMiddleware
-            return ErrorMiddleware(app, config)
+            return ErrorMiddleware(app, localconfig)
     
     except ImportError: # pragma: no cover
         log.warn("WebError not installed, interactive exception handling and messaging disabled.  You can remove this warning by specifying web.debugging = False in your config.")
