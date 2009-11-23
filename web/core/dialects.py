@@ -5,7 +5,7 @@ import web.core
 
 
 log = __import__('logging').getLogger(__name__)
-__all__ = ['Application', 'env']
+__all__ = ['Dialect', 'Controller', 'RESTMethod']
 
 
 
