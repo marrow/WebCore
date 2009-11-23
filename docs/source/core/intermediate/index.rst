@@ -9,3 +9,4 @@ Intermediate WebCore Topics
    authentication
    deployment
    widgets
+   i18n

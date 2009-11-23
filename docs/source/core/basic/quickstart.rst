@@ -150,8 +150,30 @@ Now that you have a package, stored in the ``HelloWorld`` folder, let's create s
 .. code-block:: bash
 
    (core)$ mkdir HelloWorld/helloworld/{controllers,model,lib,public,templates}
+   (core)$ touch HelloWorld/helloworld/__init__.py HelloWorld/helloworld/{controllers,model,lib,templates}/__init__.py
    (core)$ mv helloworld.py HelloWorld/helloworld/controllers/root.py
    (core)$ cd HelloWorld
+
+
+setup.py Dependancies & Other
+-----------------------------
+
+The ``setup.py`` file defines package dependancies, meta-data, namespace packages, and a whole lot more.  You should update the ``install_requires`` line to include WebCore and any other package you will be using (Beaker, Genshi, and SQLAlchemy are a good start).  You'll also want to change or add the following line in the ``setup()`` call:
+
+.. code-block:: python
+
+   paster_plugins = ['PasteScript', 'WebCore']
+
+This will allow you to make use of WebCore's interactive shell feature.
+
+When you are satisfied with your project's meta-data, install your project in development mode:
+
+.. code-block:: bash
+
+   (core)$ python setup.py develop
+
+This will register your package globally (adding it to the Python search path) and automatically pull in and install any of the dependancies you have defined.  This needs to be done to allow WebCore to find the root controller you configure in the next step as well as for TemplateInterface to find the templates you wish to use.
+
 
 Development Configuration
 -------------------------

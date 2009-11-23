@@ -37,12 +37,15 @@ One very important point about MVC, especially if you come from a background of 
 Controller
 ----------
 
-Controllers are the glue that take a user request, perform some action based on the input, and combines modelled data with a view for presentation back to the user.  In the simplest case, a "hello world" example, the controller takes no input and always returns the same view:
+Controllers are the glue that take a user request, perform some action based on the input, and combines modelled data with a view for presentation back to the user.  Object dispatch controllers (the default) must be subclasses of ``web.core.Controller``.  In the simplest case, a "hello world" example, the controller takes no input and always returns the same view:
 
 .. code-block:: python
-
-   def index(self):
-      return "project.templates.hello", dict()
+   
+   import web
+   
+   class RootController(web.core.Controller):
+       def index(self):
+           return "project.templates.hello", dict()
 
 Obviously real-world controllers would be slightly more complicated, returning data (from a model) to the template, accepting input, validating form data (using the model), and generally doing anything you can do in Python, because it **is** Python.  Controllers are, however, the least re-usable component of any web application, hardest to test thoroughly, and most prone to breaking if any of the other components change.
 
@@ -101,13 +104,13 @@ There are four methods you can define in your controller class to effect the dis
 ``__after__``
    Called after the request method.  You can use this to filter the data passed to the template, change the template, or perform other actions as desired.  As per ``__before__`` with the first positional argument being the result of the controller call.
 
-``default``
-   If present this method will be called if no valid attribute can be found for the current path element.  This method is passed the remaining path elements (including the one that triggered the call to ``default``) as positional arguments and the GET/POST data as keyword arguments.  The default method is treated as a standard controller method.
+``__default__``
+   If present this method will be called if no valid attribute can be found for the current path element.  This method is passed the remaining path elements (including the one that triggered the call to ``__default__``) as positional arguments and the GET/POST data as keyword arguments.  The default method is treated as a standard controller method.
 
-``lookup``
-   If present this method will be called if no valid attribute can be found for the current path element, and only if no ``default`` method is available.  This method directly alters the dispatch mechanism allowing you to redirect the path of attribute descent.
+``__lookup__``
+   If present this method will be called if no valid attribute can be found for the current path element, and only if no ``__default__`` method is available.  This method directly alters the dispatch mechanism allowing you to redirect the path of attribute descent.
    
-   The most common use of this method is to allow for RESTful dispatch of model objects.  The ``lookup`` method is passed the remaining path elements as positional arguments and GET/POST data as keyword arguments.  This method should return a 2-tuple of a new controller to continue descent through and a tuple or list of remaining path elements.
+   The most common use of this method is to allow for RESTful dispatch of model objects.  The ``__lookup__`` method is passed the remaining path elements as positional arguments and GET/POST data as keyword arguments.  This method should return a 2-tuple of a new controller to continue descent through and a tuple or list of remaining path elements.
    
    For more information, see the :ref:`dispatch-section` chapter.
 
@@ -131,16 +134,73 @@ For more information see the :ref:`templating-section` section.
 Sessions & Caching
 ==================
 
+The default mechanism for sessions and caching in WebCore is by way of the Beaker middleware layer.  To use sessions and caching in your own application, install Beaker:
+
+.. code-block:: bash
+
+   (core)$ pip install Beaker
+
+Configure your web application to use it:
+
+.. code-block:: ini
+
+   web.sessions = True
+   web.caching = True
+
+And update your ``setup.py`` ``install_requires`` section to include Beaker.
+
+Beaker has a large number of configuration options; in WebCore your prefix these options with ``web.sessions.`` and ``web.caching.`` respectively.
+
+Complete and well-written documentation on configuration and usage is available from the `Beaker website <http://beaker.groovie.org/contents.html>`_.
+
+
+Using Session Variables
+-----------------------
+
+WebCore makes using sessions easy; you can get and store variables in the thread-local ``web.core.session`` variable as if it were a dictionary.  If you have not enabled auto-saving (with the ``web.sessions.auto`` configuration directive) you will need to manually call the ``.save()`` method of the session to persist your changes across requests.
+
+For more information, see Beaker's "`Using Sessions <http://beaker.groovie.org/sessions.html#using>`_" online documentation
+
+
+Using The Cache
+---------------
+
+TBD.
+
 
 Debugging
 =========
+
+If you specify ``debug = True`` in your configuration then exceptions raised from within your application will be shown in-browser will a complete interactive debugger.  This is a significant security risk in a production system and as such should be disabled for production use.  When disabled, exceptions will be logged to the Python logger and can be e-mailed to you.  All configuration directives should be prefixed with ``debug.``.
+
+The following configuration directives are valid when debugging is enabled:
+
+``xmlhttp_key``
+   When this key (default ``_``) is in the request GET variables (not POST!), expect that this is an XMLHttpRequest, and the response should be more minimal; it should not be a complete HTML page.
+
+
+The following configuration directives are valid when not debugging (in production):
+
+``error_email``
+   an email address (or list of addresses) to send exception reports to
+
+``error_log``
+   a filename to append tracebacks to
+
+``from_address``, ``smtp_server``, ``error_subject_prefix``, ``smtp_username``, ``smtp_password``, ``smtp_use_tls``
+   variables to control the emailed exception reports
+
+``xmlhttp_key``
+   When this key (default ``_``) is in the request GET variables (not POST!), expect that this is an XMLHttpRequest, and the response should be more minimal; it should not be a complete HTML page.
 
 
 Static Files
 ============
 
+In development mode (``debug = True``) WebCore will automatically search for a folder called ``public`` within your application's package.  In production, you will need to explicitly enable static file serving if you require it.  To do so, set ``web.static = True``.  If WebCore can not automatically detect the path to your static files, you will need to explicitly define the path by setting the ``web.static.path`` configuration directive.
+
 
 Compression
 ===========
 
-
+Compression allows clients using your web application to receive content faster.  To enable compression, set ``web.compress = True`` in your configuration.  To override the amount of compression, set ``web.compress.level`` to a number between zero (no compression) and nine (maximum compression).
