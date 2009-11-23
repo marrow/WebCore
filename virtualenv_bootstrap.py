@@ -42,7 +42,7 @@ def after_install(options, home_dir):
             [pip, 'install'] + (production_packages if options.production else development_packages)
         )
     
-    logger.notify('Run "cd %s ; . bin/activate" to enter the virtual environment.' % (os.path.relpath(home_dir, os.getcwd()), ))
+    logger.notify('Run "cd %s ; . bin/activate" to enter the virtual environment.' % (home_dir, ))
     
     if not options.production:
         logger.notify('Run "paster quickstart" within the env to create a new web application.')

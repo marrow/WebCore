@@ -3,8 +3,12 @@
 
 import sys, os
 
-from distribute_setup import use_setuptools
-use_setuptools()
+try:
+    from distribute_setup import use_setuptools
+    use_setuptools()
+
+except ImportError:
+    pass
 
 from setuptools import setup, find_packages
 
@@ -63,7 +67,7 @@ setup(
         packages = find_packages(exclude=['ez_setup', 'examples', 'tests', 'tests.*', 'docs']),
         include_package_data = True,
         package_data = {
-                '': ['README.textile', 'LICENSE'],
+                '': ['README.textile', 'LICENSE', 'distribute_setup.py'],
                 'docs': ['Makefile', 'source/*']
             },
         zip_safe = True,
