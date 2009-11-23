@@ -25,7 +25,7 @@ class ObjectController(PlainController):
 
 
 class DefController(PlainController):
-    def default(self, *args, **kw):
+    def __default__(self, *args, **kw):
         return "default controller for %s" % (" ".join(args), )
 
 
@@ -38,7 +38,7 @@ class RootController(PlainController):
     def create(self):
         return "creating a record"
     
-    def lookup(self, last, first, *parts, **data):
+    def __lookup__(self, last, first, *parts, **data):
         return ObjectController(last, first), parts
 
 
