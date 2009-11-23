@@ -1,5 +1,9 @@
-task :default => [:test]
+task :default => [:test, :build]
 
 task :test do
-    python setup.py test
+  STDERR.puts `python setup.py test`
+end
+
+task :build do
+  STDERR.puts `python setup.py sdist bdist_egg`
 end
