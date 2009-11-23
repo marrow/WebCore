@@ -176,8 +176,6 @@ class ValueIn(Predicate):
         
         return PartialValueIn
 
-has_permission = ValueIn.partial('permissions')
-
 
 class EnvironIn(Predicate):
     """True if a environment variable matches an element in an iterable.
