@@ -88,12 +88,14 @@ Installation using the Bootstrap Script
 
 Download http://www.web-core.org/webcore-bootstrap.py and run it from a command prompt.  The bootstrap script accepts the same arguments as the ``virtualenv`` command, and defaults to using the ``--distribute`` and ``--no-site-packages`` options.  Pass the name of your desired virtual environment as the last argument.  Additionally, the ``WebCore-Start`` package will be installed unless you pass the ``--production`` argument.
 
+.. warning:: Until the graphical quickstart package is available, you **must** use the ``--production`` switch!
+
 For example:
 
 .. code-block:: bash
 
    $ wget http://www.web-core.org/webcore-bootstrap.py
-   $ python webcore-bootstrap.py myenv
+   $ python webcore-bootstrap.py --production myenv
 
 
 Manual Installation
