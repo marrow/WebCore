@@ -243,7 +243,7 @@ def caching(app, config):
         
         for i, j in config.iteritems():
             if i.startswith('web.cache.'):
-                beakerconfig['cache.' + i[11:]] = j
+                beakerconfig['cache.' + i[10:]] = j
         
         log.debug("Loading Beaker cache middleware.")
         return CacheMiddleware(app, beakerconfig)
