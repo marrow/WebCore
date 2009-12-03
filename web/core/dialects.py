@@ -100,7 +100,7 @@ class Controller(Dialect):
                     continue
                 
                 # If the current object under consideration is a decorated controller method, the search is ended.
-                if callable(part):
+                if hasattr(part, '__call__'):
                     log.debug("Found callable, passing control. part(%r, %r)", remaining[1:], data)
                     request.path_info_pop()
                     remaining, data = last.__before__(*remaining[1:], **data)
@@ -126,6 +126,9 @@ class Controller(Dialect):
                 part, remaining = fallback(*remaining, **data)
                 request.path_info = '/' + '/'.join(remaining) + ('/' if request.path.endswith('/') else '')
                 continue
+            
+            if not isinstance(last, Dialect) and hasattr(last, '__call__'):
+                return last(*remaining, **data)
             
             raise web.core.http.HTTPNotFound()
     
@@ -163,7 +166,7 @@ class RESTMethod(object):
         methods = []
         
         for i in ['get', 'put', 'post', 'delete', 'head', 'trace', 'options']:
-            if hasattr(self, i) and callable(getattr(self, i)):
+            if hasattr(self, i) and hasattr(getattr(self, i), '__call__'):
                 methods.append(i.upper())
         
         self.methods = methods
