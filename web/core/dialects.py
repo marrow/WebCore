@@ -127,9 +127,6 @@ class Controller(Dialect):
                 request.path_info = '/' + '/'.join(remaining) + ('/' if request.path.endswith('/') else '')
                 continue
             
-            if not isinstance(last, Dialect) and hasattr(last, '__call__'):
-                return last(*remaining, **data)
-            
             raise web.core.http.HTTPNotFound()
     
     def __before__(self, *args, **kw):
@@ -181,6 +178,26 @@ class RESTMethod(object):
             raise web.core.http.HTTPMethodNotAllowed()
         
         return getattr(self, verb)(*args, **kw)
+    
+    index = __call__
+    __default__ = __call__
+    
+    def __before__(self, *args, **kw):
+        """The __before__ method can modify arguments passed in to the final method call.
+        
+        To subclass and overload this method, ensure you use the following form:
+        
+        class Foo(Controller):
+            def __before__(self, *args, **kw):
+                # Perform your actions here...
+                # Finally, allow superclasses to modify the arguments as well...
+                return super(Foo, self).__before__(*args, **kw)
+        """
+        return args, kw
+    
+    def __after__(self, result, *args, **kw):
+        """The __after__ method can modify the value returned by the final method call."""
+        return result
     
     def head(self, *args, **kw):
         """Allow the get method to set headers, but return no content.
