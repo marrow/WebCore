@@ -106,7 +106,7 @@ class Anonymous(Predicate):
     """True if no user is currently logged in."""
     
     def __nonzero__(self):
-        return web.auth.user._current_obj() is None
+        return web.auth.user is None or web.auth.user._current_obj() is None
 
 anonymous = Anonymous()
 
@@ -115,7 +115,7 @@ class Authenticated(Predicate):
     """True if a user is currently logged in."""
     
     def __nonzero__(self):
-        return web.auth.user._current_obj() is not None
+        return web.auth.user is not None and web.auth.user._current_obj() is not None
 
 authenticated = Authenticated()
 
@@ -205,18 +205,3 @@ class EnvironIn(Predicate):
 
 class BetweenTimes(Predicate):
     pass
-
-
-
-
-
-
-if __name__ == '__main__':
-    """Quick tests."""
-    
-    print "never", bool(never)
-    print "always", bool(always)
-    print "Not(never)", bool(Not(never))
-    print "All(always,always)", bool(All(always,always))
-    print "All(always,never)", bool(All(always,never))
-    print "Any(always,never)", bool(Any(always,never))

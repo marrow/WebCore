@@ -49,6 +49,9 @@ class WebAuth(object):
         
         if not string: return None
         
+        if hasattr(string, '__call__'):
+            return string
+        
         package, reference = string.split(':', 1)
         prop = None
         
