@@ -172,7 +172,7 @@ class RESTMethod(object):
         self.methods = methods
     
     def __call__(self, *args, **kw):
-        verb = web.core.request.method.lower()
+        verb = kw.pop('_verb', web.core.request.method.lower())
         web.core.response.allow = self.methods
         
         log.debug("Performing REST dispatch to %s(%r, %r)", verb, args, kw)
