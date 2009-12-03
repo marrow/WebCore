@@ -17,7 +17,7 @@ class PlainController(web.core.Controller):
 
 class WebTestCase(TestCase):
     def assertResponse(self, path, status='200 OK', content_type='text/plain', _method='get', **kw):
-        request = Request.blank(path)
+        request = Request.blank(path, environ=dict(REMOTE_ADDR='127.0.0.1'))
         request.method = _method
         
         response = request.get_response(self.app)

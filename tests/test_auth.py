@@ -20,7 +20,7 @@ def authenticate(identifier, password, force=False):
 is_me = web.auth.CustomPredicate(lambda u, r: getattr(u, 'name', None) == "user")
 user_in = web.auth.AttrIn.partial('name')
 member_of = web.auth.ValueIn.partial('groups')
-remote_addr_in = EnvironIn.partial('REMOTE_ADDR')
+remote_addr_in = web.auth.EnvironIn.partial('REMOTE_ADDR')
 local = remote_addr_in(['127.0.0.1', '::1', 'fe80::1%%lo0'])
 
 
