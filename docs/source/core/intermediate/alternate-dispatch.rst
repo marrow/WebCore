@@ -100,7 +100,7 @@ At its most light-weight, the RESTMethod helper class allows you to create a sep
 
    class SignInMethod(web.core.RESTMethod):
       def get(self):
-         reutrn "myapp.templates.signin", dict()
+         return "myapp.templates.signin", dict()
       
       def post(self, username, password):
          # handle form input

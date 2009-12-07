@@ -29,7 +29,7 @@ Here's what each bit of this represents:
    A comma-separated list of database connections.  The name used here is used as the prefix for the database-specific configuration.
 
 ``db.core.engine``
-   Here you tell WebCore which database engine you wish to use.  Currently we support three: ``sqlalchemy`` and ``mongo``.
+   Here you tell WebCore which database engine you wish to use.  Currently we support two: ``sqlalchemy`` and ``mongo``.
 
 ``db.core.model``
    A dot-notation reference to the Python module which contains your model.  Individual engines may have requirements about what needs to be in that module.

@@ -32,7 +32,7 @@ Create a new file in your virtual environment, ``hello.py``, and enter the follo
        logging.basicConfig(level=logging.INFO)
 
        app = Application.factory(root=RootController, **{
-               'debug': False
+               'debug': False,
                'web.sessions': False,
                'web.widgets': False,
                'web.sessions': False,
