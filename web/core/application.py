@@ -93,6 +93,9 @@ class Application(object):
         from web.utils.object import get_dotted_object
         from paste.deploy.converters import asbool, asint, aslist
         
+        # Define the configuration earlier to allow the root controller's __init__ to use it.
+        web.core.config = config
+        
         root = config.get('web.root', root)
         log.debug("Root configured as %r.", root)
         
