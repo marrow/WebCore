@@ -67,7 +67,7 @@ class SQLAlchemyMiddleware(object):
         status = web.core.response.status_int
         
         if status >= 400:
-            log.warn("Rolling back database session due to unknown error.")
+            log.warn("Rolling back database session due to HTTP status: %s", web.core.response.status)
             self.session.rollback()
             return result
 
