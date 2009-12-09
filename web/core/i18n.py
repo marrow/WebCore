@@ -15,7 +15,7 @@ from web.core.middleware import middleware, defaultbool
 __all__ = ['_', 'L_', 'add_fallback', 'get_lang', 'gettext', 'gettext_noop',
            'lazy_gettext', 'lazy_ngettext', 'lazy_ugettext', 'lazy_ungettext',
            'ngettext', 'set_lang', 'ugettext', 'ungettext', 'LanguageError',
-           'N_', 'P_']
+           'N_', 'P_', 'get_translator']
 log = __import__('logging').getLogger(__name__)
 
 
@@ -157,7 +157,7 @@ def _(singular, plural=None, n=None):
 L_ = lazify(_)
 
 
-def _get_translator(lang, conf=None, **kwargs):
+def get_translator(lang, conf=None, **kwargs):
     """Utility method to get a valid translator object from a language name."""
     if not lang:
         return NullTranslations()
@@ -196,7 +196,7 @@ def set_lang(lang, **kwargs):
         
         return
     
-    translator = _get_translator(lang, **kwargs)
+    translator = get_translator(lang, **kwargs)
     web.core.request.environ['paste.registry'].replace(web.core.translator, translator)
     
     if web.core.request.environ.has_key('beaker.session'):
@@ -220,7 +220,7 @@ def add_fallback(lang, **kwargs):
     This function can be called multiple times to add multiple
     fallbacks.
     """
-    return web.core.translator.add_fallback(_get_translator(lang, **kwargs))
+    return web.core.translator.add_fallback(get_translator(lang, **kwargs))
 
 
 
@@ -283,7 +283,7 @@ class I18n(object):
         
         log.debug("Call language path: %r", lang)
         
-        translator = _get_translator(lang, self.config)
+        translator = get_translator(lang, self.config)
         environ['web.translator'] = translator
         environ['paste.registry'].register(web.core.translator, translator)
         orig_lang = translator.lang
