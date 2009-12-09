@@ -205,7 +205,7 @@ def set_lang(lang, **kwargs):
 
 
 def get_lang():
-    """Return the current i18n language used."""
+    """Return a list of the currently selected languages, in priority order."""
     return getattr(web.core.translator, 'lang', None)
 
 
