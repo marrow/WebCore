@@ -12,7 +12,7 @@ import web
 from web.core.middleware import middleware, defaultbool
 
 
-__all__ = ['_', 'add_fallback', 'get_lang', 'gettext', 'gettext_noop',
+__all__ = ['_', 'L_', 'add_fallback', 'get_lang', 'gettext', 'gettext_noop',
            'lazy_gettext', 'lazy_ngettext', 'lazy_ugettext', 'lazy_ungettext',
            'ngettext', 'set_lang', 'ugettext', 'ungettext', 'LanguageError',
            'N_', 'P_']
@@ -104,7 +104,6 @@ def ugettext(value):
     """
     return web.core.translator.ugettext(value)
 
-_ = ugettext
 lazy_ugettext = lazify(ugettext)
 
 
@@ -147,6 +146,15 @@ def ungettext(singular, plural, n):
 
 lazy_ungettext = lazify(ungettext)
 P_ = ungettext
+
+
+def _(singular, plural=None, n=None):
+    if plural and n:
+        return ungettext(singular, plural, n)
+    
+    return ugettext(singular)
+
+L_ = lazify(_)
 
 
 def _get_translator(lang, conf=None, **kwargs):
