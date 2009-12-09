@@ -182,7 +182,7 @@ def set_lang(lang, **kwargs):
     """
     
     if lang is None:
-        if 'lang' in web.core.session:
+        if web.core.request.environ.has_key('beaker.session') and 'lang' in web.core.session:
             del web.core.session['lang']
             web.core.session.save()
         
@@ -191,8 +191,9 @@ def set_lang(lang, **kwargs):
     translator = _get_translator(lang, **kwargs)
     web.core.request.environ['paste.registry'].replace(web.core.translator, translator)
     
-    web.core.session['lang'] = translator.lang
-    web.core.session.save()
+    if web.core.request.environ.has_key('beaker.session'):
+        web.core.session['lang'] = translator.lang
+        web.core.session.save()
 
 
 def get_lang():
