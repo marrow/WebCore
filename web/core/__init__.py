@@ -4,6 +4,7 @@
 
 """
 
+import sys
 from web import release
 from web.core.dialects import Dialect, Controller, RESTMethod
 from web.core.application import Application
@@ -14,7 +15,10 @@ from web.core.middleware import middleware
 from paste.registry import StackedObjectProxy
 
 
-__all__ = ['Dialect', 'Controller', 'RESTMethod', 'Application', 'config', 'http', 'middleware', 'i18n', 'config', 'request', 'response', 'cache', 'session']
+__all__ = [
+        'Application', 'Dialect', 'Controller', 'RESTMethod',
+        'http', 'i18n', 'middleware'
+        'config', 'request', 'response', 'cache', 'session', 'translator', 'namespace']
 
 
 config = adict(
@@ -38,3 +42,6 @@ namespace = dict(
                 release = release
             )
     )
+
+# To allow 'from web.core.http import ...' statements, we have to register web.core.http as a module.
+sys.modules['web.core.http'] = http
