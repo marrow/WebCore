@@ -41,6 +41,10 @@ class Application(object):
         
         if not isinstance(self.root, Dialect) and not callable(self.root):
             raise TypeError('Root controller must be dialect subclass or executable.')
+        
+        if not isinstance(self.root, Dialect):
+            log.warning("Non-dialect root controller specified.")
+            log.warning("We will assume %r is a raw WSGI application, which is probably wrong.", self.root)
     
     @classmethod
     def middleware(cls):
