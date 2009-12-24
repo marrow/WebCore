@@ -10,6 +10,25 @@ Deploying your Application
 
 
 
+General Web App Configuration
+=============================
+
+If you are going to use your application to cover a whole domain, then you can just skip ahead.  If you are going to mount your application as a sub-folder, you'll need to adjust the production INI file to include an additional section and add an extra line below the `use` line in the `[app:main]` section regardless of which method you use to deploy.
+
+.. code-block:: ini
+
+   [app:main]
+   use = egg:WebCore
+   filter-with = proxy-prefix
+   
+   # ...
+   
+   [filter:proxy-prefix]
+   use = egg:PasteDeploy#prefix
+   prefix = /path/to/app/on/site
+
+
+
 Nginx
 =====
 
@@ -126,13 +145,35 @@ Set the port and paths according to your application; you will need to update th
 If you create additional copies of the deployment INI file with different port numbers, you can add them to the webcore proxy list.  It is not advisable to create more running services than there are CPU cores.
 
 
+
 Apache
 ======
 
 mod_proxy
 ---------
 
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+This is not the recommended method of deployment when using Apache.  This method effectively runs the development Paste HTTP server and has Apache proxy requests, thus this method possibly suffers a performance penalty.  Additionally, using `mod_proxy` requires that you manage the runtime environment (starting and stopping as per a service) manually.  It happens to be the easiest method for deployment, requiring only the common `mod_proxy` module, though.
+
+Application Configuration
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Your production INI file should define a port to serve requests through that does not conflict with other services.  Some hosting providers will allocate you a range or specific port numbers that you can use.  You should also ensure your web app will only listen to connections from the local server, not requests over the internet.
+
+Apache Configuration
+^^^^^^^^^^^^^^^^^^^^
+
+Ensure Apache is configured to load `mod_proxy` and related modules.  Look for lines like the following, which may be commented out, and ensure they are *not* commented out.
+
+.. code-block: apache
+
+   LoadModule proxy_module modules/mod_proxy.so
+   LoadModule proxy_connect_module modules/mod_proxy_connect.so
+   LoadModule proxy_http_module modules/mod_proxy_http.so
+   LoadModule proxy_balancer_module modules/mod_proxy_balancer.so
+
+Configure Apache to listen to virtual host requests and define a new virtual host.  In a light-weight setup this may be done from within the `httpd.conf` file, or may be delegated out to an external file like `httpd-vhosts.conf` or even a folder with one file per virtual host.
+
+
 
 
 mod_wsgi
