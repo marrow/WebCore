@@ -37,7 +37,7 @@ class Application(object):
         self.root = root
         self.config = config
         
-        web.core.config = config
+        web.core.config.update(config)
         
         if not isinstance(self.root, Dialect) and not callable(self.root):
             raise TypeError('Root controller must be dialect subclass or executable.')

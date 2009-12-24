@@ -21,9 +21,7 @@ __all__ = [
         'config', 'request', 'response', 'cache', 'session', 'translator', 'namespace']
 
 
-config = adict(
-        response=adict(content_type='text/html', charset='utf8')
-    )
+config = adict()
 
 request = StackedObjectProxy(name="request")
 response = StackedObjectProxy(name="response")
