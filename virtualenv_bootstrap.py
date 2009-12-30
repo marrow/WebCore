@@ -25,11 +25,11 @@ def adjust_options(options, args):
     options.use_distribute = True
 
 def after_install(options, home_dir):
-    pip = join(os.getcwd(), home_dir, 'bin', 'pip')
-    etc = join(os.getcwd(), home_dir, 'etc')
-    src = join(os.getcwd(), home_dir, 'src')
-    var = join(os.getcwd(), home_dir, 'var')
-    tmp = join(os.getcwd(), home_dir, 'tmp')
+    pip = os.path.join(os.getcwd(), home_dir, 'bin', 'pip')
+    etc = os.path.join(os.getcwd(), home_dir, 'etc')
+    src = os.path.join(os.getcwd(), home_dir, 'src')
+    var = os.path.join(os.getcwd(), home_dir, 'var')
+    tmp = os.path.join(os.getcwd(), home_dir, 'tmp')
     
     if not os.path.exists(etc): os.makedirs(etc)
     if not os.path.exists(src): os.makedirs(src)
