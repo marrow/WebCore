@@ -27,7 +27,7 @@ def adjust_options(options, args):
 def after_install(options, home_dir):
     
     if os.name == 'nt':
-        pip = os.path.join(sys.prefix, 'scripts', 'pip.exe')
+        pip = os.path.join(sys.prefix, 'Scripts', 'pip.exe')
     
     else:
         pip = os.path.join(os.getcwd(), home_dir, 'bin', 'pip')
