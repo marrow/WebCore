@@ -30,7 +30,7 @@ class SQLAlchemyMiddleware(object):
         log.info("Connecting SQLAlchemy to '%s'.", _safe_uri_replace.sub(r'\1://\2@', self.config.get('%s.sqlalchemy.url' % (self.prefix, ))))
         
         # Here we cheat a little to ensure the properties are assignable.
-        for prop in ('engine', ):
+        for prop in ('engine', 'session'):
             if not hasattr(self.model, prop):
                 self.model.__dict__[prop] = None
         
@@ -38,8 +38,16 @@ class SQLAlchemyMiddleware(object):
         self.model.metadata.bind = self.model.engine
         
         if config.get('%s.sqlalchemy.sqlsoup' % (self.prefix, ), False):
-            from sqlalchemy.ext.sqlsoup import SqlSoup
+            from sqlalchemy.ext.sqlsoup import SqlSoup, objectstore
             self.model.__dict__['soup'] = SqlSoup(self.model.metadata)
+            self.session = self.model.session = objectstore
+        
+        else:
+            self.session = self.model.session = scoped_session(sessionmaker(
+                    bind = self.model.engine,
+                    autoflush = asbool(self.config.get('%s.autoflush' % (self.prefix, ), True)),
+                    twophase = asbool(self.config.get('%s.twophase' % (self.prefix, ), False))
+                ))
         
         if hasattr(self.model, 'populate') and callable(self.model.populate):
             for table in self.model.metadata.sorted_tables:
@@ -50,17 +58,6 @@ class SQLAlchemyMiddleware(object):
     
     def __call__(self, environ, start_response):
         log.debug("Preparing database session.")
-        
-        if self.config.get('%s.sqlsoup' % (self.prefix, ), False):
-            from sqlalchemy.ext.sqlsoup import objectstore
-            environ['paste.registry'].register(self.session, objectstore.current)
-        
-        else:
-            environ['paste.registry'].register(self.session, scoped_session(sessionmaker(
-                    bind = self.model.engine,
-                    autoflush = asbool(self.config.get('%s.autoflush' % (self.prefix, ), True)),
-                    twophase = asbool(self.config.get('%s.twophase' % (self.prefix, ), False))
-                )))
         
         result = self.application(environ, start_response)
         
