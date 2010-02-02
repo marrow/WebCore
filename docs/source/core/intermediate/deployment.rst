@@ -164,7 +164,7 @@ Apache Configuration
 
 Ensure Apache is configured to load `mod_proxy` and related modules.  Look for lines like the following, which may be commented out, and ensure they are *not* commented out.
 
-.. code-block: apache
+.. code-block:: apache
 
    LoadModule proxy_module modules/mod_proxy.so
    LoadModule proxy_connect_module modules/mod_proxy_connect.so
@@ -173,13 +173,48 @@ Ensure Apache is configured to load `mod_proxy` and related modules.  Look for l
 
 Configure Apache to listen to virtual host requests and define a new virtual host.  In a light-weight setup this may be done from within the `httpd.conf` file, or may be delegated out to an external file like `httpd-vhosts.conf` or even a folder with one file per virtual host.
 
+.. code-block:: apache
 
+   <VirtualHost *>
+       ServerName mytgapp.blabla.com
+       ServerAdmin here-your-name@blabla.com
+       #DocumentRoot /srv/www/vhosts/mytgapp
+       Errorlog /var/log/apache2/mytgapp-error_log
+       Customlog /var/log/apache2/mytgapp-access_log common
+       UseCanonicalName Off
+       ServerSignature Off
+       AddDefaultCharset utf-8
+       ProxyPreserveHost On
+       ProxyRequests Off
+       ProxyPass /error/ !
+       ProxyPass /icons/ !
+       ProxyPass /favicon.ico !
+       #ProxyPass /static/ !
+       ProxyPass / http://127.0.0.1:8080/
+       ProxyPassReverse / http://127.0.0.1:8080/
+   </VirtualHost>
 
 
 mod_wsgi
 --------
 
 Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+
+.. code-block:: python
+
+   import os.path
+
+   activate = '/var/www/virtualenv/fortumbannerit/bin/activate_this.py'
+   execfile(activate, dict(__file__=activate))
+
+   # Load the app
+   from paste.deploy import loadapp
+
+   here = os.path.dirname(__file__)
+   inifile = os.path.join(here, 'tulospalvelu.ini')
+   application = loadapp('config:%s' % inifile)
+
 
 
 Lighttpd
