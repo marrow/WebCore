@@ -155,7 +155,10 @@ def database(app, config):
                     engine = web.utils.object.get_dotted_object(engine)
                 
                 else:
-                    engine = pkg_resources.load_entry_point('WebCore', 'webcore.db.engines', engine)
+                    try:
+                        engine = [i for i in pkg_resources.iter_entry_points(group='webcore.db.engines', name=engine)][0].load()
+                    except IndexError:
+                        raise Exception('No engine registered with the name: %s' % (engine, ))
             
             except:
                 log.exception("Unable to load engine middleware: %r.", engine)
