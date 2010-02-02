@@ -7,3 +7,4 @@ build/
 dist/
 tests/.coverage
 .coverage
+scripts/webcore-bootstrap.py
