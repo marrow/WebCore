@@ -11,9 +11,12 @@ import sys, os, pkg_resources, types
 import paste
 from webob import Request, Response
 
-import web
-from web.core import middleware
+import web, web.core, web.utils
+from web.core import Controller, middleware
 from web.core.dialects import Dialect
+
+from web.utils.object import get_dotted_object
+from paste.deploy.converters import asbool, asint, aslist
 
 
 __all__ = ['Application']
@@ -93,12 +96,11 @@ class Application(object):
         log = __import__('logging').getLogger(__name__ + ':factory')
         log.info("Preparing WebCore WSGI middleware stack.")
         
-        from web.core import Controller
-        from web.utils.object import get_dotted_object
-        from paste.deploy.converters import asbool, asint, aslist
-        
         # Define the configuration earlier to allow the root controller's __init__ to use it.
-        web.core.config = config
+        web.core.config = gconfig.copy()
+        web.core.config.update(config)
+        
+        config = web.core.config
         
         root = config.get('web.root', root)
         log.debug("Root configured as %r.", root)
@@ -130,8 +132,6 @@ class Application(object):
         return app
     
     def __call__(self, environment, start_response):
-        import web.core, web.utils
-        
         environment['web.app'] = self.app
         
         try:
