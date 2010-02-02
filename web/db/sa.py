@@ -59,13 +59,17 @@ class SQLAlchemyMiddleware(object):
     def __call__(self, environ, start_response):
         log.debug("Preparing database session.")
         
-        result = self.application(environ, start_response)
+        status = 200
         
-        status = web.core.response.status_int
+        def local_start(stat_str, headers=[]):
+            status = int(stat_str.split(' ')[0])
+            return start_response(stat_str, headers)
+        
+        result = self.application(environ, local_start)
         
         if status >= 400:
             if status >= 500:
-                log.warn("Rolling back database session due to HTTP status: %s", web.core.response.status)
+                log.warn("Rolling back database session due to HTTP status: %d", status)
             
             self.session.rollback()
             return result
