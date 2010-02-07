@@ -30,7 +30,7 @@ class SQLAlchemyMiddleware(object):
         log.info("Connecting SQLAlchemy to '%s'.", _safe_uri_replace.sub(r'\1://\2@', self.config.get('%s.sqlalchemy.url' % (self.prefix, ))))
         
         # Here we cheat a little to ensure the properties are assignable.
-        for prop in ('engine', 'session'):
+        for prop in ('engine'):
             if not hasattr(self.model, prop):
                 self.model.__dict__[prop] = None
         
@@ -38,13 +38,14 @@ class SQLAlchemyMiddleware(object):
         self.model.metadata.bind = self.model.engine
         
         if config.get('%s.sqlalchemy.sqlsoup' % (self.prefix, ), False):
-            from sqlalchemy.ext.sqlsoup import SqlSoup, objectstore
+            from sqlalchemy.ext.sqlsoup import SqlSoup, Session
             self.model.__dict__['soup'] = SqlSoup(self.model.metadata)
-            self.session = self.model.session = objectstore
+            self._session = Session
         
         else:
-            self.session = self.model.session = scoped_session(sessionmaker(
+            self._session = scoped_session(sessionmaker(
                     bind = self.model.engine,
+                    autocommit = asbool(self.config.get('%s.autocommit' % (self.prefix, ), False)),
                     autoflush = asbool(self.config.get('%s.autoflush' % (self.prefix, ), True)),
                     twophase = asbool(self.config.get('%s.twophase' % (self.prefix, ), False))
                 ))
@@ -59,6 +60,12 @@ class SQLAlchemyMiddleware(object):
     def __call__(self, environ, start_response):
         log.debug("Preparing database session.")
         
+        if self.config.get('%s.sqlsoup' % (self.prefix, ), False):
+            environ['paste.registry'].register(self.session, self._session.current)
+        
+        else:
+            environ['paste.registry'].register(self.session, self._session())
+        
         status = 200
         
         def local_start(stat_str, headers=[]):
@@ -67,30 +74,23 @@ class SQLAlchemyMiddleware(object):
         
         result = self.application(environ, local_start)
         
-        if status >= 400:
-            if status >= 500:
-                log.warn("Rolling back database session due to HTTP status: %d", status)
+        if self.session.transaction is not None:
+            if status >= 400:
+                if status >= 500:
+                    log.warn("Rolling back database session due to HTTP status: %d", status)
             
-            self.session.rollback()
-            return result
-
-        log.debug("Committing database session.")
-        # If we still have a session, commit.
-        self.session.commit()
+                self.session.rollback()
+            
+            else:
+                log.debug("Committing database session.")
+                self.session.commit()
         
-        # Optionally clear the cache.
-        if not self.config.get('%s.cache' % (self.prefix, ), True):
-            self.session.expunge_all()
         self.session.close()
         
         return result
     
     def populate_table(self, action, table, bind):
-        session = scoped_session(sessionmaker(
-                bind = bind,
-                autoflush = asbool(self.config.get('%s.autoflush' % (self.prefix, ), True)),
-                twophase = asbool(self.config.get('%s.twophase' % (self.prefix, ), False))
-            ))
+        session = self._session()
         
         try:
             self.model.populate(session, table.name)
