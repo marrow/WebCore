@@ -8,11 +8,11 @@ import re
 
 import web
 
-from paste.deploy.converters                    import asbool, asint
-from paste.registry                             import StackedObjectProxy
+from paste.deploy.converters import asbool, asint
+from paste.registry import StackedObjectProxy
 
-from sqlalchemy                                 import engine_from_config
-from sqlalchemy.orm                             import scoped_session, sessionmaker
+from sqlalchemy import engine_from_config
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 
 
@@ -43,12 +43,12 @@ class SQLAlchemyMiddleware(object):
             self._session = Session
         
         else:
-            self._session = scoped_session(sessionmaker(
+            self._session = sessionmaker(
                     bind = self.model.engine,
                     autocommit = asbool(self.config.get('%s.autocommit' % (self.prefix, ), False)),
                     autoflush = asbool(self.config.get('%s.autoflush' % (self.prefix, ), True)),
                     twophase = asbool(self.config.get('%s.twophase' % (self.prefix, ), False))
-                ))
+                )
         
         if hasattr(self.model, 'populate') and callable(self.model.populate):
             for table in self.model.metadata.sorted_tables:
@@ -66,23 +66,25 @@ class SQLAlchemyMiddleware(object):
         else:
             environ['paste.registry'].register(self.session, self._session())
         
-        status = 200
+        status = []
         
         def local_start(stat_str, headers=[]):
-            status = int(stat_str.split(' ')[0])
+            status.append(int(stat_str.split(' ')[0]))
             return start_response(stat_str, headers)
         
         result = self.application(environ, local_start)
         
         if self.session.transaction is not None:
-            if status >= 400:
-                if status >= 500:
-                    log.warn("Rolling back database session due to HTTP status: %d", status)
+            if len(status) != 1 or status[0] >= 400:
+                if status[0] >= 500:
+                    log.warn("Rolling back database session due to HTTP status: %r", status[0])
+                else:
+                    log.debug("Rolling back database session due to HTTP status: %r", status[0])
             
                 self.session.rollback()
             
             else:
-                log.debug("Committing database session.")
+                log.debug("Committing database session; HTTP status: %r", status[0])
                 self.session.commit()
         
         self.session.close()
