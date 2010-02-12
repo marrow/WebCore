@@ -61,7 +61,7 @@ class ConstantProfile(object):
         db = get_dotted_object(config['web.profile.db'])
         self.collection = db[config.get('web.profile.collection', 'profiler')]
         
-        self.exclude = [i.strip() for i in aslist(config.get('web.profile.exclude', '/static, /stats'))]
+        self.exclude = [i.strip() for i in config.get('web.profile.exclude', '/static, /stats').split(',')]
     
     def __call__(self, environ, start_response):
         resp = []
@@ -87,6 +87,8 @@ class ConstantProfile(object):
             if record['path'].startswith(i):
                 log.debug("Not logging profile information.")
                 return result
+        
+        log.debug('Logging %r because it doesn\'t fit in %r', record['path'], self.exclude)
         
         record['version'] = 1
         record['status'] = dict(code=int(resp[0].split(' ', 1)[0]), string=resp[0])
