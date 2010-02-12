@@ -75,6 +75,7 @@ class ConstantProfile(object):
         environ['cprofile.end'] = time.time()
         
         try:
+            start = time.time()
             record = dict()
             request = webob.Request(environ)
         
@@ -109,6 +110,7 @@ class ConstantProfile(object):
                 )
         
             self.collection.insert(desc_dict(record))
+            self.collection.insert(dict(version=0, duration=(time.time() - start) * 1000))
         
         except:
             log.exception("Error processing performance information.")
