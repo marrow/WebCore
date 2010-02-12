@@ -35,6 +35,8 @@ def MongoMiddleware(application, prefix, model, session=None, **config):
     
     host, port = host.split(':') if ':' in host else (host, '27017')
     
+    log.debug("Connection: %r", (scheme, auth.split(':', 1) if auth else [None, None], host, port, db))
+    
     model.__dict__['connection'] = Connection(host if host else 'localhost', int(port))
     model.__dict__['db'] = model.connection[db]
     
