@@ -74,40 +74,44 @@ class ConstantProfile(object):
         result = self.application(environ, local_start)
         environ['cprofile.end'] = time.time()
         
-        record = dict()
-        request = webob.Request(environ)
+        try:
+            record = dict()
+            request = webob.Request(environ)
         
-        if 'Cookie' in request.headers:
-            del request.headers['Cookie']
+            if 'Cookie' in request.headers:
+                del request.headers['Cookie']
         
-        record['path'] = request.script_name + (request.path_info if request.path_info else '')
+            record['path'] = request.script_name + (request.path_info if request.path_info else '')
         
-        for i in self.exclude:
-            """Allow specific paths to be excluded from the profiling."""
-            if record['path'].startswith(i):
-                log.debug("Not logging profile information.")
-                return result
+            for i in self.exclude:
+                """Allow specific paths to be excluded from the profiling."""
+                if record['path'].startswith(i):
+                    log.debug("Not logging profile information.")
+                    return result
         
-        log.debug('Logging %r because it doesn\'t fit in %r', record['path'], self.exclude)
+            log.debug('Logging %r because it doesn\'t fit in %r', record['path'], self.exclude)
         
-        record['version'] = 1
-        record['status'] = dict(code=int(resp[0].split(' ', 1)[0]), string=resp[0])
-        record['request'] = dict([(i.lower(), j) for i, j in request.headers.iteritems()])
-        record['response'] = dict([(i.lower(), j) for i, j in resp[1]])
-        record['wsgi'] = dict()
-        record['session'] = dict(
-                id = environ['beaker.session'].id if 'beaker.session' in environ else None,
-                contents = dict(environ['beaker.session']) if 'beaker.session' in environ else None
-            )
-        record['profile'] = dict(
-                range = dict(
-                        start = environ['cprofile.start'],
-                        end = environ['cprofile.end']
-                    ),
-                duration = (environ['cprofile.end'] - environ['cprofile.start']) * 1000
-            )
+            record['version'] = 1
+            record['status'] = dict(code=int(resp[0].split(' ', 1)[0]), string=resp[0])
+            record['request'] = dict([(i.lower(), j) for i, j in request.headers.iteritems()])
+            record['response'] = dict([(i.lower(), j) for i, j in resp[1]])
+            record['wsgi'] = dict()
+            record['session'] = dict(
+                    id = environ['beaker.session'].id if 'beaker.session' in environ else None,
+                    contents = dict(environ['beaker.session']) if 'beaker.session' in environ else None
+                )
+            record['profile'] = dict(
+                    range = dict(
+                            start = environ['cprofile.start'],
+                            end = environ['cprofile.end']
+                        ),
+                    duration = (environ['cprofile.end'] - environ['cprofile.start']) * 1000
+                )
         
-        self.collection.insert(desc_dict(record))
+            self.collection.insert(desc_dict(record))
+        
+        except:
+            log.exception("Error processing performance information.")
 
         return result
 
