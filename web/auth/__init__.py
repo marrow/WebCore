@@ -30,11 +30,11 @@ def authenticate(identifier, password=None, force=False):
     Returns True on success, False otherwise.
     """
     
-    try:
-        result = config.authenticate(identifier, password, force)
-    
-    except:
+    if force:
         result = (identifier, config.lookup(identifier))
+    
+    else:
+        result = config.authenticate(identifier, password, force)
         
     if result is None or result[1] is None:
         log.debug('Authentication failed: %r', result)
