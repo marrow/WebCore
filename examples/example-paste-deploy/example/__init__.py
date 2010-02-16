@@ -1,5 +1,6 @@
 # encoding: utf-8
 
+import web
 from web.core import Controller
 
 
@@ -13,6 +14,12 @@ class RootController(Controller):
     
     def error(self):
         raise ValueError
+    
+    def notfound(self):
+        raise web.core.http.HTTPNotFound()
+    
+    def handler(self, code):
+        return 'Pretty error page for HTTP %s.' % (code, )
     
     def time(self):
         from datetime import datetime
