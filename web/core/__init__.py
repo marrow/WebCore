@@ -37,7 +37,8 @@ namespace = dict(
                 cache = cache,
                 session = session,
                 i18n = translator,
-                release = release
+                release = release,
+                config = config
             )
     )
 
