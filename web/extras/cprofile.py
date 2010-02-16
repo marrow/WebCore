@@ -94,9 +94,10 @@ class ConstantProfile(object):
         
             record['version'] = 1
             record['status'] = dict(code=int(resp[0].split(' ', 1)[0]), string=resp[0])
+            record['environ'] = dict([(i, j) for i, j in environ.iteritems() if (not i.startswith('HTTP_') and i == i.upper())])
             record['request'] = dict([(i.lower(), j) for i, j in request.headers.iteritems()])
             record['response'] = dict([(i.lower(), j) for i, j in resp[1]])
-            record['wsgi'] = dict()
+            record['wsgi'] = dict([(i.replace('.', '-'), repr(j)) for i, j in environ.iteritems() if ('.' in i)])
             record['session'] = dict(
                     id = environ['beaker.session'].id if 'beaker.session' in environ else None,
                     contents = dict(environ['beaker.session']) if 'beaker.session' in environ else None
