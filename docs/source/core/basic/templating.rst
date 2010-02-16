@@ -126,13 +126,13 @@ WebCore includes a number of useful helpers in the ``web`` and global template n
 Defining Your Own
 -----------------
 
-To add objects to the global template namespace, extend the ``cti.middleware.registry`` dictionary:
+To add objects to the global template namespace, append to the ``cti.middleware.registry`` dictionary:
 
 .. code-block:: python
 
    from cti.middleware import registry
    
-   registry.extend(dict(
+   registry.append(dict(
            myglobal = "foo"
        ))
 
