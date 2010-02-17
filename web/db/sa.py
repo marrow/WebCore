@@ -25,7 +25,14 @@ _safe_uri_replace = re.compile(r'(\w+)://(\w+):(?P<password>[^@]+)@')
 
 class SQLAlchemyMiddleware(object):
     def __init__(self, application, prefix, model, session, **config):
-        self.application, self.prefix, self.model, self.session, self.config = application, prefix, model, session, config.copy()
+        self.application = application
+        self.prefix = prefix
+        self.model = model
+        self.session = session
+        
+        # Default Configuration
+        self.config = {'%s.sqlalchemy.pool_recycle' % (self.prefix, ): 3600}
+        self.config.update(config.copy())
         
         log.info("Connecting SQLAlchemy to '%s'.", _safe_uri_replace.sub(r'\1://\2@', self.config.get('%s.sqlalchemy.url' % (self.prefix, ))))
         
