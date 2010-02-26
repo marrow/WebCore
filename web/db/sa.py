@@ -1,17 +1,12 @@
 # encoding: utf-8
 
-"""
-"""
+"""SQLAlchemy and SQLSoup transactional database integration."""
 
 
-import re
-
-import web
 import api
 import warnings
 
-from paste.deploy.converters import asbool, asint
-from paste.registry import StackedObjectProxy
+from paste.deploy.converters import asbool
 
 from sqlalchemy import engine_from_config
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -21,7 +16,6 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 __all__ = ['SQLAlchemyMiddleware']
 log = __import__('logging').getLogger(__name__)
 
-_safe_uri_replace = re.compile(r'(\w+)://(\w+):(?P<password>[^@]+)@')
 
 
 

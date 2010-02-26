@@ -5,12 +5,6 @@
 
 import re
 
-import web
-
-from paste.deploy.converters import asbool, asint
-from paste.registry import StackedObjectProxy
-
-
 
 __all__ = ['TransactionalMiddlewareInterface']
 log = __import__('logging').getLogger(__name__)
