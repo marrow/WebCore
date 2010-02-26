@@ -7,6 +7,8 @@
 import re
 
 import web
+import api
+import warnings
 
 from paste.deploy.converters import asbool, asint
 from paste.registry import StackedObjectProxy
@@ -23,28 +25,27 @@ _safe_uri_replace = re.compile(r'(\w+)://(\w+):(?P<password>[^@]+)@')
 
 
 
-class SQLAlchemyMiddleware(object):
+class SQLAlchemyMiddleware(api.TransactionalMiddlewareInterface):
     def __init__(self, application, prefix, model, session, **config):
-        self.application = application
-        self.prefix = prefix
-        self.model = model
-        self.session = session
+        self.config = {'%s.sqlalchemy.pool_recycle' % prefix: 3600}
         
-        # Default Configuration
-        self.config = {'%s.sqlalchemy.pool_recycle' % (self.prefix, ): 3600}
-        self.config.update(config.copy())
+        if ('%s.sqlalchemy.url' % prefix) in config:
+            # Some compatability cruft; will be removed in 1.0.
+            warnings.warn('%s.sqlalchemy.url is deprecated, use %s.url instead.' % (prefix, prefix), category=DeprecationWarning)
+            config['%s.url' % prefix] = config['%s.sqlalchemy.url' % prefix]
         
-        log.info("Connecting SQLAlchemy to '%s'.", _safe_uri_replace.sub(r'\1://\2@', self.config.get('%s.sqlalchemy.url' % (self.prefix, ))))
+        else:
+            config['%s.sqlalchemy.url' % prefix] = config['%s.url' % prefix]
         
-        # Here we cheat a little to ensure the properties are assignable.
-        for prop in ('engine'):
-            if not hasattr(self.model, prop):
-                self.model.__dict__[prop] = None
+        self.soup = config.get('%s.sqlalchemy.sqlsoup' % prefix, False)
         
-        self.model.engine = engine_from_config(self.config, prefix="%s.sqlalchemy." % (self.prefix, ))
+        super(SQLAlchemyMiddleware, self).__init__(application, prefix, model, session, **config)
+    
+    def setup(self):
+        self.model.__dict__['engine'] = engine_from_config(self.config, prefix="%s.sqlalchemy." % (self.prefix, ))
         self.model.metadata.bind = self.model.engine
         
-        if config.get('%s.sqlalchemy.sqlsoup' % (self.prefix, ), False):
+        if self.soup:
             from sqlalchemy.ext.sqlsoup import SqlSoup, Session
             self.model.__dict__['soup'] = SqlSoup(self.model.metadata)
             self._session = Session
@@ -60,43 +61,31 @@ class SQLAlchemyMiddleware(object):
         if hasattr(self.model, 'populate') and callable(self.model.populate):
             for table in self.model.metadata.sorted_tables:
                 table.append_ddl_listener('after-create', self.populate_table)
-        
-        if hasattr(self.model, 'prepare') and callable(self.model.prepare):
-            self.model.prepare()
     
-    def __call__(self, environ, start_response):
-        log.debug("Preparing database session.")
-        
-        if self.config.get('%s.sqlsoup' % (self.prefix, ), False):
+    def begin(self, environ):
+        if self.soup:
             environ['paste.registry'].register(self.session, self._session.current)
         
         else:
             environ['paste.registry'].register(self.session, self._session())
+    
+    def vote(self, environ, status):
+        if status >= 400:
+            log.debug("Rolling back database session due to HTTP status: %r", status)
+            return False
         
-        status = []
-        
-        def local_start(stat_str, headers=[]):
-            status.append(int(stat_str.split(' ')[0]))
-            return start_response(stat_str, headers)
-        
-        result = self.application(environ, local_start)
-        
+        log.debug("Committing database session; HTTP status: %r", status)
+        return True
+    
+    def finish(self, environ):
         if self.session.transaction is not None:
-            if len(status) != 1 or status[0] >= 400:
-                if status[0] >= 500:
-                    log.warn("Rolling back database session due to HTTP status: %r", status[0])
-                else:
-                    log.debug("Rolling back database session due to HTTP status: %r", status[0])
-            
-                self.session.rollback()
-            
-            else:
-                log.debug("Committing database session; HTTP status: %r", status[0])
-                self.session.commit()
-        
-        self.session.close()
-        
-        return result
+            self.session.commit()
+            self.session.close()
+    
+    def abort(self, environ):
+        if self.session.transaction is not None:
+            self.session.rollback()
+            self.session.close()
     
     def populate_table(self, action, table, bind):
         session = self._session()

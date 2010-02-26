@@ -97,8 +97,7 @@ test_config = {
         'db.connections': 'test',
         'db.test.engine': 'sqlalchemy',
         'db.test.model': RootController.__module__,
-        'db.test.cache': False,
-        'db.test.sqlalchemy.url': 'sqlite:///:memory:'
+        'db.test.url': 'sqlite:///:memory:'
     }
 
 app = Application.factory(root=RootController, **test_config)
