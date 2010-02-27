@@ -10,18 +10,21 @@ from unittest import TestCase
 from common import PlainController, WebTestCase
 
 
-def lookup(identifier):
-    return None
 
-def authenticate(identifier, password, force=False):
-    return None
-
+users = {'amcgregor': {'name': 'Alice Bevan-McGregor', 'pass': 'foo'}}
 
 is_me = web.auth.CustomPredicate(lambda u, r: getattr(u, 'name', None) == "user")
 user_in = web.auth.AttrIn.partial('name')
 member_of = web.auth.ValueIn.partial('groups')
 remote_addr_in = web.auth.EnvironIn.partial('REMOTE_ADDR')
 local = remote_addr_in(['127.0.0.1', '::1', 'fe80::1%%lo0'])
+
+
+def lookup(identifier):
+    return users[identifier] if identifier in users else None
+
+def authenticate(identifier, password):
+    return (identifier, users[identifier]) if identifier in users and users[identifier]['pass'] == password else None
 
 
 test_config = {
@@ -42,7 +45,6 @@ test_config = {
     }
 
 
-
 class RootController(PlainController):
     def index(self, *args, **kw):
         return "success"
@@ -58,6 +60,20 @@ class RootController(PlainController):
     @web.auth.authorize(local)
     def local(self):
         return "local"
+    
+    def authenticate(self, username, password):
+        return "ok" if web.auth.authenticate(username, password) else "error"
+    
+    def force(self, username):
+        return "ok" if web.auth.authenticate(username, None, force=True) else "error"
+    
+    def kill(self):
+        web.auth.deauthenticate()
+        return "ok"
+    
+    def nuke(self):
+        web.auth.deauthenticate(True)
+        return "ok"
 
 
 class TestAuthApp(WebTestCase):
@@ -69,6 +85,20 @@ class TestAuthApp(WebTestCase):
     def test_anonymous(self):
         self.assertResponse('/anonymous', body="anonymous")
         self.assertResponse('/authenticated', '307 Temporary Redirect', 'text/html')
+    
+    def test_authentication(self):
+        # TODO: Functional testing; ensure the session and thread-local are set.
+        self.assertResponse('/authenticate?username=nobody&password=baz', body="error")
+        self.assertResponse('/authenticate?username=amcgregor&password=bar', body="error")
+        self.assertResponse('/authenticate?username=amcgregor&password=foo', body="ok")
+        self.assertResponse('/force?username=nobody', body="error")
+        self.assertResponse('/force?username=amcgregor', body="ok")
+        self.assertResponse('/kill', body="ok")
+    
+    def test_deauthenticate(self):
+        # TODO: Functional testing; ensure the session and thread-local are cleared.
+        self.assertResponse('/kill', body="ok")
+        self.assertResponse('/nuke', body="ok")
     
     def test_local(self):
         self.assertResponse('/local', body="local")
