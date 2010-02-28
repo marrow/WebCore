@@ -31,6 +31,10 @@ class RESTMethod(object):
         self.methods = methods
     
     def __call__(self, *args, **kw):
+        if '_method' in kw:
+            log.warning("Use of _method to override the HTTP verb is deprecated.  Use _verb instead.")
+            kw['_verb'] = kw['_method']
+        
         verb = kw.pop('_verb', web.core.request.method).lower()
         web.core.response.allow = self.methods
         
