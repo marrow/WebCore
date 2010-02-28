@@ -65,6 +65,9 @@ class RootController(PlainController):
     
     def explicit(self):
         return Response(body="hello")
+    
+    def format(self):
+        return web.core.request.format
 
 
 class TestBasicDispatch(WebTestCase):
@@ -107,6 +110,12 @@ class TestBasicDispatch(WebTestCase):
     
     def test_explicit_response(self):
         self.assertResponse('/explicit', '200 OK', 'text/html', body="hello")
+    
+    def test_formats(self):
+        self.assertResponse('/format.json', '200 OK', body='json')
+        self.assertResponse('/format.html', '200 OK', body='html')
+        self.assertResponse('/format.xml', '200 OK', body='xml')
+        self.assertResponse('/format.bob', '200 OK', body='bob')
 
 
 class CustomDialect(web.core.Dialect):

@@ -59,6 +59,7 @@ class Controller(Dialect):
                 part = 'index'
             
             log.debug("Looking for %r attribute of %r.", part, last)
+            part, request.format = part.rsplit('.', 1) if '.' in part else (part, None)
             protected, part = part.startswith('_'), getattr(last, part, None)
             request.charset = 'utf8'
             data = request.params.mixed()
