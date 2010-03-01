@@ -5,4 +5,4 @@ from core import Controller
 from rest import RESTMethod
 
 
-__all__ = ['Dialect', 'Controller', 'RESTMethod']
+__all__ = ['api', 'core', 'rest', 'common', 'Dialect', 'Controller', 'RESTMethod', 'routes']
