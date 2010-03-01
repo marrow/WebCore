@@ -1,5 +1,6 @@
 # encoding: utf-8
 
+import web.core
 from routes.mapper import Mapper
 
 
