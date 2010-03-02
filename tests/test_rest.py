@@ -1,7 +1,5 @@
 # encoding: utf-8
 
-from unittest import TestCase
-
 from webob import Request
 
 import web

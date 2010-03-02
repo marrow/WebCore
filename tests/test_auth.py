@@ -1,7 +1,9 @@
 # encoding: utf-8
 
-import web, web.auth
+import web.core
+import web.auth
 from web.core import Application
+from web.auth.middleware import WebAuth
 from web.utils.dictionary import adict
 
 from paste.registry import StackedObjectProxy
@@ -74,6 +76,11 @@ class RootController(PlainController):
     def nuke(self):
         web.auth.deauthenticate(True)
         return "ok"
+
+
+class TestWebAuthMiddleware(WebTestCase):
+    def test_exceptions(self):
+        self.assertRaises(Exception, lambda: WebAuth(None))
 
 
 class TestAuthApp(WebTestCase):
