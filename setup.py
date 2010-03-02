@@ -75,6 +75,7 @@ setup(
         
         namespace_packages = [
                 'web',
+                'web.app',
                 'web.extras',
                 'web.db'
             ],
