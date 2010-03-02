@@ -4,8 +4,8 @@
 
 
 name = "WebCore"
-version = "0.6.2"
-release = "0.6.2"
+version = "0.9.0"
+release = "0.9.0"
 
 summary = "A full-stack, light-weight and efficient web development framework."
 description = """"""
