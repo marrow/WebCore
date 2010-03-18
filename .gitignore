@@ -8,3 +8,4 @@ dist/
 tests/.coverage
 .coverage
 scripts/webcore-bootstrap.py
+*.tmproj
