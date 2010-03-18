@@ -38,11 +38,11 @@ def route(root, method, expects):
             parts.pop()
             continue
         
-        if callable(part) and parts[1:]:
+        if hasattr(part, '__call__') and parts[1:]:
             log.error("Callable method found before reaching the end of the call tree.")
             raise HTTPNotImplemented('An attempt was made to call a method that can not be routed.')
         
-        if callable(part):
+        if hasattr(part, '__call__'):
             parts.pop()
             return part, last
         

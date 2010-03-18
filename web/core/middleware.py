@@ -66,7 +66,7 @@ def templateinterface(app, config):
     log.debug("Loading TemplateInterface template engine middleware.")
     
     try:
-        from cti.middleware import TemplatingMiddleware, registry
+        from web.extras.templating import TemplatingMiddleware, registry
         
         registry.append(web.core.namespace)
         

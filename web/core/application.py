@@ -42,7 +42,7 @@ class Application(object):
         
         web.core.config.update(config)
         
-        if not isinstance(self.root, Dialect) and not callable(self.root):
+        if not isinstance(self.root, Dialect) and not hasattr(self.root, '__call__'):
             raise TypeError('Root controller must be dialect subclass or executable.')
         
         if not isinstance(self.root, Dialect):
@@ -114,7 +114,7 @@ class Application(object):
         if isinstance(root, type):
             root = root()
         
-        if not isinstance(root, Dialect) and not callable(root):
+        if not isinstance(root, Dialect) and not hasattr(root, '__call__'):
             raise ValueError("The root controller must be defined using package dot-colon-notation or direct reference and must be either a WSGI app or Dialect.")
         
         config['web.root'] = root

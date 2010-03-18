@@ -43,7 +43,8 @@ def MongoMiddleware(application, prefix, model, session=None, **config):
     if auth and not model.db.authenticate(*auth.split(':', 1)):
         raise Exception("Error attempting to authenticate to MongoDB.")
     
-    if hasattr(model, 'prepare') and callable(model.prepare):
-        model.prepare()
+    prepare = getattr(model, 'prepare', None)
+    if hasattr(prepare, '__call__'):
+        prepare()
     
     return application

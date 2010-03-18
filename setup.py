@@ -39,7 +39,7 @@ setup(
                 'PasteScript',
                 'WebOb',
                 'WebError',
-                'TemplateInterface'
+                'alacarte'
             ],
         
         test_suite = 'nose.collector',
