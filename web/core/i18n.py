@@ -9,6 +9,7 @@ import os
 from gettext import NullTranslations, translation
 
 import web
+from web.extras.templating import registry
 from web.core.middleware import middleware, defaultbool
 
 
@@ -16,6 +17,7 @@ __all__ = ['_', 'L_', 'add_fallback', 'get_lang', 'gettext', 'gettext_noop',
            'lazy_gettext', 'lazy_ngettext', 'lazy_ugettext', 'lazy_ungettext',
            'ngettext', 'set_lang', 'ugettext', 'ungettext', 'LanguageError',
            'N_', 'P_', 'get_translator']
+__template_vars__ = ['_', 'L_', 'N_', 'P_']
 log = __import__('logging').getLogger(__name__)
 
 
@@ -297,3 +299,11 @@ def i18n(app, config):
         return app
     
     return I18n(app, config)
+
+
+
+# Register the appropriate i18n functions in the global template scope.
+_ = dict()
+for name in __template_vars__:
+    _[name] = locals()[name]
+registry.append(_)
