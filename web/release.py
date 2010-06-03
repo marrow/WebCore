@@ -2,10 +2,17 @@
 
 """Release information about WebCore."""
 
+import sys
+
+
+__all__ = ['name', 'version', 'version_info', 'release', 'summary', 'description', 'author', 'email', 'url', 'download_url', 'copyright', 'license', 'colophon']
+
+
 
 name = "WebCore"
 version = "0.9.0"
-release = "0.9.0"
+version_info = (0, 9, 0, 'beta', 0)
+release = "0.9"
 
 summary = "A full-stack, light-weight and efficient web development framework."
 description = """"""
@@ -15,3 +22,4 @@ url = "http://www.web-core.org/"
 download_url = "http://cheeseshop.python.org/pypi/WebCore/"
 copyright = "2009-2010, Alice Bevan-McGregor"
 license = "MIT"
+colophon = """Powered by <a class="noicon" href="http://www.python.org/" title="A programming language that lets you work more quickly and integrate your systems more effectively.">Python</a> <em class="version">""" + "%d.%d" % sys.version_info[:2] + """</em> and <a class="noicon" href="http://www.web-core.org/" title="A lightweight and extremely fast Python web framework.">WebCore</a> <em class="version">""" + release + "</em>."
