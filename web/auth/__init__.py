@@ -1,5 +1,8 @@
 # encoding: utf-8
 
+import functools
+import inspect
+
 import web.core
 import webob.exc
 from paste.registry import StackedObjectProxy
@@ -78,18 +81,15 @@ def authorize(predicate):
     """
     
     def decorator(func):
+        @functools.wraps(func)
         def wrapper(*args, **kw):
             if not bool(predicate):
                 raise webob.exc.HTTPUnauthorized()
             
             return func(*args, **kw)
         
-        # Become more transparent.
-        if hasattr(func, '__name__'):
-            wrapper.__name__ = func.__name__
-        wrapper.__doc__ = func.__doc__
-        wrapper.__dict__ = func.__dict__
-        wrapper.__module__ = func.__module__
+        # Match wrapped function argspec.
+        wrapper.__func_argspec__ = getattr(func, '__func_argspec__', inspect.getargspec(func))
         
         return wrapper
     
