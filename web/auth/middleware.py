@@ -8,7 +8,7 @@ import webob.exc
 from paste.deploy.converters import asbool, asint, aslist
 
 
-__all__ = ['WebAuth']
+__all__ = ['WebAuth', 'BasicAuthMiddleware']
 log = __import__('logging').getLogger(__name__)
 
 default_config = web.utils.dictionary.adict(
