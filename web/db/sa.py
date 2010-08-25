@@ -52,7 +52,8 @@ class SQLAlchemyMiddleware(api.TransactionalMiddlewareInterface):
                     twophase = asbool(self.config.get('%s.twophase' % (self.prefix, ), False))
                 )
         
-        if hasattr(self.model, 'populate') and callable(self.model.populate):
+        populate = getattr(self.model, 'populate', None)
+        if hasattr(populate, '__call__'):
             for table in self.model.metadata.sorted_tables:
                 table.append_ddl_listener('after-create', self.populate_table)
     
@@ -72,12 +73,12 @@ class SQLAlchemyMiddleware(api.TransactionalMiddlewareInterface):
         return True
     
     def finish(self, environ):
-        if self.session.transaction is not None:
+        if self.session.transaction is not None: # use getattr
             self.session.commit()
             self.session.close()
     
     def abort(self, environ):
-        if self.session.transaction is not None:
+        if self.session.transaction is not None: # use getattr
             self.session.rollback()
             self.session.close()
     
