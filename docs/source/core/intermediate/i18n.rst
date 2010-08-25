@@ -6,4 +6,4 @@ Internationalization
    :depth: 2
    :local:
 
-
+.. todo:: Internationalization documentation; would agronholm be willing to write this, as he has the most experience?  Delegation!

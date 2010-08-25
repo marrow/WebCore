@@ -107,15 +107,3 @@ At its most light-weight, the RESTMethod helper class allows you to create a sep
    
    class RootController(web.core.Controller):
        login = SignInMethod()
-
-
-XML-RPC Dispatch
-================
-
-TBD.
-
-
-Flex AMF Dispatch
-=================
-
-TBD.

@@ -8,5 +8,4 @@ Intermediate WebCore Topics
    alternate-dispatch
    authentication
    deployment
-   widgets
    i18n

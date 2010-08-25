@@ -98,13 +98,3 @@ Httperf produces very verbose output and has a lot of options that it doesn't do
    $ httperf --server 127.0.0.1 --uri / --num-conn 1001 --num-call 1 --rate 5 --timeout 5
 
 .. _online manual: http://www.hpl.hp.com/research/linux/httperf/docs.php
-
-
-Constant Profiling
-==================
-
-WebCore includes a unique middleware component to perform "constant profiling" of your webapp during production.  This allows you to track down problematic requests (including the session, GET, and POST arguments that produced the delay) and provide analytics information that Google Analytics or simple log file analysis can not provide.  Performance overhead is negligible; around 5% in in-house testing.
-
-To reduce the amount of overhead necessary on a per-request basis the CProfile middleware saves data using a PyMongo background save to a capped collection.
-
-.. note:: The installation of MongoDB is a topic outside of the scope of this document.

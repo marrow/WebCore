@@ -233,9 +233,3 @@ To run your web application you can now issue the following command:
 Passing the ``--reload`` argument tells the Paster web server to monitor the files in the project for modification and automatically restart the server to make the changes live.  You can now access the application from a web browser.
 
 To continue development and add database models and templates to your application, see the respective sections of this documentation.
-
-
-Graphical Application Creation
-==============================
-
-TBD.

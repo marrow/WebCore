@@ -6,7 +6,7 @@ Advanced Topics
    :maxdepth: 2
    
    middleware
-   rpc
    profiling
    db-plugin
-   template-plugin
+
+.. todo:: Point to alacarte's documentation for extending the available templating languages.

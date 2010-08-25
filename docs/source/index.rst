@@ -26,14 +26,11 @@ Table of Contents
 
    core/advanced/index
 
-Tutorials
-=========
-
 .. toctree::
-   :maxdepth: 1
+  :maxdepth: 1
 
-   tutorials/wiki/index
-   tutorials/blog/index
+  todo.rst
+
 
 Indices and Tables
 ==================

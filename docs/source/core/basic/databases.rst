@@ -143,4 +143,32 @@ For documentation on SQLSoup's capabilities, please see the relevant documentati
 MongoDB
 =======
 
-TBD.
+`MongoDB <http://www.mongodb.org>`_ is an extremely powerful, efficient, and capable schemaless no-SQL database.  It has excellent Python support.  To use it, declare a new database connection using the @mongo@ engine and something like the following in your INI file:
+
+.. code-block:: ini
+
+    db.core.model = coresite.model
+    db.core.url = mongo://localhost/coresite
+
+``db.core.url``
+    Specifies the back-end database engine to connect to.
+
+
+In your model module include something like the following:
+
+.. code-block: python
+
+    db = None
+
+    users = None
+    wiki = None
+    history = None
+    
+    def prepare():
+        global profiling, users, wiki, history
+        
+        users, wiki, history = db.users, db.wiki, db.history
+
+This will assign handy top-level names for MongoDB collections.
+
+For more information, see the `documentation for PyMongo <http://api.mongodb.org/python/>`_.

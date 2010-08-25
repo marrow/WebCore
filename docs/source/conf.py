@@ -20,6 +20,8 @@ extensions = [
         'sphinx.ext.todo'
     ]
 
+todo_include_todos = True
+
 templates_path = ['tools/templates']
 
 # The master toctree document.

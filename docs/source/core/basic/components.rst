@@ -159,13 +159,29 @@ Using Session Variables
 
 WebCore makes using sessions easy; you can get and store variables in the thread-local ``web.core.session`` variable as if it were a dictionary.  If you have not enabled auto-saving (with the ``web.sessions.auto`` configuration directive) you will need to manually call the ``.save()`` method of the session to persist your changes across requests.
 
-For more information, see Beaker's "`Using Sessions <http://beaker.groovie.org/sessions.html#using>`_" online documentation
+For more information, see Beaker's "`Using Sessions <http://beaker.groovie.org/sessions.html#using>`_" online documentation.
 
 
 Using The Cache
 ---------------
 
-TBD.
+The Beaker cache is a flexible and powerful way of storing ephemeral (temporary) information where generating that information initially is expensive.  Web browsers already do caching of pages and resources on pages, Beaker provides similar functionality for fine-grained sections of your own code.
+
+The Wiki provides a simple example of using Beaker to cache rendered content, since Textile rendering is inherently slower than returning static HTML.
+
+.. code-block:: python
+
+    @property
+    def rendered(self):
+        @web.core.cache.cache('wiki', expires=3600)
+        def cache(name, date):
+            return textile.textile(self.content)
+
+        return cache(self.name, self.modified)
+
+The ``@cache`` decorator is a direct reference to the `decorator from the Beaker package <http://beaker.groovie.org/caching.html#decorator-api>`_.  The two arguments referenced here are the name of the cache namespace and time (in seconds) for the data to live before being invalidated/expunged from the cache.
+
+For more information, see Beaker's "`Caching <http://beaker.groovie.org/caching.html>`_" online documentation.
 
 
 Debugging
@@ -204,3 +220,5 @@ Compression
 ===========
 
 Compression allows clients using your web application to receive content faster.  To enable compression, set ``web.compress = True`` in your configuration.  To override the amount of compression, set ``web.compress.level`` to a number between zero (no compression) and nine (maximum compression).
+
+One caveat to enabling compression is that if you ever return a response with zero-length body, compression will fail in an explosive way.  I.e. if you implement HEAD & eTag caching of web browser responses, _do not_ enable compression.
