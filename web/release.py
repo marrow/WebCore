@@ -10,9 +10,9 @@ __all__ = ['name', 'version', 'version_info', 'release', 'summary', 'description
 
 
 name = "WebCore"
-version = "0.9.0"
-version_info = (0, 9, 0, 'beta', 0)
-release = "0.9"
+version = "1.0.0"
+version_info = (1, 0, 0, 'production', 0)
+release = "1.0"
 
 summary = "A full-stack, light-weight and efficient web development framework."
 description = """"""
