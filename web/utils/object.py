@@ -5,8 +5,6 @@
 """
 
 
-from pkg_resources import resource_filename
-
 __all__ = ['yield_property', 'CounterMeta', 'get_dotted_object']
 
 
@@ -47,4 +45,3 @@ def get_dotted_object(target):
         module = getattr(module, part)
     
     return module
-        

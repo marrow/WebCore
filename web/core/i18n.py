@@ -288,7 +288,6 @@ class I18n(object):
         translator = get_translator(lang, self.config)
         environ['web.translator'] = translator
         environ['paste.registry'].register(web.core.translator, translator)
-        orig_lang = translator.lang
         
         return self.application(environ, start_response)
 

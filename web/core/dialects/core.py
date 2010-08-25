@@ -1,6 +1,5 @@
 # encoding: utf-8
 
-from webob import Request, Response
 import web.core
 
 from api import Dialect

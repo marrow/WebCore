@@ -9,7 +9,7 @@ import warnings
 from paste.deploy.converters import asbool
 
 from sqlalchemy import engine_from_config
-from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.orm import sessionmaker
 
 
 

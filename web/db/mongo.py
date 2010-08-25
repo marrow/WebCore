@@ -6,10 +6,6 @@
 
 import re
 
-from urlparse import urlparse
-
-import web
-
 from pymongo.connection import Connection
 
 

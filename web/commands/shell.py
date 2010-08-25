@@ -6,8 +6,6 @@ import paste.registry
 import paste.deploy.config
 from paste.deploy import loadapp, appconfig
 from paste.script.command import Command, BadCommand
-from paste.script.filemaker import FileOp
-from tempita import paste_script_template_renderer
 
 
 __all__ = ['ShellCommand']

@@ -6,17 +6,16 @@ The base WSGI application definition.
 Applications which use the WebCore framework plug into this base application.
 """
 
-import sys, os, pkg_resources, types
+import types
 
 import paste
 from webob import Request, Response
 
 import web, web.core, web.utils
-from web.core import Controller, middleware
+from web.core import middleware
 from web.core.dialects import Dialect
 
 from web.utils.object import get_dotted_object
-from paste.deploy.converters import asbool, asint, aslist
 
 
 __all__ = ['Application']

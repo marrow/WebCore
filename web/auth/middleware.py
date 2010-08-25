@@ -5,7 +5,7 @@ import urllib
 import web
 import webob.exc
 
-from paste.deploy.converters import asbool, asint, aslist
+from paste.deploy.converters import asbool, aslist
 
 
 __all__ = ['WebAuth', 'BasicAuthMiddleware']

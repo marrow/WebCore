@@ -26,7 +26,7 @@ class RootController(Controller):
 if __name__ == '__main__':
     import logging
     from paste import httpserver
-    from web.core import Application, Controller, request
+    from web.core import Application
     
     logging.basicConfig(level=logging.INFO)
     

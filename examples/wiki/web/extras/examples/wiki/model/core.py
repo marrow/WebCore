@@ -1,8 +1,6 @@
 #!/usr/bin/env python2.5
 # encoding: utf-8
 
-import web
-
 from sqlalchemy import *
 from sqlalchemy.orm import *
 

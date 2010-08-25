@@ -2,7 +2,7 @@
 
 import web
 from web.core import Controller, session
-from web.core.i18n import _, get_lang, set_lang
+from web.core.i18n import _, set_lang
 
 
 
