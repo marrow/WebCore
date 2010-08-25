@@ -93,14 +93,32 @@ class TestAuthApp(WebTestCase):
         self.assertResponse('/anonymous', body="anonymous")
         self.assertResponse('/authenticated', '307 Temporary Redirect', 'text/html')
     
-    def test_authentication(self):
-        # TODO: Functional testing; ensure the session and thread-local are set.
-        self.assertResponse('/authenticate?username=nobody&password=baz', body="error")
-        self.assertResponse('/authenticate?username=amcgregor&password=bar', body="error")
-        self.assertResponse('/authenticate?username=amcgregor&password=foo', body="ok")
-        self.assertResponse('/force?username=nobody', body="error")
-        self.assertResponse('/force?username=amcgregor', body="ok")
-        self.assertResponse('/kill', body="ok")
+    def check_authentication(self, url, expected_body):
+        print url, expected_body
+        assert False
+        # self.assertResponse(url, body=expected_body)
+    
+    def test_authentication_not_existant(self):
+        pairs = [
+                ('/authenticate?username=nobody&password=baz', "error"),
+                ('/authenticate?username=amcgregor&password=bar', "error"),
+                ('/authenticate?username=amcgregor&password=foo', "ok"),
+                ('/force?username=nobody', "error"),
+                ('/force?username=amcgregor', "ok"),
+                ('/kill', "ok")
+            ]
+        
+        for url, expected_body in pairs:
+            yield self.check_authentication, url, expected_body
+    
+    # def test_authentication(self):
+    #     # TODO: Functional testing; ensure the session and thread-local are set.
+    #     self.assertResponse('/authenticate?username=nobody&password=baz', body="error")
+    #     self.assertResponse('/authenticate?username=amcgregor&password=bar', body="error")
+    #     self.assertResponse('/authenticate?username=amcgregor&password=foo', body="ok")
+    #     self.assertResponse('/force?username=nobody', body="error")
+    #     self.assertResponse('/force?username=amcgregor', body="ok")
+    #     self.assertResponse('/kill', body="ok")
     
     def test_deauthenticate(self):
         # TODO: Functional testing; ensure the session and thread-local are cleared.
