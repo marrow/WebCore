@@ -49,7 +49,8 @@ setup(
                 'Genshi',
                 'SQLAlchemy',
                 'Beaker',
-                'ToscaWidgets'
+                'ToscaWidgets',
+                'Routes'
             ],
         
         classifiers = [
