@@ -12,7 +12,8 @@ Databases
 Configuring Database Connections
 ================================
 
-To utilize a database connection from within your application, you need two things: a configuration, and a model.
+To utilize a database connection from within your application, you need two
+things: a configuration, and a model.
 
 Configuration is easy:
 
@@ -26,13 +27,16 @@ Configuration is easy:
 Here's what each bit of this represents:
 
 ``db.connections``
-   A comma-separated list of database connections.  The name used here is used as the prefix for the database-specific configuration.
+   A comma-separated list of database connections. The name used here is used
+   as the prefix for the database-specific configuration.
 
 ``db.core.engine``
-   Here you tell WebCore which database engine you wish to use.  Currently we support two: ``sqlalchemy`` and ``mongo``.
+   Here you tell WebCore which database engine you wish to use.
+   Currently we support two: ``sqlalchemy`` and ``mongo``.
 
 ``db.core.model``
-   A dot-notation reference to the Python module which contains your model.  Individual engines may have requirements about what needs to be in that module.
+   A dot-notation reference to the Python module which contains your model.
+   Individual engines may have requirements about what needs to be in that module.
 
 
 Using SQLAlchemy
@@ -49,15 +53,19 @@ SQLAlchemy has additional configuration options:
    Specifies the back-end database engine to connect to.
 
 ``db.core.sqlalchemy.echo``
-   Weather or not the raw SQL queries be displayed in the log.
+   Whether or not the raw SQL queries should be displayed in the log.
 
-SQLAlchemy has an extensive list of additional configuration parameters on `their site <http://www.sqlalchemy.org/docs/05/dbengine.html#database-engine-options>`_.
+SQLAlchemy has an extensive list of additional configuration parameters on
+`their site <http://www.sqlalchemy.org/docs/dbengine.html#database-engine-options>`_.
 
 
 Your Model
 ----------
 
-WebCore strongly suggests using SQLAlchemy's `declarative extension <http://www.sqlalchemy.org/docs/05/reference/ext/declarative.html>`_.  To get started quickly, create a new module called ``base.py`` inside your ``model`` package and paste the following in:
+WebCore strongly suggests using SQLAlchemy's
+`declarative extension <http://www.sqlalchemy.org/docs/reference/ext/declarative.html>`_.
+To get started quickly, create a new module called ``base.py`` inside your
+``model`` package and paste the following in:
 
 .. code-block:: python
 
@@ -79,7 +87,8 @@ WebCore strongly suggests using SQLAlchemy's `declarative extension <http://www.
 
    Base = declarative_base(cls=DeclarativeEntity)
 
-Replace ``YOURPROJECT`` with the name of your top-level package.  In the ``__init__.py`` file inside your ``model`` package, enter the following:
+Replace ``YOURPROJECT`` with the name of your top-level package.
+In the ``__init__.py`` file inside your ``model`` package, enter the following:
 
 .. code-block:: python
 
@@ -101,9 +110,14 @@ Replace ``YOURPROJECT`` with the name of your top-level package.  In the ``__ini
    def populate(session, table):
        pass
 
-The thread-local database session will be automatically placed in the ``session`` variable on each request.  The ``prepare`` function is called once the database engine has been configured, and ``populate`` is called once for each table that gets created in the database, allowing you to populate the database with stock data.
+The thread-local database session will be automatically placed in the ``session``
+variable on each request.  The ``prepare`` function is called once the database
+engine has been configured, and ``populate`` is called once for each table that
+gets created in the database, allowing you to populate the database with stock data.
 
-The commented-out import line is an example of how to include actual table structures from other files, allowing you to split your model logically into separate files.
+The commented-out import line is an example of how to include actual table
+structures from other files, allowing you to split your model logically into
+separate files.
 
 Let's create a ``wiki.py`` file as an example data structure:
 
@@ -127,23 +141,32 @@ Let's create a ``wiki.py`` file as an example data structure:
        name = Column(Unicode(250), primary_key=True)
        content = Column(UnicodeText)
 
-You need to define ``__all__`` in your model modules to ensure the correct objects get imported into the ``__init__.py`` file.
+You need to define ``__all__`` in your model modules to ensure the correct
+objects get imported into the ``__init__.py`` file.
 
-For more information on how to use SQLAlchemy, see the relevant documentation on SQLAlchemy's `website <http://www.sqlalchemy.org/docs/05/index.html>`_.
+For more information on how to use SQLAlchemy, see the relevant documentation
+on SQLAlchemy's `website <http://www.sqlalchemy.org/docs/>`_.
 
 
 Legacy Database Connections with SQLSoup
 ========================================
 
-If you define ``db.*.sqlsoup = True`` in the configuration for your database connection, a ``soup`` object will be created within your model's module which will allow you to access legacy databases using SQLAlchemy's SQLSoup module.
+If you define ``db.*.sqlsoup = True`` in the configuration for your database
+connection, a ``soup`` object will be created within your model's module which
+will allow you to access legacy databases using SQLAlchemy's SQLSoup module.
 
-For documentation on SQLSoup's capabilities, please see the relevant documentation on SQLAlchemy's `website <http://www.sqlalchemy.org/docs/05/reference/ext/sqlsoup.html>`_.
+For documentation on SQLSoup's capabilities, please see the relevant
+documentation on SQLAlchemy's
+`website <http://www.sqlalchemy.org/docs/reference/ext/sqlsoup.html>`_.
 
 
 MongoDB
 =======
 
-`MongoDB <http://www.mongodb.org>`_ is an extremely powerful, efficient, and capable schemaless no-SQL database.  It has excellent Python support.  To use it, declare a new database connection using the @mongo@ engine and something like the following in your INI file:
+`MongoDB <http://www.mongodb.org>`_ is an extremely powerful, efficient, and
+capable schemaless no-SQL database.  It has excellent Python support.
+To use it, declare a new database connection using the **mongo** engine and
+something like the following in your INI file:
 
 .. code-block:: ini
 
@@ -171,4 +194,5 @@ In your model module include something like the following:
 
 This will assign handy top-level names for MongoDB collections.
 
-For more information, see the `documentation for PyMongo <http://api.mongodb.org/python/>`_.
+For more information, see the
+`documentation for PyMongo <http://api.mongodb.org/python/>`_.
