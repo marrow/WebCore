@@ -169,3 +169,31 @@ This will assign handy top-level names for MongoDB collections.
 
 For more information, see the
 `documentation for PyMongo <http://api.mongodb.org/python/>`_.
+
+
+Using multiple databases
+========================
+
+WebCore can easily support the use of multiple databases, regardless of their
+type. For example, to configure three databases -- one PostgreSQL database, one
+MongoDB database and one MySQL database, you could use a configuration like the
+following:
+
+.. code-block: ini
+
+    db.users.engine = sqlalchemy
+    db.users.model = myproject.auth.model
+    db.users.url = postgresql:///users
+
+    db.wiki.model = myproject.wiki.model
+    db.wiki.url = mongo://localhost/wiki
+
+    db.history.engine = sqlalchemy
+    db.history.model = myproject.history.model
+    db.history.url = mysql://me:mypassword@localhost/history?charset=utf8&use_unicode=0
+
+    db.connections = users,wiki,history
+
+The above configuration uses separate databases and models for users, wiki and
+history. The models are completely independent of each other, and should be
+built according to the instructions detailed in the previous sections.
