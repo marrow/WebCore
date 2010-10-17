@@ -28,7 +28,8 @@ Here's what each bit of this represents:
 
 ``db.connections``
    A comma-separated list of database connections. The name used here is used
-   as the prefix for the database-specific configuration.
+   as the prefix for the database-specific configuration. The name "core" is
+   only used as an example -- it can be any string you want.
 
 ``db.core.engine``
    Here you tell WebCore which database engine you wish to use.
@@ -58,54 +59,45 @@ SQLAlchemy has additional configuration options:
 SQLAlchemy has an extensive list of additional configuration parameters on
 `their site <http://www.sqlalchemy.org/docs/dbengine.html#database-engine-options>`_.
 
+.. note:: If you use MySQL, you should note that it usually requires some
+          special settings to work properly with unicode (at least with the
+          default driver). For that, you should append the ``charset=utf8`` and
+          ``use_unicode=0`` options to the connect string.
+          Please consult the
+          `MySQL section <http://www.sqlalchemy.org/docs/dialects/mysql.html#character-sets>`_
+          of the SQLAlchemy documentation for more information.
+
 
 Your Model
 ----------
 
 WebCore strongly suggests using SQLAlchemy's
 `declarative extension <http://www.sqlalchemy.org/docs/reference/ext/declarative.html>`_.
-To get started quickly, create a new module called ``base.py`` inside your
-``model`` package and paste the following in:
+To get started quickly, create a new module called ``model.py`` inside your
+project's top level package and paste the following in:
 
 .. code-block:: python
-
-   # encoding: utf-8
-
-   from sqlalchemy.ext.declarative import declarative_base
-
-
-   __all__ = ['Base']
-
-
-
-   class DeclarativeEntity(object):
-       @classmethod
-       def get(cls, *args, **kw):
-           from YOURPROJECT.model import session
-           return session.query(cls).get(*args, **kw)
-
-
-   Base = declarative_base(cls=DeclarativeEntity)
-
-Replace ``YOURPROJECT`` with the name of your top-level package.
-In the ``__init__.py`` file inside your ``model`` package, enter the following:
-
-.. code-block:: python
-
-   # encoding: utf-8
 
    from paste.registry import StackedObjectProxy
+   from sqlalchemy.ext.declarative import declarative_base
+   from sqlalchemy.orm import *
+   from sqlalchemy import *
 
-   # from YOURPROJECT.model.wiki import *
 
-
+   Base = declarative_base()
    metadata = Base.metadata
    session = StackedObjectProxy()
 
+   class Article(Base):
+       __tablename__ = 'articles'
+    
+       name = Column(Unicode(250), primary_key=True)
+       content = Column(UnicodeText)
 
 
    def prepare():
        metadata.create_all()
+
 
    def populate(session, table):
        pass
@@ -115,34 +107,15 @@ variable on each request.  The ``prepare`` function is called once the database
 engine has been configured, and ``populate`` is called once for each table that
 gets created in the database, allowing you to populate the database with stock data.
 
-The commented-out import line is an example of how to include actual table
-structures from other files, allowing you to split your model logically into
-separate files.
-
-Let's create a ``wiki.py`` file as an example data structure:
-
-.. code-block:: python
-
-   # encoding: utf-8
-
-   from sqlalchemy import *
-   from sqlalchemy.orm import *
-
-   from .base import Base
-
-
-   __all__ = ['Article']
-
-
-
-   class Article(Base):
-       __tablename__ = 'articles'
-    
-       name = Column(Unicode(250), primary_key=True)
-       content = Column(UnicodeText)
-
-You need to define ``__all__`` in your model modules to ensure the correct
-objects get imported into the ``__init__.py`` file.
+If your project has a lot of tables, you may want to split them into several
+different modules. In that case, you should turn your model module into a
+package instead. You should import the ``Base`` class into every module where
+you define new declarative classes, and leave ``Base``, ``metadata``,
+``session``, ``prepare`` and ``populate`` in the model package's ``__init__.py``
+file. Common beginner mistakes include calling
+:func:`~sqlalchemy.ext.declarative.declarative_base` more than
+once or using more than one :class:`~sqlalchemy.schema.MetaData` instance for
+the same database.
 
 For more information on how to use SQLAlchemy, see the relevant documentation
 on SQLAlchemy's `website <http://www.sqlalchemy.org/docs/>`_.
@@ -152,8 +125,8 @@ Legacy Database Connections with SQLSoup
 ========================================
 
 If you define ``db.*.sqlsoup = True`` in the configuration for your database
-connection, a ``soup`` object will be created within your model's module which
-will allow you to access legacy databases using SQLAlchemy's SQLSoup module.
+connection, a ``soup`` object will be created within your ``model`` module
+which will allow you to access legacy databases using SQLAlchemy's SQLSoup module.
 
 For documentation on SQLSoup's capabilities, please see the relevant
 documentation on SQLAlchemy's
