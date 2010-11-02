@@ -56,7 +56,7 @@ class SQLAlchemyMiddleware(api.TransactionalMiddlewareInterface):
             
             extensions_key = '%s.extensions' % (self.prefix, )
             if extensions_key in self.config:
-                args['extensions'] = [get_dotted_object(i) for i in aslist(self.config[extensions_key])]
+                args['extensions'] = [get_dotted_object(i)() for i in aslist(self.config[extensions_key])]
             
             setup = getattr(self.model, 'setup', None)
             if hasattr(setup, '__call__'):
