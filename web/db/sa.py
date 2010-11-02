@@ -6,7 +6,9 @@
 import api
 import warnings
 
-from paste.deploy.converters import asbool
+from paste.deploy.converters import asbool, aslist
+
+from web.utils.object import get_dotted_object
 
 from sqlalchemy import engine_from_config
 from sqlalchemy.orm import sessionmaker
@@ -31,7 +33,7 @@ class SQLAlchemyMiddleware(api.TransactionalMiddlewareInterface):
         else:
             config['%s.sqlalchemy.url' % prefix] = config['%s.url' % prefix]
         
-        self.soup = config.get('%s.sqlalchemy.sqlsoup' % prefix, False)
+        self.soup = config.get('%s.sqlsoup' % prefix, False)
         
         super(SQLAlchemyMiddleware, self).__init__(application, prefix, model, session, **config)
     
@@ -45,12 +47,22 @@ class SQLAlchemyMiddleware(api.TransactionalMiddlewareInterface):
             self._session = Session
         
         else:
-            self._session = sessionmaker(
+            args = dict(
                     bind = self.model.engine,
                     autocommit = asbool(self.config.get('%s.autocommit' % (self.prefix, ), False)),
                     autoflush = asbool(self.config.get('%s.autoflush' % (self.prefix, ), True)),
-                    twophase = asbool(self.config.get('%s.twophase' % (self.prefix, ), False))
+                    twophase = asbool(self.config.get('%s.twophase' % (self.prefix, ), False)),
                 )
+            
+            extensions_key = '%s.extensions' % (self.prefix, )
+            if extensions_key in self.config:
+                args['extensions'] = [get_dotted_object(i) for i in aslist(self.config[extensions_key])]
+            
+            setup = getattr(self.model, 'setup', None)
+            if hasattr(populate, '__call__'):
+                args = setup(args)
+            
+            self._session = sessionmaker(**args)
         
         populate = getattr(self.model, 'populate', None)
         if hasattr(populate, '__call__'):
