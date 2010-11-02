@@ -59,7 +59,7 @@ class SQLAlchemyMiddleware(api.TransactionalMiddlewareInterface):
                 args['extensions'] = [get_dotted_object(i) for i in aslist(self.config[extensions_key])]
             
             setup = getattr(self.model, 'setup', None)
-            if hasattr(populate, '__call__'):
+            if hasattr(setup, '__call__'):
                 args = setup(args)
             
             self._session = sessionmaker(**args)
