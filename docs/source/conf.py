@@ -150,7 +150,7 @@ latex_use_parts = True
 
 
 intersphinx_mapping = {'http://docs.python.org/dev': None,
-                       'http://www.sqlalchemy.org/docs/05/':None,
+                       'http://www.sqlalchemy.org/docs/':None,
                        'http://sprox.org/': None,
                        'http://toscawidgets.org/documentation/tw.forms/':None,
                        'http://toscawidgets.org/documentation/ToscaWidgets/':None,
