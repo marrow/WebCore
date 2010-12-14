@@ -302,7 +302,4 @@ def i18n(app, config):
 
 
 # Register the appropriate i18n functions in the global template scope.
-_ = dict()
-for name in __template_vars__:
-    _[name] = locals()[name]
-registry.append(_)
+registry.append(dict([(name, locals()[name]) for name in __template_vars__]))
