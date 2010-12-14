@@ -110,7 +110,6 @@ class TemplatingMiddleware(object):
         """Backwards compatability with the Buffet ad-hoc template API."""
         
         _buffet = dict((_engine.name, _engine) for _engine in pkg_resources.iter_entry_points('python.templating.engines'))
-        print repr(_buffet)
         
         options = dict(kw)
         if 'buffet.format' in options: del options['buffet.format']
