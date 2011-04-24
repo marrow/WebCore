@@ -6,4 +6,235 @@ Internationalization
    :depth: 2
    :local:
 
-.. todo:: Internationalization documentation; would agronholm be willing to write this, as he has the most experience?  Delegation!
+
+The Benefits of i18n
+====================
+
+The aim of internationalization (i18n) is to be able to support multiple
+natural languages without explicit changes in the program code or templates.
+In a properly internationalized application, you can add or remove languages
+without any code changes. You can even have your website automatically pick
+the correct language for your visitors based on their web browser language
+preferences.
+
+
+Setting Up i18n for Your Application
+====================================
+
+To make this happen, we will make use of the
+`Babel <http://babel.edgewall.org/>`_ tool. It greatly simplifies creation
+and updating of locales in an application. It is probably a good idea to
+familiarize yourself with some of the basic concepts related to i18n. You can
+read about these from the
+`Babel documentation <http://babel.edgewall.org/wiki/Documentation/index.html>`_.
+
+
+Choosing the Default Language
+-----------------------------
+
+Here, the "default language" is the language you use when writing text literals
+in the code and in the templates of your application. This is typically either
+English or your native language. This is the language that will be used as a
+basis for translating the strings to other languages. It also works as the
+fallback language for any untranslated strings.
+
+
+Configuring Your Application's INI File
+---------------------------------------
+
+To enable i18n support and set the default language for the application,
+make the following changes to your application's INI file:
+
+.. code-block:: ini
+
+    web.i18n = True
+    lang = fr
+
+Replace ``fr`` with the appropriate `ISO 639-1 <http://en.wikipedia.org/wiki/ISO_639-1>`_
+code for the language you want to use as the default. If you omit the ``lang``
+parameter, ``en`` will be the default. The ``web.i18n`` parameter is necessary
+for automatic language detection and inclusion of the translation machinery
+in the global template namespace. These modifications are unnecessary if you
+don't need automatic language detection and only use the translation machinery
+explicitly in the code (covered later in this tutorial).
+
+
+Configuring Babel
+-----------------
+
+For Babel to be able to extract your translatable strings from your application,
+you need to tell it how to find them. For that, you need to create a file named
+``babel.cfg`` in your project root (where ``setup.py`` is located). The
+following file is an example configuration file for Babel that extracts strings
+from Python code, Genshi templates (assumed to end with ``.html``) and Mako
+templates (assumed to end with ``.mako``). You can similarly extract messages
+from templates belonging to any template engine as long as it comes with an
+appropriate Babel plugin.
+
+.. code-block:: ini
+
+    # Extraction from Python source files
+    [python: **.py]
+
+    # Extraction from Genshi templates
+    [genshi: **.html]
+    input_encoding = utf-8
+
+    # Extraction from Mako templates
+    [mako: **.mako]
+    input_encoding = utf-8
+
+The format of the file matching patterns is described in the
+`Babel documentation <http://babel.edgewall.org/wiki/Documentation/messages.html#extraction-method-mapping-and-configuration>`_.
+
+
+Configuring setup.cfg
+---------------------
+
+The last configuration step is adding some new sections to your ``setup.cfg``
+file (create it if you don't have one already). This is mostly done to define
+where your locale files should go.
+A newly created setup.cfg might look like this:
+
+.. code-block:: ini
+
+    # Babel configuration
+    [compile_catalog]
+    domain = myproject
+    directory = myproject/i18n
+    statistics = true
+
+    [extract_messages]
+    keywords = gettext, ngettext, ugettext, ungettext, _, N_, L_, P_
+    mapping_file = babel.cfg
+    output_file = myproject/i18n/myproject.pot
+    width = 80
+
+    [init_catalog]
+    domain = services
+    input_file = myproject/i18n/myproject.pot
+    output_dir = myproject/i18n
+
+    [update_catalog]
+    domain = services
+    input_file = myproject/i18n/myproject.pot
+    output_dir = myproject/i18n
+    previous = true
+
+Just replace ``myproject`` with the actual name of your project.
+
+
+Preparing Code and Templates for Translation
+--------------------------------------------
+
+In order for Babel to know which strings are eligible for translation, they
+need to be marked as such. Consider the following Python code::
+
+    print 'Hello World'
+
+In order to mark that literal as translatable, it needs to be prefixed with
+``_`` or any other keyword previously defined in the ``extract_messages``
+section of setup.cfg::
+
+    from web.core.i18n import _
+
+    print _('Hello World')
+
+The same procedure works with templates too, but of course you need to use
+code blocks for that. The resulting template can look a bit ugly though.
+An example of a Genshi template prepared for i18n:
+
+.. code-block:: html
+
+    <html>
+    <head>
+      <title>${_('Hello World')}</title>
+    </head>
+    <body>
+      <p>${_('Hello from WebCore v%s!') % web.release}</p>
+    </body>
+    </html>
+
+.. note:: One point to remember here is to defer string substitution to
+          **after** the invocation of the translation function. Otherwise the
+          translation procedure will likely fail.
+
+
+Building Message Catalogs
+-------------------------
+
+When your configuration is set up and your translatable strings have been
+marked in your source code and templates, it is time to build the catalogs.
+First, you need to extract the translatable messages from your application into
+a .pot file, which will be used as a template for all translations:
+
+.. code-block:: sh
+
+    $ python setup.py extract_messages
+
+Next, you need to initialize the individual catalogs for each language you want
+to support:
+
+.. code-block:: sh
+
+    $ python setup.py init_catalog -l fr
+    $ python setup.py init_catalog -l de
+
+This step only needs to be done once for every new language you add.
+When you have the catalogs, you can issue the catalog update command which
+will create .po files for each language based on the .pot template created
+earlier:
+
+.. code-block:: sh
+
+    $ python setup.py update_catalog
+
+At this point you can start the actual translation work by editing the .po
+files of each language. When you are done, just compile the .po files to .mo
+files:
+
+.. code-block:: sh
+
+    $ python setup.py compile_catalog
+
+Now you're done! You can try out your application in different languages by
+switching the language preferences of your web browser.
+
+
+Updating Translations
+=====================
+
+In the course of your application development, you will likely need to update
+both the source strings and the translations. If you changed a source string,
+you need to extract the messages again and then update the catalog. This will
+not harm any unaffected translation entries. Just recompile the catalog after
+you are done fixing the translations. If you just want to update the
+translations, you can skip the message extraction step.
+
+
+Lazy Translations
+=================
+
+Sometimes you need to define string literals on the module level or elsewhere
+where they will get evaluated before the correct language has been selected.
+This will of course result in the wrong translation being used. To work around
+this, WebCore provides "lazy" variants of the translation functions, importable
+from the :mod:`web.core.i18n` module. These functions are named
+``L_``, ``lazy_gettext``, ``lazy_ugettext`` and so on.
+
+
+Using Translators Directly
+==========================
+
+Applications sometimes need to work with several different languages within a
+single request. In such situations it is necessary to use the translation
+machinery directly::
+
+    from web.core.i18n import get_translator
+    
+    _ = get_translator('de').gettext
+    print _('Hello World!')
+
+This will print "Hallo Welt!", assuming proper prior setup of the message
+catalog. Remember that for message extraction to work properly, the strings
+still need to be prefixed by _ and the likes.
