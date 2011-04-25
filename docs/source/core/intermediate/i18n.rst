@@ -13,16 +13,38 @@ The Benefits of i18n
 The aim of internationalization (i18n) is to be able to support multiple
 natural languages without explicit changes in the program code or templates.
 In a properly internationalized application, you can add or remove languages
-without any code changes. You can even have your website automatically pick
+with few to no code changes. You can even have your website automatically pick
 the correct language for your visitors based on their web browser language
 preferences.
+
+
+Running the i18n Example
+========================
+
+WebCore includes one example project that demonstrates the use of translation
+functions. As examples are not included in the downloadable WebCore
+distribution, you need to get the source tarball from
+`Github <https://github.com/GothAlice/WebCore/archives/master>`_. The example
+is located in the ``examples/example-i18n`` directory. To run the example, make
+sure you have WebCore and Genshi installed. Then, run the following commands
+(the first one only needs to be run once):
+
+.. code-block: sh
+
+    $ python setup.py egg_info
+    $ paster serve sample.ini
+
+Then point your web browser to http://localhost:8080/ and you should see
+"Hello World!". It also has other methods you can try, such as
+`time <http://localhost:8080/time>`_. Take a look at the source code to see
+more.
 
 
 Setting Up i18n for Your Application
 ====================================
 
-To make this happen, we will make use of the
-`Babel <http://babel.edgewall.org/>`_ tool. It greatly simplifies creation
+First, you will need to install the `Babel <http://babel.edgewall.org/>`_
+distribution. It greatly simplifies creation
 and updating of locales in an application. It is probably a good idea to
 familiarize yourself with some of the basic concepts related to i18n. You can
 read about these from the
@@ -36,7 +58,8 @@ Here, the "default language" is the language you use when writing text literals
 in the code and in the templates of your application. This is typically either
 English or your native language. This is the language that will be used as a
 basis for translating the strings to other languages. It also works as the
-fallback language for any untranslated strings.
+fallback language for any untranslated strings. To add more fallback languages,
+you can use the :func:`~web.core.i18n.add_fallback` function.
 
 
 Configuring Your Application's INI File
@@ -105,7 +128,7 @@ A newly created setup.cfg might look like this:
     statistics = true
 
     [extract_messages]
-    keywords = gettext, ngettext, ugettext, ungettext, _, N_, L_, P_
+    keywords = __:1,2 L_ L__:1,2
     mapping_file = babel.cfg
     output_file = myproject/i18n/myproject.pot
     width = 80
@@ -124,8 +147,8 @@ A newly created setup.cfg might look like this:
 Just replace ``myproject`` with the actual name of your project.
 
 
-Preparing Code and Templates for Translation
---------------------------------------------
+Preparing Python Code for Translation
+-------------------------------------
 
 In order for Babel to know which strings are eligible for translation, they
 need to be marked as such. Consider the following Python code::
@@ -140,9 +163,49 @@ section of setup.cfg::
 
     print _('Hello World')
 
-The same procedure works with templates too, but of course you need to use
-code blocks for that. The resulting template can look a bit ugly though.
+WebCore provides the following convenience functions for translation:
+
+======== ================== =================================
+Function Gettext equivalent Notes
+======== ================== =================================
+``_``    ugettext           Returns unicode
+``__``   ungettext          Returns unicode
+``L_``   ugettext           Lazily evaluated, returns unicode
+``L__``  ungettext          Lazily evaluated, returns unicode
+======== ================== =================================
+
+The ``L_`` and ``L__`` functions are special in the way that the wrapped string
+is not translated when the expression is evaluated, but instead each time the
+string is accessed. Thus you can use them to put translatable strings on the
+module or class level without it being translated at import time, but instead
+after the correct language for the request has been determined.
+
+
+Preparing Templates for Translation
+-----------------------------------
+
+Different template engines handle message extraction differently. Genshi, for
+example, `extracts all strings not inside ignored tags by default
+<http://genshi.edgewall.org/wiki/Documentation/i18n.html#babel-integration>`_.
+Mako, on the other hand, always requires
+`explicit use of translation functions
+<http://www.makotemplates.org/docs/usage.html#babel>`_. For other template
+engines, see their respective documentation for more information on this.
+
 An example of a Genshi template prepared for i18n:
+
+.. code-block:: html
+
+    <html>
+    <head>
+      <title>Hello World</title>
+    </head>
+    <body>
+      <p>${_('Hello from WebCore v%s!') % web.release}</p>
+    </body>
+    </html>
+
+The same for Mako would be:
 
 .. code-block:: html
 
@@ -155,9 +218,39 @@ An example of a Genshi template prepared for i18n:
     </body>
     </html>
 
+The translation functions are automatically inserted into the template's
+namespace by WebCore's i18n middleware.
+
 .. note:: One point to remember here is to defer string substitution to
           **after** the invocation of the translation function. Otherwise the
           translation procedure will likely fail.
+
+
+Changing the current language
+-----------------------------
+
+To change the user's current language, use the
+:func:`web.core.i18n.set_lang` function. Similarly,
+:func:`web.core.i18n.get_lang` will tell you what the user's current language
+is. When you set the language, the setting is saved in the user's session if
+sessions are enabled (``web.sessions = True``).
+
+
+Using Arbitrary Translations Directly
+-------------------------------------
+
+Applications sometimes need to work with several different languages within a
+single request. In such situations it is necessary to use a different
+translator than the default one::
+
+    from web.core.i18n import get_translator
+    
+    _ = get_translator('de').ugettext
+    print _('Hello World!')
+
+This will print "Hallo Welt!", assuming proper prior setup of the message
+catalog. Remember that for message extraction to work properly, the strings
+still need to be wrapped by ``_`` or any other translation function.
 
 
 Building Message Catalogs
@@ -205,36 +298,13 @@ Updating Translations
 =====================
 
 In the course of your application development, you will likely need to update
-both the source strings and the translations. If you changed a source string,
-you need to extract the messages again and then update the catalog. This will
-not harm any unaffected translation entries. Just recompile the catalog after
-you are done fixing the translations. If you just want to update the
-translations, you can skip the message extraction step.
+both the source strings and the translations. The procedure for updating
+translations is as follows:
 
+#. Run ``python setup.py extract_messages``
+#. Run ``python setup.py update_catalog``
+#. Check/update the translations
+#. Run ``python setup.py compile_catalog``
 
-Lazy Translations
-=================
-
-Sometimes you need to define string literals on the module level or elsewhere
-where they will get evaluated before the correct language has been selected.
-This will of course result in the wrong translation being used. To work around
-this, WebCore provides "lazy" variants of the translation functions, importable
-from the :mod:`web.core.i18n` module. These functions are named
-``L_``, ``lazy_gettext``, ``lazy_ugettext`` and so on.
-
-
-Using Translators Directly
-==========================
-
-Applications sometimes need to work with several different languages within a
-single request. In such situations it is necessary to use the translation
-machinery directly::
-
-    from web.core.i18n import get_translator
-    
-    _ = get_translator('de').gettext
-    print _('Hello World!')
-
-This will print "Hallo Welt!", assuming proper prior setup of the message
-catalog. Remember that for message extraction to work properly, the strings
-still need to be prefixed by _ and the likes.
+If you are only updating the translations and haven't changed any source
+strings, you can skip the first two steps.
