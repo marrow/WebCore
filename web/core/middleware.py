@@ -100,6 +100,7 @@ def toscawidgets(app, config):
     
     except ImportError: # pragma: no cover
         log.warn("ToscaWidgets not installed, widget framework disabled.  You can remove this warning by explicitly defining widgets=False in your config.")
+        return app
 
 
 @middleware('authentication', after="widgets")
@@ -136,6 +137,7 @@ def authkit(app, config):
     
     except ImportError: # pragma: no cover
         log.warn("AuthKit not installed, authentication and authorization disabled.  Your authorization checks, if any, will fail.")
+        return app
 
 
 @middleware('database', after=["widgets", "authentication"])
@@ -230,6 +232,7 @@ def sessions(app, config):
     
     except ImportError: # pragma: no cover
         log.warn("Beaker not installed, sessions disabled.  You can remove this warning by specifying web.sessions = False in your config.")
+        return app
 
 
 @middleware('caching', after=["sessions"])
@@ -253,6 +256,7 @@ def caching(app, config):
     
     except ImportError: # pragma: no cover
         log.warn("Beaker not installed, caching disabled.  You can remove this warning by specifying web.cache = False in your config.")
+        return app
     
 
 
@@ -282,6 +286,7 @@ def debugging(app, config):
     
     except ImportError: # pragma: no cover
         log.warn("WebError not installed, interactive exception handling and messaging disabled.  You can remove this warning by specifying web.debugging = False in your config.")
+        return app
 
 
 @middleware('registry', after="debugging")
@@ -329,7 +334,7 @@ def static(app, config):
             path = module.__file__
     
     if not os.path.isdir(path):
-        log.warn("Unable to find folder to serve static content from.  Please specify web.static.path in your config.")
+        log.warn("Unable to find folder to serve static content from. Please specify web.static.path in your config.")
         return app
     
     log.debug("Serving static files from '%s'.", path)
@@ -369,3 +374,4 @@ def profiling(app, config):
     
     except ImportError: # pragma: no cover
         log.error("Repoze profiling middleware not installed.")
+        return app
