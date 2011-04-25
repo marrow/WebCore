@@ -126,11 +126,11 @@ WebCore includes a number of useful helpers in the ``web`` and global template n
 Defining Your Own
 -----------------
 
-To add objects to the global template namespace, append to the ``web.extras.templating.registry`` dictionary:
+To add objects to the global template namespace, append to the ``web.core.templating.registry`` dictionary:
 
 .. code-block:: python
 
-   from web.extras.templating import registry
+   from web.core.templating import registry
    
    registry.append(dict(
            myglobal = "foo"

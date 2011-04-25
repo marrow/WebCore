@@ -6,7 +6,7 @@ from webob import Request
 
 import web
 from web.core import Application, Controller
-from web.extras.templating import template
+from web.core.templating import template
 
 
 class RootController(Controller):

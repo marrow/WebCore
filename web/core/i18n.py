@@ -2,7 +2,7 @@
 from gettext import NullTranslations, translation
 import os
 
-from web.extras.templating import registry
+from web.core.templating import registry
 from web.core.middleware import middleware, defaultbool
 import web
 
