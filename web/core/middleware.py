@@ -55,6 +55,7 @@ class middleware(object):
 
 @middleware('templating')
 def templateinterface(app, config):
+
     # Automatically use TemplateInterface templating engines unless explicitly forbidden.
     if not defaultbool(config.get('web.templating', True), ['templateinterface']):
         return app
@@ -63,13 +64,13 @@ def templateinterface(app, config):
 
     try:
         from web.core.templating import TemplatingMiddleware, registry
-
+        
         registry.append(web.core.namespace)
 
         return TemplatingMiddleware(app, config)
 
     except ImportError:  # pragma: no cover
-        log.error("TemplateMiddleware not installed; your application is not likely to work.")
+        log.exception("Error loading templating middleware")
         raise
 
 
@@ -94,8 +95,7 @@ def toscawidgets(app, config):
         return ToscaWidgetsMiddleware(app, twconfig)
 
     except ImportError:  # pragma: no cover
-        log.warn("ToscaWidgets not installed, widget framework disabled.  You can remove this warning by explicitly defining widgets=False in your config.")
-        return app
+        raise ImportError("You must install ToscaWidgets to enable toscawidgets support")
 
 
 @middleware('authentication', after="widgets")
@@ -130,8 +130,7 @@ def authkit(app, config):
         return app
 
     except ImportError:  # pragma: no cover
-        log.warn("AuthKit not installed, authentication and authorization disabled.  Your authorization checks, if any, will fail.")
-        return app
+        raise ImportError("You must install AuthKit to enable AuthKit based authentication")
 
 
 @middleware('database', after=["widgets", "authentication"])
@@ -180,7 +179,7 @@ def database(app, config):
         return app
 
     except:
-        log.exception("Database connections not available.")
+        log.exception("Error initializing database connections.")
         raise
 
 
@@ -225,8 +224,7 @@ def sessions(app, config):
         return SessionMiddleware(app, beakerconfig)
 
     except ImportError:  # pragma: no cover
-        log.warn("Beaker not installed, sessions disabled.  You can remove this warning by specifying web.sessions = False in your config.")
-        return app
+        raise ImportError("You must install Beaker to enable sessions")
 
 
 @middleware('caching', after=["sessions"])
@@ -249,8 +247,7 @@ def caching(app, config):
         return CacheMiddleware(app, beakerconfig)
 
     except ImportError:  # pragma: no cover
-        log.warn("Beaker not installed, caching disabled.  You can remove this warning by specifying web.cache = False in your config.")
-        return app
+        raise ImportError("You must install Beaker to enable caching")
 
 
 @middleware('debugging', after=["database", "caching", "sessions", "configuration"])
@@ -278,8 +275,7 @@ def debugging(app, config):
             return ErrorMiddleware(app, config, **localconfig)
 
     except ImportError:  # pragma: no cover
-        log.warn("WebError not installed, interactive exception handling and messaging disabled.  You can remove this warning by specifying web.debugging = False in your config.")
-        return app
+        raise ImportError("You must install WebError to enable debugging")
 
 
 @middleware('registry', after="debugging")
@@ -369,5 +365,4 @@ def profiling(app, config):
            )
 
     except ImportError:  # pragma: no cover
-        log.error("Repoze profiling middleware not installed.")
-        return app
+        raise ImportError("You must install repoze.profile to enable profiling")
