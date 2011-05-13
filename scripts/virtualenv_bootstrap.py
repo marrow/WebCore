@@ -5,27 +5,14 @@ output = virtualenv.create_bootstrap_script(textwrap.dedent("""
 
 import os, subprocess
 
-if sys.version_info <= (2, 5):
-    raise SystemExit("Python 2.5 or later is required.")
-
-development_packages = ['WebCore-Start']
-production_packages = ['WebCore']
-
-def extend_parser(parser):
-    parser.add_option(
-            '--production',
-            action = 'store_true',
-            dest = 'production',
-            default = False,
-            help = "Omit development packages."
-        )
+if sys.version_info <= (2, 6):
+    raise SystemExit("Python 2.6 or later is required.")
 
 def adjust_options(options, args):
     options.no_site_packages = True
     options.use_distribute = True
 
 def after_install(options, home_dir):
-    
     if os.name == 'nt':
         pip = os.path.join(sys.prefix, 'Scripts', 'pip.exe')
     
@@ -45,13 +32,12 @@ def after_install(options, home_dir):
     logger.notify('Installing WebCore into virtual environment...')
     
     subprocess.call(
-            [pip, 'install'] + (production_packages if options.production else development_packages)
+            [pip, 'install', 'WebCore']
         )
     
     logger.notify('Run "cd %s ; . bin/activate" to enter the virtual environment.' % (home_dir, ))
     
-    if not options.production:
-        logger.notify('Run "paster quickstart" within the env to create a new web application.')
+    logger.notify('Run "blueprint create webcore.app" within the env to create a new web application.')
     
 
 """))
