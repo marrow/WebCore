@@ -1,11 +1,9 @@
 from webob.exc import HTTPNotImplemented
 
-from web.core import dialects
+from web.core import Dialect
 
 log = __import__('logging').getLogger(__name__)
 
-
-_all_dialects = tuple(getattr(dialects, d) for d in dialects.__all__)
 
 class RoutingError(HTTPNotImplemented):
     def __init__(self):
@@ -30,7 +28,7 @@ def route(root, method, expects):
 
         part = getattr(last, part, None)
 
-        if not isinstance(part, expects) and isinstance(part, _all_dialects):
+        if not isinstance(part, expects) and isinstance(part, Dialect):
             log.error("Context switching to another dialect from the current RPC dialect is not allowed.")
             raise RoutingError
 
