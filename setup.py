@@ -3,7 +3,16 @@
 
 import sys, os
 
-from setuptools import setup, find_packages
+try:
+    from setuptools import setup, find_packages
+
+except ImportError:
+    print "You do not seem to have distribute or setuptools installed."
+    print "WebCore requires functionality from one of these packages."
+    print "We recommend installing distribute:\n\
+        http://pypi.python.org/pypi/distribute#installation-instructions\n"
+    
+    raise
 
 
 if sys.version_info <= (2, 5):
