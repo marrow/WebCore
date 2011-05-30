@@ -23,16 +23,16 @@ execfile(os.path.join("web", "release.py"))
 
 
 setup(
-        name = name,
+        name = "WebCore",
         version = version,
         
-        description = summary,
-        long_description = description,
-        author = author,
-        author_email = email,
-        url = url,
-        download_url = download_url,
-        license = license,
+        description = "A full-stack, light-weight and efficient web development framework.",
+        long_description = "",
+        author = "Alice Bevan-McGregor and contributors",
+        author_email = "alice@gothcandy.com",
+        url = "http://www.web-core.org/",
+        download_url = "http://cheeseshop.python.org/pypi/WebCore/",
+        license = "MIT",
         keywords = '',
         
         install_requires = [
@@ -99,6 +99,7 @@ setup(
                 'webcore.db.engines': [
                         'sqlalchemy = web.db.sa:SQLAlchemyMiddleware',
                         'mongo = web.db.mongo:MongoMiddleware'
+                        'mongoengine = web.db.me:MongoEngineMiddleware'
                     ]
             }
     )
