@@ -7,7 +7,6 @@ from routes.mapper import Mapper
 __all__ = ['RoutingController']
 
 
-
 class RoutingController(web.core.Dialect):
     """Routes-based dispatch.
     

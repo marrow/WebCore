@@ -1,9 +1,14 @@
+# encoding: utf-8
+
 """Internationalization (i18n) functions."""
-from gettext import NullTranslations, translation
+
 import os
 
-from web.core.templating import registry
+from gettext import NullTranslations, translation
+
 import web
+
+from web.core.templating import registry
 
 
 __all__ = ['LanguageError', '_', '__', 'L_', 'N_', 'gettext',

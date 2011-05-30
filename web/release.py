@@ -8,7 +8,6 @@ import sys
 __all__ = ['name', 'version', 'version_info', 'release', 'summary', 'description', 'author', 'email', 'url', 'download_url', 'copyright', 'license', 'colophon']
 
 
-
 name = "WebCore"
 version = "1.0.1"
 version_info = (1, 0, 1, 'production', 0)

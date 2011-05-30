@@ -9,7 +9,6 @@ log = __import__('logging').getLogger(__name__)
 __all__ = ['adict']
 
 
-
 class adict(dict):
     """A dictionary with attribute-style access. It maps attribute access to the real dictionary."""
     

@@ -14,11 +14,8 @@ from sqlalchemy import engine_from_config
 from sqlalchemy.orm import sessionmaker
 
 
-
 __all__ = ['SQLAlchemyMiddleware']
 log = __import__('logging').getLogger(__name__)
-
-
 
 
 class SQLAlchemyMiddleware(api.TransactionalMiddlewareInterface):
@@ -105,4 +102,3 @@ class SQLAlchemyMiddleware(api.TransactionalMiddlewareInterface):
             raise
         
         session.commit()
-        

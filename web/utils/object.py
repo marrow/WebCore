@@ -1,12 +1,6 @@
 # encoding: utf-8
 
-"""
-
-"""
-
-
 __all__ = ['yield_property', 'CounterMeta', 'get_dotted_object']
-
 
 
 def yield_property(iterable, name):
