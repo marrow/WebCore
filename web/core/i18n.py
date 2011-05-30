@@ -46,10 +46,17 @@ class L_(object):
     """Lazy version of ugettext."""
     def __init__(self, message):
         self.__message = message
+        
+    @property
+    def __translated(self):
+        from nose.tools import set_trace; set_trace()
+        return web.core.translator.ugettext(self.__message)
+
+    def __add__(self, other):
+        return self.__translated + other
 
     def __getattr__(self, name):
-        translated = web.core.translator.ugettext(self.__message)
-        return getattr(translated, name)
+        return getattr(self.__translated, name)
 
 
 class L__(object):
@@ -196,11 +203,3 @@ class I18n(object):
         environ['paste.registry'].register(web.core.translator, translator)
 
         return self.application(environ, start_response)
-
-
-@middleware('i18n', after="widgets")
-def i18n(app, config):
-    if not defaultbool(config.get('web.i18n', True), ['gettext']):
-        return app
-
-    return I18n(app, config)

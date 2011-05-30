@@ -366,3 +366,12 @@ def profiling(app, config):
 
     except ImportError:  # pragma: no cover
         raise ImportError("You must install repoze.profile to enable profiling")
+
+
+@middleware('i18n', after="widgets")
+def i18n(app, config):
+    if not defaultbool(config.get('web.i18n', True), ['gettext']):
+        return app
+
+    from web.core.i18n import I18n
+    return I18n(app, config)
