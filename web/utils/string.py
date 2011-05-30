@@ -77,7 +77,8 @@ def normalize(name, collection=[], expression=re.compile('\W+')):
     
     while True:
         value = ("%s%s" % (base.strip('-'), ("-%d" % (suffix, )) if suffix else ""))
-        if value not in collection: return value
+        if value not in collection:
+            return value
         suffix += 1
     
     raise ValueError

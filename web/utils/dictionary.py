@@ -23,7 +23,8 @@ class adict(dict):
         del self[name]
     
     def __getattr__(self, name):
-        if name in self.__dict__: return self.__dict__.get(name)
+        if name in self.__dict__:
+            return self.__dict__.get(name)
         return self[name]
     
     def __setattr__(self, name, value):

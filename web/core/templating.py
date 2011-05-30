@@ -112,8 +112,10 @@ class TemplatingMiddleware(object):
         _buffet = dict((_engine.name, _engine) for _engine in pkg_resources.iter_entry_points('python.templating.engines'))
         
         options = dict(kw)
-        if 'buffet.format' in options: del options['buffet.format']
-        if 'buffet.fragment' in options: del options['buffet.fragment']
+        if 'buffet.format' in options:
+            del options['buffet.format']
+        if 'buffet.fragment' in options:
+            del options['buffet.fragment']
         
         engine = _buffet[engine].load()
         engine = engine(cls.variables, options)
