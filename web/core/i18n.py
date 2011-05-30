@@ -49,7 +49,6 @@ class L_(object):
         
     @property
     def __translated(self):
-        from nose.tools import set_trace; set_trace()
         return web.core.translator.ugettext(self.__message)
 
     def __add__(self, other):
@@ -57,18 +56,6 @@ class L_(object):
 
     def __getattr__(self, name):
         return getattr(self.__translated, name)
-
-
-class L__(object):
-    """Lazy version of ungettext."""
-    def __init__(self, singular, plural, n):
-        self.__singular = singular
-        self.__plural = plural
-        self.__n = n
-
-    def __getattr__(self, name):
-        translated = web.core.translator.ungettext(self.__singular, self.__plural, self.__n)
-        return getattr(translated, name)
 
 
 def get_translator(lang, conf=None, **kwargs):
@@ -179,7 +166,7 @@ class I18n(object):
         config['lang'] = [i.strip(' ,') for i in config.get('lang', 'en').split(',')]
 
         # Register the appropriate i18n functions in the global template scope.
-        registry.append({'_': _, '__': __, 'L_': L_, 'L__': L__, 'N_': N_})
+        registry.append({'_': _, '__': __, 'L_': L_, 'N_': N_})
 
         log.debug("Default language path: %r", config['lang'])
 
