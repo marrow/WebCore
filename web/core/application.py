@@ -168,14 +168,14 @@ class Application(object):
         if isinstance(content, list) or isinstance(content, types.GeneratorType):
             web.core.response.app_iter = content
             return web.core.response(environment, start_response)
-    
+        
         if not isinstance(content, basestring):
             return content
-    
+        
         if isinstance(content, unicode):
             web.core.response.unicode_body = content
-    
+        
         else:
             web.core.response.body = content
-    
+        
         return web.core.response(environment, start_response)
