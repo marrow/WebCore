@@ -1,13 +1,12 @@
-"""Translation/Localization functions."""
+"""Internationalization (i18n) functions."""
 from gettext import NullTranslations, translation
 import os
 
 from web.core.templating import registry
-from web.core.middleware import middleware, defaultbool
 import web
 
 
-__all__ = ['LanguageError', '_', '__', 'L_', 'L__', 'N_', 'gettext',
+__all__ = ['LanguageError', '_', '__', 'L_', 'N_', 'gettext',
            'ugettext', 'ngettext', 'ungettext', 'get_lang', 'set_lang',
            'get_translator', 'add_fallback']
 
@@ -70,7 +69,7 @@ def get_translator(lang, conf=None, **kwargs):
         lang = [lang]
 
     try:
-        translator = translation(conf['web.root.package'], conf['web.i18n.path'],
+        translator = translation(conf['web.i18n.domain'], conf['web.i18n.path'],
                                  languages=lang, **kwargs)
 
     except IOError, ioe:
@@ -132,6 +131,7 @@ class I18n(object):
 
         # Find the i18n folder, working from the package up to the root controller.
         path = config.get('web.i18n.path', None)
+        domain = config.get('web.i18n.domain', config['web.root.package'])
 
         if path is None:
             # Attempt to discover the path automatically.
@@ -161,6 +161,7 @@ class I18n(object):
             raise Exception("Unable to find folder to store i18n strings.  Please specify web.i18n.path in your config.")
 
         config['web.i18n.path'] = path
+        config['web.i18n.domain'] = domain
 
         # Determine language order.
         config['lang'] = [i.strip(' ,') for i in config.get('lang', 'en').split(',')]
