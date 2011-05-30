@@ -11,7 +11,6 @@ __all__ = [
     ]
 
 
-
 class Predicate(object):
     def __nonzero__(self):
         raise NotImplementedError('Subclasses override this method.')
@@ -201,7 +200,3 @@ class EnvironIn(Predicate):
                 super(PartialEnvironIn, self).__init__(attr, values)
         
         return PartialEnvironIn
-
-
-class BetweenTimes(Predicate):
-    pass
