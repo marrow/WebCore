@@ -68,10 +68,10 @@ setup(
                 "Topic :: Software Development :: Libraries :: Python Modules"
             ],
         
-        packages = find_packages(exclude=['ez_setup', 'examples', 'tests', 'tests.*', 'docs']),
+        packages = find_packages(exclude=['examples', 'tests', 'tests.*', 'docs']),
         include_package_data = True,
         package_data = {
-                '': ['README.textile', 'LICENSE', 'distribute_setup.py'],
+                '': ['README.textile', 'LICENSE'],
                 'docs': ['Makefile', 'source/*']
             },
         zip_safe = True,
