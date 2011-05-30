@@ -1,9 +1,5 @@
 # encoding: utf-8
 
-"""
-
-"""
-
 import sys
 from web import release
 from web.core.dialects import Dialect, Controller, RESTMethod

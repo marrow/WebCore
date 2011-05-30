@@ -22,7 +22,6 @@ __all__ = ['Application']
 log = __import__('logging').getLogger(__name__)
 
 
-
 class Application(object):
     """A WSGI-compliant application base.
     

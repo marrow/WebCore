@@ -1,15 +1,10 @@
 # encoding: utf-8
 
-"""
-"""
-
-
 import os
 import pkg_resources
 
 from alacarte.core import Engines
 from alacarte.resolver import Resolver
-
 
 
 __all__ = ['template', 'TemplatingMiddleware', 'render', 'resolve', 'registry']
@@ -19,7 +14,6 @@ render = Engines()
 resolve = Resolver()
 
 registry = []
-
 
 
 def template(template, **extras):
@@ -119,7 +113,7 @@ class TemplatingMiddleware(object):
         
         engine = _buffet[engine].load()
         engine = engine(cls.variables, options)
-
+        
         return content_type, engine.render(
                 data,
                 kw.get("buffet.format", "html"),
@@ -146,13 +140,6 @@ class TemplatingMiddleware(object):
         if 'web.translator' in environ:
             options['i18n'] = environ['web.translator']
         
-        # try:
         result = render(template, self.variables(data, template), **options)
-        
-        # except KeyError:
-            # if not self.use_buffet: raise
-            #
-            # engine, _ = resolve(template)
-            # result = self.buffet(engine, template.split(':')[-1], data, **options)
         
         return self.response(result, environ, start_response)

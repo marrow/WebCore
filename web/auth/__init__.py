@@ -38,7 +38,7 @@ def authenticate(identifier, password=None, force=False):
     
     else:
         result = config.authenticate(identifier, password)
-        
+    
     if result is None or result[1] is None:
         log.debug('Authentication failed: %r', result)
         return False

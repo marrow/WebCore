@@ -6,7 +6,6 @@
 __all__ = ['Dialect']
 
 
-
 class Dialect(object):
     """A basic method of dispatching requests from WSGI.
     

@@ -1,5 +1,6 @@
-"""Basic dispatch routing."""
+# encoding: utf-8
 
+"""Basic dispatch routing."""
 
 from api import Dialect
 
@@ -8,7 +9,6 @@ from webob.exc import *
 
 __all__ = ['route']
 log = __import__('logging').getLogger(__name__)
-
 
 
 def route(root, method, expects):

@@ -1,4 +1,4 @@
-# encoding: utf-8
+000# encoding: utf-8
 
 """WebCore database middleware API."""
 
@@ -10,7 +10,6 @@ __all__ = ['TransactionalMiddlewareInterface']
 log = __import__('logging').getLogger(__name__)
 
 _safe_uri_replace = re.compile(r'(\w+)://(\w+):(?P<password>[^@]+)@')
-
 
 
 class TransactionalMiddlewareInterface(object):
@@ -34,7 +33,6 @@ class TransactionalMiddlewareInterface(object):
         self.setup()
         self.ready()
     
-    
     def setup(self):
         """Called to configure and attach sessions, etc."""
         raise NotImplementedError
@@ -43,7 +41,6 @@ class TransactionalMiddlewareInterface(object):
         """Called by the middleware after the middleware has been configured."""
         if hasattr(self.model, 'prepare') and hasattr(self.model.prepare, '__call__'):
             self.model.prepare()
-    
     
     def begin(self, environ):
         """Called at the beginning of a request to prepare a transaction."""
@@ -60,7 +57,6 @@ class TransactionalMiddlewareInterface(object):
     def abort(self, environ):
         """Called if the vote failed."""
         raise NotImplementedError
-    
     
     def __call__(self, environ, start_response):
         log.debug("Preparing database session.")
@@ -79,7 +75,7 @@ class TransactionalMiddlewareInterface(object):
         finally:
             if self.vote(environ, status[0] if status else None):
                 self.finish(environ)
-        
+            
             else:
                 self.abort(environ)
         

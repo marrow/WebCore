@@ -8,7 +8,6 @@ log = __import__('logging').getLogger(__name__)
 __all__ = ['RESTMethod']
 
 
-
 class RESTMethod(object):
     """Enable the writing of individual methods that map to REST verbs.
     

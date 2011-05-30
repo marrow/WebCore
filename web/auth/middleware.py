@@ -21,7 +21,6 @@ default_config = web.utils.dictionary.adict(
     )
 
 
-
 class WebAuth(object):
     def __init__(self, application, config=dict(), prefix='auth.'):
         self.application = application
@@ -72,7 +71,11 @@ class WebAuth(object):
         return lazy
     
     def authenticate(self, environ, start_response):
-        raise webob.exc.HTTPTemporaryRedirect(location=web.auth.config.handler + '?redirect=' + urllib.quote_plus(environ['SCRIPT_NAME']) + urllib.quote_plus(environ['PATH_INFO']))
+        raise webob.exc.HTTPTemporaryRedirect(location=\
+                web.auth.config.handler + '?redirect=' + \
+                urllib.quote_plus(environ['SCRIPT_NAME']) + \
+                urllib.quote_plus(environ['PATH_INFO'])
+            )
     
     def __call__(self, environ, start_response):
         session = environ['beaker.session']
@@ -107,7 +110,7 @@ class WebAuth(object):
 class BasicAuthMiddleware(object):
     def __init__(self, application):
         self.application = application
- 
+    
     def __call__(self, environ, start_response):
         if 'HTTP_AUTHORIZATION' in environ:
             authtype, auth = environ['HTTP_AUTHORIZATION'].split()
@@ -121,7 +124,7 @@ class BasicAuthMiddleware(object):
                 
                 if not web.auth.authenticate(un, pw):
                     return HTTPUnauthorized()
- 
+        
         try:
             return self.application(environ, start_response)
         

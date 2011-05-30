@@ -1,6 +1,9 @@
+# encoding: utf-8
+
 from webob.exc import HTTPNotImplemented
 
 from web.core import Dialect
+
 
 log = __import__('logging').getLogger(__name__)
 
@@ -15,35 +18,35 @@ def route(root, method, expects):
     part = root
     parts = method.split('.')
     parts.reverse()
-
+    
     while True:
         last = part
         part = parts[-1]
-
+        
         log.debug("Looking for %r attribute of %r.", part, last)
-
+        
         if part.startswith('_'):
             log.error("An attempt was made to route a private object: %s", method)
             raise RoutingError
-
+        
         part = getattr(last, part, None)
-
+        
         if not isinstance(part, expects) and isinstance(part, Dialect):
             log.error("Context switching to another dialect from the current RPC dialect is not allowed.")
             raise RoutingError
-
+        
         if isinstance(part, expects):
             log.debug("Continuing descent through controller structure.")
             parts.pop()
             continue
-
+        
         if callable(part) and parts[1:]:
             log.error("Callable method found before reaching the end of the call tree.")
             raise RoutingError
-
+        
         if callable(part):
             parts.pop()
             return part, last
-
+        
         log.error("An attempt as made to call an unroutable method: %s", method)
         raise RoutingError

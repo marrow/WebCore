@@ -9,20 +9,19 @@ log = __import__('logging').getLogger(__name__)
 __all__ = ['Controller']
 
 
-
 class Controller(Dialect):
     """Object dispatch mechanism engineered from the TurboGears 2 documentation.
-
+    
     This allows you to define a class heirarchy using a simple declarative
     style. Additionally, this gives you access to powerful dynamic dispatch
     using the `default` and `lookup` fallback mechanisms.
-
+    
     Example:
-
+    
         class RootController(Controller):
             def index(self):
                 return "Hello world!"
-
+        
         web.config.root = RootController()
     
     This will likely be the most often used dialect as it offers the fastest prototyping

@@ -1,20 +1,14 @@
 # encoding: utf-8
 
-"""
-"""
-
-
 import re
 
 from pymongo.connection import Connection
-
 
 
 __all__ = ['MongoMiddleware']
 log = __import__('logging').getLogger(__name__)
 
 _safe_uri_replace = re.compile(r'(\w+)://(\w+):(?P<password>[^@]+)@')
-
 
 
 def MongoMiddleware(application, prefix, model, session=None, **config):
