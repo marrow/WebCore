@@ -373,8 +373,8 @@ def profiling(app, config):
 
 @middleware('i18n', after="widgets")
 def i18n(app, config):
-    if not defaultbool(config.get('web.i18n', True), ['gettext']):
+    if not defaultbool(config.get('web.locale', False), ['gettext']):
         return app
     
-    from web.core.i18n import I18n
-    return I18n(app, config)
+    from web.core.locale import LocaleMiddleware
+    return LocaleMiddleware(app, config)
