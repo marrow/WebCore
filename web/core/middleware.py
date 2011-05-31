@@ -115,27 +115,6 @@ def webauth(app, config):
     return app
 
 
-@middleware('authentication', after="widgets")
-def authkit(app, config):
-    # Use AuthKit if requested.
-    if not config.get('web.auth', False) == 'authkit':
-        config.update({'web.auth.enabled': False})
-        return app
-    
-    try:
-        import authkit.authenticate
-        
-        log.debug("Loading AuthKit middleware.")
-        config.update({'web.auth.enabled': True})
-        
-        app = authkit.authenticate.middleware(app, config, prefix="web.auth.")
-        
-        return app
-    
-    except ImportError:  # pragma: no cover
-        raise ImportError("You must install AuthKit to enable AuthKit based authentication")
-
-
 @middleware('database', after=["widgets", "authentication"])
 def database(app, config):
     # Determine if a database engine has been requested, and load the appropriate middleware.
