@@ -2,13 +2,12 @@
 
 """Internationalization (i18n) functions."""
 
+from gettext import NullTranslations, translation
 import os
 
-from gettext import NullTranslations, translation
-
-import web
-
+from paste.deploy.converters import aslist
 from web.core.templating import registry
+import web
 
 
 __all__ = ['LanguageError', '_', '__', 'L_', 'N_', 'gettext',
@@ -23,19 +22,19 @@ class LanguageError(Exception):
     pass
 
 
-def gettext(self, message):
+def gettext(message):
     return web.core.translator.gettext(message)
 
 
-def ugettext(self, message):
+def ugettext(message):
     return web.core.translator.ugettext(message)
 
 
-def ngettext(self, singular, plural, n):
+def ngettext(singular, plural, n):
     return web.core.translator.ngettext(singular, plural, n)
 
 
-def ungettext(self, singular, plural, n):
+def ungettext(singular, plural, n):
     return web.core.translator.ungettext(singular, plural, n)
 
 
@@ -50,7 +49,7 @@ class L_(object):
     """Lazy version of ugettext."""
     def __init__(self, message):
         self.__message = message
-        
+
     @property
     def __translated(self):
         return web.core.translator.ugettext(self.__message)
@@ -74,7 +73,7 @@ def get_translator(lang, conf=None, **kwargs):
         lang = [lang]
 
     try:
-        translator = translation(conf['web.i18n.domain'], conf['web.i18n.path'],
+        translator = translation(conf['web.locale.domain'], conf['web.locale.path'],
                                  languages=lang, **kwargs)
 
     except IOError, ioe:
@@ -129,52 +128,81 @@ def add_fallback(lang, **kwargs):
     return web.core.translator.add_fallback(get_translator(lang, **kwargs))
 
 
-class I18n(object):
+class LocaleMiddleware(object):
     def __init__(self, application, config=dict(), **kw):
         self.application = application
         self.config = config
 
-        # Find the i18n folder, working from the package up to the root controller.
-        path = config.get('web.i18n.path', None)
-        domain = config.get('web.i18n.domain', config['web.root.package'])
+        localedir = self._find_locale_dir()
+        log.info("Locale directory: %s", localedir)
 
-        if path is None:
-            # Attempt to discover the path automatically.
-            log.info(config['web.root'].__module__)
+        domain = self._find_text_domain(localedir)
+        log.info("Text domain for translations: %s", domain)
 
-            module = __import__(config['web.root'].__module__)
-            parts = config['web.root'].__module__.split('.')[1:]
-            path = module.__file__
-
-            while parts:
-                # Search up the package tree, in case this is an application in a sub-module.
-
-                path = os.path.abspath(path)
-                path = os.path.dirname(path)
-                path = os.path.join(path, 'i18n')
-
-                log.debug("Trying %r", path)
-
-                if os.path.isdir(path):
-                    break
-
-                module = getattr(module, parts.pop(0))
-                path = module.__file__
-
-        if not os.path.isdir(path):
-            log.warn("Unable to find folder to store i18n strings.  Please specify web.i18n.path in your config.")
-            raise Exception("Unable to find folder to store i18n strings.  Please specify web.i18n.path in your config.")
-
-        config['web.i18n.path'] = path
-        config['web.i18n.domain'] = domain
-
-        # Determine language order.
-        config['lang'] = [i.strip(' ,') for i in config.get('lang', 'en').split(',')]
+        languages = self._find_translations(localedir, domain)
+        log.info("Supported languages: %r", languages)
 
         # Register the appropriate i18n functions in the global template scope.
         registry.append({'_': _, '__': __, 'L_': L_, 'N_': N_})
 
-        log.debug("Default language path: %r", config['lang'])
+    def _find_locale_dir(self):
+        # Locate the directory that contains the top level package
+        root_controller = self.config['web.root']
+        root_parts = root_controller.__module__.split('.')
+        root_module = __import__(root_controller.__module__)
+        root_path = os.path.dirname(root_module.__file__)
+        steps = len(root_parts)
+        if not os.path.split(root_path)[1].startswith('__init__.'):
+            steps -= 1
+        for _ in range(steps):
+            root_path = os.path.split(root_path)[0]
+
+        if 'web.locale.path' in self.config:
+            # Validate the pre-defined locale path
+            path = self.config['web.locale.path']
+            if not os.path.abspath(path) == os.path.normpath(path):
+                path = os.path.join(root_path, path)
+            if not os.path.isdir(path):
+                raise Exception("The locale path (%s) either does not exist or is not a directory." % path)
+            return path
+
+        # Autodetect the locale path
+        path = root_path
+        for part in root_parts:
+            path = os.path.join(path, part)
+            localedir = os.path.join(path, 'locale')
+            log.debug("Looking for directory 'locale' in %s", localedir)
+            if os.path.isdir(localedir):
+                self.config['web.locale.path'] = localedir
+                return localedir
+        raise Exception("Unable to autodetect the locale directory. Please set web.locale.path manually.")
+
+    def _find_text_domain(self, localedir):
+        # Allow users to override
+        if 'web.locale.domain' in self.config:
+            return self.config['web.locale.domain']
+
+        for _path, _dirs, files in os.walk(localedir, topdown=False):
+            mofiles = [f for f in files if os.path.splitext(f)[1] == '.mo']
+            if len(mofiles) == 1:
+                self.config['web.locale.domain'] = mofiles[0][:-3]
+                return self.config['web.locale.domain']
+            if len(mofiles) > 1:
+                raise Exception("More than one text domain found -- please set web.locale.domain manually.")
+
+        raise Exception('No .mo files found -- cannot determine the text domain.')
+
+    def _find_translations(self, localedir, domain):
+        # Allow users to override
+        if 'web.locale.languages' in self.config:
+            return aslist(self.config['web.locale.languages'])
+
+        translations = []
+        for fname in os.listdir(localedir):
+            mo_fname = os.path.join(localedir, fname, 'LC_MESSAGES', '%s.mo' % domain)
+            if os.path.exists(mo_fname):
+                translations.append(fname)
+        return translations
 
     def __call__(self, environ, start_response):
         lang = []
