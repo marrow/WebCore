@@ -91,11 +91,11 @@ class SQLAlchemyMiddleware(api.TransactionalMiddlewareInterface):
             self.session.rollback()
             self.session.close()
     
-    def populate_table(self, action, table, bind, **kw):
+    def populate_table(self, target, connection, **kw):
         session = self._session()
         
         try:
-            self.model.populate(session, table.name)
+            self.model.populate(session, target.name)
         
         except: # pragma: no cover
             session.rollback()
