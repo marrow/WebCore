@@ -27,13 +27,6 @@ if __name__ == '__main__':
     
     logging.basicConfig(level=logging.INFO)
     
-    app = Application.factory(root=RootController, debug=False, **{
-            'web.sessions': False,
-            'web.widgets': False,
-            'web.sessions': False,
-            'web.profile': False,
-            'web.static': False,
-            'web.compress': False
-        })
+    app = Application.factory(root=RootController, debug=False)
     
     httpserver.serve(app, host='127.0.0.1', port='8080')

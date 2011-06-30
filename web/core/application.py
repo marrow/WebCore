@@ -49,14 +49,14 @@ class Application(object):
     
     @classmethod
     def middleware(cls):
-        """Generate a sorted dependancy graph of middleware.
+        """Generate a sorted dependency graph of middleware.
         
         Might not be the most efficient implementation, but it works and is only run on startup.
         
         The @web.core.middleware.middleware decorator can be used to register middleware.
         
         This allows you to inject middleware at any point in the stack and even override default
-        layers (while still maintaining dependancy graph resolution).
+        layers (while still maintaining dependency graph resolution).
         """
         
         queue = [i for i in middleware.registry if i.after is None]
