@@ -10,7 +10,7 @@ from paste.deploy.converters import asbool, aslist
 
 from web.utils.object import get_dotted_object
 
-from sqlalchemy import engine_from_config
+from sqlalchemy import engine_from_config, event
 from sqlalchemy.orm import sessionmaker
 
 
@@ -64,7 +64,7 @@ class SQLAlchemyMiddleware(api.TransactionalMiddlewareInterface):
         populate = getattr(self.model, 'populate', None)
         if hasattr(populate, '__call__'):
             for table in self.model.metadata.sorted_tables:
-                table.append_ddl_listener('after-create', self.populate_table)
+                event.listen(table, 'after-create', self.populate_table)
     
     def begin(self, environ):
         if self.soup:
@@ -91,7 +91,7 @@ class SQLAlchemyMiddleware(api.TransactionalMiddlewareInterface):
             self.session.rollback()
             self.session.close()
     
-    def populate_table(self, action, table, bind):
+    def populate_table(self, action, table, bind, **kw):
         session = self._session()
         
         try:
