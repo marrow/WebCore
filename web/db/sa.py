@@ -8,8 +8,6 @@ import warnings
 
 from paste.deploy.converters import asbool, aslist
 
-from web.utils.object import get_dotted_object
-
 from sqlalchemy import engine_from_config, event
 from sqlalchemy.orm import sessionmaker
 
@@ -50,10 +48,6 @@ class SQLAlchemyMiddleware(api.TransactionalMiddlewareInterface):
                     autoflush = asbool(self.config.get('%s.autoflush' % (self.prefix, ), True)),
                     twophase = asbool(self.config.get('%s.twophase' % (self.prefix, ), False)),
                 )
-            
-            extensions_key = '%s.extensions' % (self.prefix, )
-            if extensions_key in self.config:
-                args['extensions'] = [get_dotted_object(i)() for i in aslist(self.config[extensions_key])]
             
             setup = getattr(self.model, 'setup', None)
             if hasattr(setup, '__call__'):
