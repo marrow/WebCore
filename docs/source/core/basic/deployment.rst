@@ -13,7 +13,11 @@ Deploying your Application
 General Web App Configuration
 =============================
 
-If you are going to use your application to cover a whole domain, then you can just skip ahead.  If you are going to mount your application as a sub-folder, you'll need to adjust the production INI file to include an additional section and add an extra line below the `use` line in the `[app:main]` section regardless of which method you use to deploy.
+If you are going to use your application to cover a whole domain, then you can
+just skip ahead.  If you are going to mount your application as a sub-folder,
+you'll need to adjust the production INI file to include an additional section
+and add an extra line below the `use` line in the `[app:main]` section
+regardless of which method you use to deploy (**except** mod_wsgi).
 
 .. code-block:: ini
 
@@ -149,6 +153,94 @@ If you create additional copies of the deployment INI file with different port n
 Apache
 ======
 
+mod_wsgi
+--------
+
+This is the recommended way to deploy applications on Apache2. Make sure you
+have the **mod_wsgi** module loaded. It is recommended that you run it in
+daemon mode to easily enable reloading your applications. Installation and
+configuration instructions can be found on the
+`mod_wsgi website <http://code.google.com/p/modwsgi/wiki/InstallationInstructions>`_.
+
+Deployment with mod_wsgi requires a "WSGI stub" file, which is a Python script
+that initializes the application. When the application is accessed for the
+first time, mod_wsgi executes the stub file and looks for the ``application``
+variable which should be a standard WSGI conforming callable. The following
+example configuration assumes the following:
+
+* You are deploying under the public-facing path ``/customer/myapp/``
+* The filesystem root for your project is ``/var/www/customer/myapp/``
+* Your application's static files are at ``/var/www/customer/myapp/static/``
+* Apache's document root is set at ``/var/www/``
+
+First, copy your application to /var/www/customer/myapp/ if it's not already
+there. Suppose your application's top level package name is ``funkyproject``.
+The package's directory would then be ``/var/www/customer/myapp/funkyproject/``.
+
+When your application is installed, set up a
+`virtualenv <http://www.virtualenv.org/en/latest/#what-it-does>`_:
+
+.. code-block:: sh
+
+    $ cd /var/www/customer/myapp
+    $ virtualenv --distribute --no-site-packages virtualenv
+
+Then the application should be made available in the virtualenv:
+
+.. code-block:: sh
+
+    $ python setup.py develop
+
+Then, create the WSGI stub file at ``/var/www/customer/myapp/application.wsgi``:
+
+.. code-block:: python
+
+    import os.path
+    import logging.config
+
+    # Activate the virtual environment
+    here = os.path.dirname(__file__)
+    activate = os.path.join(here, 'virtualenv', 'bin', 'activate_this.py')
+    execfile(activate, dict(__file__=activate))
+
+    # Set up logging
+    inifile = os.path.join(here, 'production.ini')
+    logfile = os.path.join(here, 'application.log')
+    logging.config.fileConfig(inifile, dict(logfile=logfile))
+
+    # Load the application
+    from paste.deploy import loadapp
+    application = loadapp('config:%s' % inifile)
+
+Finally, add this configuration to your Apache virtualhost:
+
+.. code-block:: apache
+
+    # General configuration
+    WSGIDaemonProcess wsgiapp user=myname group=mygroup display-name=%{GROUP}
+    WSGIProcessGroup wsgiapp
+
+    # Per-application configuration
+    WSGIScriptAlias /customer/myapp /var/www/customer/myapp/application.wsgi
+    AliasMatch /customer/myapp/([^_].*?\.[a-z0-9]+)$ /var/www/customer/myapp/static/$1
+
+This configuration routes all requests under /customer/myapp to your application,
+**except** ones whose names end with a dot and some suffix and ones starting
+with an underscore. The former exception is so that Apache can serve static
+files directly without invoking your application. The latter is necessary for
+some resource injecting middleware (such as WebError) to work properly.
+
+Now just reload your Apache configuration and you're set. If you update your
+application code, you can reload the application by either killing the relevant
+mod_wsgi daemon process or touching the WSGI script, depending on how you
+configured mod_wsgi.
+
+.. note:: 
+    With mod_wsgi it is **not** necessary to use PrefixMiddleware, because mod_wsgi
+    sets up the SCRIPT_NAME and PATH_INFO variables properly relative to the
+    application root.
+
+
 mod_proxy
 ---------
 
@@ -193,24 +285,3 @@ Configure Apache to listen to virtual host requests and define a new virtual hos
        ProxyPass / http://127.0.0.1:8080/
        ProxyPassReverse / http://127.0.0.1:8080/
    </VirtualHost>
-
-
-mod_wsgi
---------
-
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
-
-.. code-block:: python
-
-   import os.path
-
-   activate = '/var/www/virtualenv/fortumbannerit/bin/activate_this.py'
-   execfile(activate, dict(__file__=activate))
-
-   # Load the app
-   from paste.deploy import loadapp
-
-   here = os.path.dirname(__file__)
-   inifile = os.path.join(here, 'tulospalvelu.ini')
-   application = loadapp('config:%s' % inifile)
