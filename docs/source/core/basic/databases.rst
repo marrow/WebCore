@@ -21,58 +21,89 @@ Configuration is easy:
 
    db.connections = core
 
-   db.core.engine = <engine>
-   db.core.model = yourproject.model
+   db.X.engine = <engine>
+   db.X.model = yourproject.model
 
-Here's what each bit of this represents:
+``X`` here is the identifier of your model.
+Use whatever name you want in its place, and use a different identifier for
+each database you want to connect to. Here's what each bit of this represents:
 
 ``db.connections``
    A comma-separated list of database connections. The name used here is used
-   as the prefix for the database-specific configuration. The name "core" is
-   only used as an example -- it can be any string you want.
+   as the prefix for the database-specific configuration.
 
-``db.core.engine``
+``db.X.engine``
    Here you tell WebCore which database engine you wish to use.
    Currently we support two: ``sqlalchemy`` and ``mongo``.
 
-``db.core.model``
+``db.X.model``
    A dot-notation reference to the Python module which contains your model.
    Individual engines may have requirements about what needs to be in that module.
+   
+   Example: ``db.core.model = myproject.model``
+
+``db.X.url``
+   The connection string that defines the location of the actual database.
+   The format of this parameter varies based on the selected engine.
 
 
 Using SQLAlchemy
 ================
 
-SQLAlchemy has additional configuration options:
+SQLAlchemy is a library for interfacing with relational database management
+systems (often referred to as SQL databases). It can be used in many possible
+ways, from raw SQL to object relational mapping (ORM).
+If you have no previous experience with SQLAlchemy, it is recommended that you
+take the `tutorial <http://www.sqlalchemy.org/docs/orm/tutorial.html>`_ to
+learn the basics.
+
+The connection URLs for SQLAlchemy generally look like
+``dialect+driver://user:pass@host/database``. They could also be as simple as
+``sqlite:///``. For example, to configure a model named "core", you could add
+this to your Paste ini file:
 
 .. code-block:: ini
 
-   db.core.sqlalchemy.url = sqlite:///development.db
-   db.core.sqlalchemy.echo = False
+    db.core.engine = sqlalchemy
+    db.core.model = myproject.model
+    db.core.url = mysql+oursql://alex:12345@localhost/myproject
+    db.connections = core
 
-``db.core.sqlalchemy.url``
-   Specifies the back-end database engine to connect to.
+``db.core.autocommit``
+   If ``True``, don't start a transaction implicitly. If False, a transaction is
+   implicitly started whenever a session is created. The default is ``False``.
+
+``db.core.autoflush``
+   If ``True``, flush all impending changes to the database after every command.
+   If ``False``, changes are flushed all at once when
+   :meth:`~sqlalchemy.orm.session.Session.commit` or
+   :meth:`~sqlalchemy.orm.session.Session.flush` is called, or at the end of the
+   request. The default is ``True``.
+
+Any options after ``db.X.sqlalchemy.`` will be passed directly to
+:func:`~sqlalchemy.engine_from_config`. SQLAlchemy has an extensive list of
+additional configuration parameters on
+`their site <http://www.sqlalchemy.org/docs/core/engines.html#database-engine-options>`_.
+Two very useful options deserve a mention here though:
 
 ``db.core.sqlalchemy.echo``
-   Whether or not the raw SQL queries should be displayed in the log.
+   Set to ``True`` to output all generated raw SQL to standard output.
 
-SQLAlchemy has an extensive list of additional configuration parameters on
-`their site <http://www.sqlalchemy.org/docs/dbengine.html#database-engine-options>`_.
+``db.core.sqlalchemy.echo_pool``
+   Set to ``True`` to output information on connection pool changes to standard output.
 
-.. note:: If you use MySQL, you should note that it usually requires some
-          special settings to work properly with unicode (at least with the
-          default driver). For that, you should append the ``charset=utf8`` and
-          ``use_unicode=0`` options to the connect string.
-          Please consult the
-          `MySQL section <http://www.sqlalchemy.org/docs/dialects/mysql.html#character-sets>`_
-          of the SQLAlchemy documentation for more information.
+For more information on how to use SQLAlchemy, see the relevant documentation
+on their `website <http://www.sqlalchemy.org/docs/>`_.
+
+.. note:: For MySQL, the recommended driver is currently
+          `oursql <http://packages.python.org/oursql/>`_.
 
 
-Your Model
-----------
+An Example Model
+----------------
 
-WebCore strongly suggests using SQLAlchemy's
-`declarative extension <http://www.sqlalchemy.org/docs/reference/ext/declarative.html>`_.
+It is strongly suggested that you define your models using SQLAlchemy's
+`declarative extension <http://www.sqlalchemy.org/docs/orm/extensions/declarative.html>`_.
 To get started quickly, create a new module called ``model.py`` inside your
 project's top level package and paste the following in:
 
@@ -91,8 +122,13 @@ project's top level package and paste the following in:
    class Article(Base):
        __tablename__ = 'articles'
     
-       name = Column(Unicode(250), primary_key=True)
-       content = Column(UnicodeText)
+       id = Column(Integer, primary_key=True
+       name = Column(Unicode(250), nullable=False)
+       content = Column(UnicodeText, nullable=False)
+
+
+   def setup(**opts)
+       return opts
 
 
    def prepare():
@@ -102,57 +138,74 @@ project's top level package and paste the following in:
    def populate(session, table):
        pass
 
-The thread-local database session will be automatically placed in the ``session``
-variable on each request.  The ``prepare`` function is called once the database
-engine has been configured, and ``populate`` is called once for each table that
-gets created in the database, allowing you to populate the database with stock data.
+This example model defines a single table named **articles**. It contains three
+columns, **id**, **name** and **content**. Of all the variables and functions
+defined in the above example, only ``session`` is strictly required. The rest
+are there to facilitate the use of table metadata and object relational mapping.
 
-If your project has a lot of tables, you may want to split them into several
-different modules. In that case, you should turn your model module into a
-package instead. You should import the ``Base`` class into every module where
-you define new declarative classes, and leave ``Base``, ``metadata``,
-``session``, ``prepare`` and ``populate`` in the model package's ``__init__.py``
-file. Common beginner mistakes include calling
-:func:`~sqlalchemy.ext.declarative.declarative_base` more than
-once or using more than one :class:`~sqlalchemy.schema.MetaData` instance for
-the same database.
+The ``Base`` class should be used as the base class of all your model classes.
 
-For more information on how to use SQLAlchemy, see the relevant documentation
-on SQLAlchemy's `website <http://www.sqlalchemy.org/docs/>`_.
+The ``metadata`` variable contains information about the tables in your model.
+
+The ``session`` variable is a thread-local proxy that is usable while your
+application is processing a request. The ``setup``, ``prepare`` and ``populate``
+functions are all optional and can freely be omitted.
+
+The ``setup`` function
+can be used to modify the arguments passed to sessionmaker(). It receives the
+arguments as keyword arguments and should return a dict of the final arguments,
+which will be passed directly to sessionmaker().
+
+The ``prepare`` function is usually used to set up the database schema,
+including creating any missing tables and/or migrating the schema to a newer
+version.
+
+The ``populate`` function is called whenever a new table has been created, and
+is meant to populate the table with data if necessary. The ``table`` argument
+is the name of the table in question.
 
 
 Legacy Database Connections with SQLSoup
-========================================
+----------------------------------------
 
-If you define ``db.*.sqlsoup = True`` in the configuration for your database
+If you define ``db.X.sqlsoup = True`` in the configuration for your database
 connection, a ``soup`` object will be created within your ``model`` module
 which will allow you to access legacy databases using SQLAlchemy's SQLSoup module.
 
 For documentation on SQLSoup's capabilities, please see the relevant
 documentation on SQLAlchemy's
-`website <http://www.sqlalchemy.org/docs/reference/ext/sqlsoup.html>`_.
+`website <http://www.sqlalchemy.org/docs/orm/extensions/sqlsoup.html>`_.
 
 
-MongoDB
-=======
+Models In Large Projects
+------------------------
+
+If your project has a lot of tables, you may want to split your model into
+several different modules. In that case, you should turn your model module into
+a package instead. First, define ``Base``, ``metadata`` and ``session`` in the
+package's ``__init__.py`` module. After that, import the model classes (or just
+the modules themselves if you want) from all the other modules in the model
+package. This is necessary for the tables to be properly included in the
+metadata. Also, make sure you do it in this order to avoid circular import
+problems.
+
+
+Using MongoDB
+=============
 
 `MongoDB <http://www.mongodb.org>`_ is an extremely powerful, efficient, and
-capable schemaless no-SQL database.  It has excellent Python support.
+capable schemaless no-SQL database with excellent Python support.
 To use it, declare a new database connection using the **mongo** engine and
 something like the following in your INI file:
 
 .. code-block:: ini
 
-    db.core.model = coresite.model
-    db.core.url = mongo://localhost/coresite
-
-``db.core.url``
-    Specifies the back-end database engine to connect to.
+    db.core.engine = mongo
+    db.core.model = yourproject.model
+    db.core.url = mongo://localhost/yourproject
 
 
-In your model module include something like the following:
-
-.. code-block: python
+In your model module include something like the following::
 
     db = None
 
@@ -171,15 +224,15 @@ For more information, see the
 `documentation for PyMongo <http://api.mongodb.org/python/>`_.
 
 
-Using multiple databases
-========================
+Example configuration with multiple databases
+=============================================
 
 WebCore can easily support the use of multiple databases, regardless of their
 type. For example, to configure three databases -- one PostgreSQL database, one
 MongoDB database and one MySQL database, you could use a configuration like the
 following:
 
-.. code-block: ini
+.. code-block:: ini
 
     db.users.engine = sqlalchemy
     db.users.model = myproject.auth.model
@@ -190,9 +243,9 @@ following:
 
     db.history.engine = sqlalchemy
     db.history.model = myproject.history.model
-    db.history.url = mysql://me:mypassword@localhost/history?charset=utf8&use_unicode=0
+    db.history.url = mysql+oursql://me:mypassword@localhost/history
 
-    db.connections = users,wiki,history
+    db.connections = users, wiki, history
 
 The above configuration uses separate databases and models for users, wiki and
 history. The models are completely independent of each other, and should be
