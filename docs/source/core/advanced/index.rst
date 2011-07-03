@@ -9,4 +9,4 @@ Advanced Topics
    profiling
    db-plugin
 
-.. todo:: Point to alacarte's documentation for extending the available templating languages.
+.. todo:: Point to marrow.templating's documentation for extending the available templating languages.

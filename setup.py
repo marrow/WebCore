@@ -41,7 +41,7 @@ setup(
                 'PasteScript',
                 'WebOb',
                 'WebError',
-                'alacarte'
+                'marrow.templating'
             ],
         
         test_suite = 'nose.collector',

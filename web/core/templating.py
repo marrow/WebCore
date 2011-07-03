@@ -3,8 +3,8 @@
 import os
 import pkg_resources
 
-from alacarte.core import Engines
-from alacarte.resolver import Resolver
+from marrow.templating.core import Engines
+from marrow.templating.resolver import Resolver
 
 
 __all__ = ['template', 'TemplatingMiddleware', 'render', 'resolve', 'registry']
