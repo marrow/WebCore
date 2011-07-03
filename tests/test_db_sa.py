@@ -114,8 +114,8 @@ class TestSASession(WebTestCase):
         assert response.body.startswith('<sqlalchemy.orm.session.Session object')
     
     def test_http_exceptions(self):
-        self.assertResponse('/http_ok', '200 OK', 'text/html')
-        self.assertResponse('/http_error', '500 Internal Server Error', 'text/html')
+        self.assertResponse('/http_ok', '200 OK', 'text/plain')
+        self.assertResponse('/http_error', '500 Internal Server Error', 'text/plain')
         self.assertResponse('/http_exception', '204 No Content', 'text/html')
 
 
@@ -137,7 +137,7 @@ class TestSAOperations(WebTestCase):
         self.assertResponse('/list', '200 OK', 'text/plain', body="")
         
         self.assertPostResponse('/create', dict(name="foo", die="HTTPInternalServerError"),
-                '500 Internal Server Error', 'text/html')
+                '500 Internal Server Error', 'text/plain')
         
         self.assertResponse('/list', '200 OK', 'text/plain', body="")
     
@@ -149,7 +149,7 @@ class TestSAOperations(WebTestCase):
         self.assertResponse('/list', '200 OK', 'text/plain', body="foo")
         
         self.assertPostResponse('/rename', dict(name="foo", newname="baz", die="HTTPInternalServerError"),
-                '500 Internal Server Error', 'text/html')
+                '500 Internal Server Error', 'text/plain')
 
         self.assertResponse('/list', '200 OK', 'text/plain', body="foo")
 
@@ -161,7 +161,7 @@ class TestSAOperations(WebTestCase):
         self.assertResponse('/list', '200 OK', 'text/plain', body="foo")
         
         self.assertPostResponse('/delete', dict(name="foo", die="HTTPInternalServerError"),
-                '500 Internal Server Error', 'text/html')
+                '500 Internal Server Error', 'text/plain')
 
         self.assertResponse('/list', '200 OK', 'text/plain', body="foo")
         self.assertPostResponse('/delete', dict(name="foo"), '200 OK', 'text/plain', body="ok")
