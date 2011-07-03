@@ -88,4 +88,5 @@ class SQLAlchemyMiddleware(api.TransactionalMiddlewareInterface):
             session.rollback()
             raise
         
-        session.commit()
+        if session.transaction is not None:
+            session.commit()
