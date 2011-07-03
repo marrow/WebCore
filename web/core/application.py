@@ -148,11 +148,11 @@ class Application(object):
                 start_response('200 OK', [('Content-type', 'text/plain')])
                 return ['%s' % paste.registry.restorer.get_request_id(environment)]
             
-            if isinstance(self.root, Dialect):
-                content = self.root(web.core.request._current_obj())
-            
-            else:
-                content = self.root(environment, start_response)
+            # Treat non-Dialects as plain WSGI apps
+            if not isinstance(self.root, Dialect):
+                return self.root(environment, start_response)
+
+            content = self.root(web.core.request._current_obj())
         
         except web.core.http.HTTPException, e:
             environment['paste.registry'].register(web.core.response, e)
@@ -161,20 +161,17 @@ class Application(object):
         if isinstance(content, Response):
             return content(environment, start_response)
         
-        if not isinstance(self.root, Dialect):
+        # Tuples are handled by the templating middleware
+        if isinstance(content, tuple):
             return content
         
-        if isinstance(content, list) or isinstance(content, types.GeneratorType):
+        if isinstance(content, (list, types.GeneratorType)):
             web.core.response.app_iter = content
-            return web.core.response(environment, start_response)
         
-        if not isinstance(content, basestring):
-            return content
-        
-        if isinstance(content, unicode):
+        elif isinstance(content, unicode):
             web.core.response.unicode_body = content
         
-        else:
+        elif content is not None:
             web.core.response.body = content
         
         return web.core.response(environment, start_response)
