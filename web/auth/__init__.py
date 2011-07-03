@@ -7,9 +7,8 @@ import web.core
 import webob.exc
 from paste.registry import StackedObjectProxy
 
-import middleware
-
-from predicates import *
+from web.auth import middleware, predicates
+from web.auth.predicates import *
 
 
 __all__ = ['config', 'user', 'authenticate', 'deauthenticate', 'authorize'] + predicates.__all__

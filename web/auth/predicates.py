@@ -7,7 +7,7 @@ __all__ = [
         'Predicate', 'CustomPredicate',
         'Not', 'All', 'Any', 'always', 'never',
         'anonymous', 'authenticated',
-        'AttrIn', 'ValueIn', 'EnvironIn', 'BetweenTimes'
+        'AttrIn', 'ValueIn', 'EnvironIn'
     ]
 
 
