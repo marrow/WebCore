@@ -149,9 +149,9 @@ latex_use_parts = True
 #latex_use_modindex = True
 
 
-intersphinx_mapping = {'http://docs.python.org/dev': None,
-                       'http://www.sqlalchemy.org/docs/':None,
-                       'http://sprox.org/': None,
-                       'http://toscawidgets.org/documentation/tw.forms/':None,
-                       'http://toscawidgets.org/documentation/ToscaWidgets/':None,
+intersphinx_mapping = {'python': ('http://docs.python.org/dev', None),
+                       'sqlalchemy': ('http://www.sqlalchemy.org/docs/', None),
+                       'sprox': ('http://sprox.org/', None),
+                       'twforms': ('http://toscawidgets.org/documentation/tw.forms/', None),
+                       'tw': ('http://toscawidgets.org/documentation/ToscaWidgets/', None),
                        }
