@@ -45,6 +45,4 @@ Glossary
 .. glossary::
 
     WSGI
-        Web Server Gateway Interface, defined by `Python PEP 333`_ (Python Web Server Gateway Interface v1.0).
-
-.. _Python PEP 333: http://www.python.org/dev/peps/pep-0333/
+        Web Server Gateway Interface, defined by :pep:`3333` (Python Web Server Gateway Interface v1.0.1).
