@@ -73,12 +73,10 @@ class SQLAlchemyMiddleware(api.TransactionalMiddlewareInterface):
     def finish(self, environ):
         if self.session.transaction is not None: # use getattr
             self.session.commit()
-            self.session.close()
+        self.session.close()
     
     def abort(self, environ):
-        if self.session.transaction is not None: # use getattr
-            self.session.rollback()
-            self.session.close()
+        self.session.close()
     
     def populate_table(self, target, connection, **kw):
         session = self._session()
