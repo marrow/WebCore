@@ -99,17 +99,17 @@ class TestBasicDispatch(WebTestCase):
         self.assertResponse('/nested/', body="success")
 
     def test_nested_rewrite(self):
-        self.assertResponse('/nested', '301 Moved Permanently', 'text/html', location='http://localhost/nested/',
+        self.assertResponse('/nested', '301 Moved Permanently', 'text/plain', location='http://localhost/nested/',
             body='301 Moved Permanently\n\nThe resource has been moved to http://localhost/nested/; you should be redirected automatically.  ')
 
     def test_nested_rewrite_query_string(self):
-        self.assertResponse('/nested?foo=bar', '301 Moved Permanently', 'text/html', location='http://localhost/nested/?foo=bar')
+        self.assertResponse('/nested?foo=bar', '301 Moved Permanently', 'text/plain', location='http://localhost/nested/?foo=bar')
 
     def test_404(self):
-        self.assertResponse('/nex', '404 Not Found', 'text/html', body='404 Not Found\n\nThe resource could not be found.\n\n   ')
+        self.assertResponse('/nex', '404 Not Found', 'text/plain', body='404 Not Found\n\nThe resource could not be found.\n\n   ')
 
     def test_private(self):
-        self.assertResponse('/_private', '404 Not Found', 'text/html')
+        self.assertResponse('/_private', '404 Not Found', 'text/plain')
 
     def test_explicit_response(self):
         self.assertResponse('/explicit', '200 OK', 'text/html', body="hello")

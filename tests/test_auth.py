@@ -1,6 +1,6 @@
 # encoding: utf-8
+from unittest import TestCase
 
-import web.core
 import web.auth
 from web.core import Application
 from web.auth.middleware import WebAuth
@@ -8,7 +8,6 @@ from web.utils.dictionary import adict
 
 from paste.registry import StackedObjectProxy
 
-from unittest import TestCase
 from common import PlainController, WebTestCase
 
 
@@ -91,7 +90,7 @@ class TestAuthApp(WebTestCase):
     
     def test_anonymous(self):
         self.assertResponse('/anonymous', body="anonymous")
-        self.assertResponse('/authenticated', '307 Temporary Redirect', 'text/html')
+        self.assertResponse('/authenticated', '307 Temporary Redirect', 'text/plain')
     
     def check_authentication(self, url, expected_body):
         print url, expected_body

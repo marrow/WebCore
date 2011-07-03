@@ -45,7 +45,7 @@ class TestRESTfulDispatch(WebTestCase):
         self.assertResponse('/detect', _method='OPTIONS', body="OPTIONS")
     
     def test_failure(self):
-        self.assertResponse('/test', '405 Method Not Allowed', 'text/html', 'DELETE')
+        self.assertResponse('/test', '405 Method Not Allowed', 'text/plain', 'DELETE')
     
     def test_functional(self):
         self.assertResponse('/test/', body="My name is world.")

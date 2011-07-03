@@ -1,10 +1,9 @@
 # encoding: utf-8
 
-from common import PlainController, WebTestCase
+from common import WebTestCase
 
-import web.core
 from web.core.dialects.routing import RoutingController
-from web.core import Application, RESTMethod
+from web.core import Application
 
 
 class BarController(object):
@@ -31,9 +30,9 @@ class TestRESTfulDispatch(WebTestCase):
     app = Application.factory(root=RootController, **test_config)
     
     def test_basic(self):
-        self.assertResponse('/', '404 Not Found', 'text/html')
-        self.assertResponse('/error', '404 Not Found', 'text/html')
-        self.assertResponse('/error/', '404 Not Found', 'text/html')
+        self.assertResponse('/', '404 Not Found', 'text/plain')
+        self.assertResponse('/error', '404 Not Found', 'text/plain')
+        self.assertResponse('/error/', '404 Not Found', 'text/plain')
         self.assertResponse('/error/foo', '200 OK', 'text/html', body="u'foo'")
         self.assertResponse('/error/bar', '200 OK', 'text/html', body="u'bar'")
         self.assertResponse('/error/baz/bar', '200 OK', 'text/html', body="sub")
