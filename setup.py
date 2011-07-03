@@ -52,7 +52,8 @@ setup(
                 'SQLAlchemy',
                 'Beaker',
                 'ToscaWidgets',
-                'Routes'
+                'Routes',
+                'repoze.profile'
             ],
         
         classifiers = [
