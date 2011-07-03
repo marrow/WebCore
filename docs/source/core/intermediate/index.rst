@@ -7,5 +7,4 @@ Intermediate WebCore Topics
    
    alternate-dispatch
    authentication
-   deployment
    i18n

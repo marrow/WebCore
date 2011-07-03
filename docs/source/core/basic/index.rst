@@ -9,3 +9,4 @@ Basic WebCore Usage
    components
    databases
    templating
+   deployment
