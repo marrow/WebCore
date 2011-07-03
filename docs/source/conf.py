@@ -28,10 +28,10 @@ templates_path = ['tools/templates']
 master_doc = 'index'
 
 # General information about the project.
-project = release.name
+project = 'WebCore'
 copyright = release.copyright
-version = release.version
-release = release.release
+version = '.'.join(release.version.split('.')[:2])
+release = release.version
 
 # List of documents that shouldn't be included in the build.
 unused_docs = [
