@@ -98,7 +98,7 @@ setup(
                     ],
                 'webcore.db.engines': [
                         'sqlalchemy = web.db.sa:SQLAlchemyMiddleware',
-                        'mongo = web.db.mongo:MongoMiddleware'
+                        'mongo = web.db.mongo:MongoMiddleware',
                         'mongoengine = web.db.me:MongoEngineMiddleware'
                     ]
             }
