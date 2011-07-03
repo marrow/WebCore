@@ -58,7 +58,7 @@ class SQLAlchemyMiddleware(api.TransactionalMiddlewareInterface):
         populate = getattr(self.model, 'populate', None)
         if hasattr(populate, '__call__'):
             for table in self.model.metadata.sorted_tables:
-                event.listen(table, 'after-create', self.populate_table)
+                event.listen(table, 'after_create', self.populate_table)
     
     def begin(self, environ):
         if self.soup:
