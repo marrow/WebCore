@@ -18,15 +18,10 @@ log = __import__('logging').getLogger(__name__)
 
 class SQLAlchemyMiddleware(api.TransactionalMiddlewareInterface):
     def __init__(self, application, prefix, model, session, **config):
-        self.config = {'%s.sqlalchemy.pool_recycle' % prefix: 3600}
-        
-        if ('%s.sqlalchemy.url' % prefix) in config:
-            # Some compatability cruft; will be removed in 1.0.
-            warnings.warn('%s.sqlalchemy.url is deprecated, use %s.url instead.' % (prefix, prefix), category=DeprecationWarning)
-            config['%s.url' % prefix] = config['%s.sqlalchemy.url' % prefix]
-        
-        else:
-            config['%s.sqlalchemy.url' % prefix] = config['%s.url' % prefix]
+        self.config = {
+                '%s.sqlalchemy.pool_recycle' % prefix: 3600,
+                '%s.sqlalchemy.url' % prefix: config['%s.url' % prefix]
+            }
         
         self.soup = config.get('%s.sqlsoup' % prefix, False)
         
