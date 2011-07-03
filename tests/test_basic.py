@@ -7,7 +7,7 @@ from webob import Response
 import web
 from web.core import Application
 
-from .common import PlainController, WebTestCase
+from common import PlainController, WebTestCase
 
 
 test_config = {'debug': True, 'web.widgets': False, 'web.compress': False, 'web.static.path': '/tmp'}
@@ -69,6 +69,9 @@ class RootController(PlainController):
     def format(self):
         return web.core.request.format
 
+    def empty(self):
+        pass
+
 
 class TestBasicDispatch(WebTestCase):
     app = Application.factory(root=RootController, **test_config)
@@ -116,6 +119,9 @@ class TestBasicDispatch(WebTestCase):
         self.assertResponse('/format.html', '200 OK', body='html')
         self.assertResponse('/format.xml', '200 OK', body='xml')
         self.assertResponse('/format.bob', '200 OK', body='bob')
+
+    def test_return_none(self):
+        self.assertResponse('/empty', '200 OK', body='')
 
 
 class CustomDialect(web.core.Dialect):
