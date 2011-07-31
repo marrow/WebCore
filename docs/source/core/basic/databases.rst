@@ -164,6 +164,49 @@ The ``populate`` function is called whenever a new table has been created, and
 is meant to populate the table with data if necessary. The ``table`` argument
 is the name of the table in question.
 
+
+An example controller using SQLAlchemy
+--------------------------------------
+
+The following simple example shows how to handle listing, creation, updating
+and deleting articles. The model from the previous section is assumed to be
+at ``myapp.model`` and there should be a template at ``myapp/templates/``
+by the name of ``articlelist.html``.
+
+.. code-block:: python
+
+    from webob.exc import HTTPFound
+    from web.core import Controller
+    
+    from myapp.model import session, Article
+
+
+    class ExampleController(Controller):
+        def index(self):
+            raise HTTPFound(location='list')        
+
+        def list(self):
+            articles = session.query(Article).all()
+            return 'myapp.templates/articlelist.html', {'articles': articles}
+
+        def create(self, **kwargs):
+            session.add(Article(**kwargs))
+            raise HTTPFound(location='list')
+
+        def update(self, id, **kwargs):
+            article = session.query(Article).get(id)
+            if article:
+                for key, value in kwargs.items():
+                    setattr(article, key, value)
+            raise HTTPFound(location='list')
+
+        def delete(self, id):
+            article = session.query(Article).get(id)
+            if article:
+                session.delete(article)
+            raise HTTPFound(location='list')
+
+
 Transactions
 ------------
 
@@ -176,6 +219,7 @@ the transaction is automatically committed. If instead an exception is raised
 from the controller, the transaction is rolled back. All this means is that you
 don't have to worry about managing transactions on your own. Just do your
 inserts, updates and deletes and let WebCore handle the transactions for you.
+
 
 Legacy Database Connections with SQLSoup
 ----------------------------------------
