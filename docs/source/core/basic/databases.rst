@@ -283,8 +283,8 @@ For more information, see the
 `documentation for PyMongo <http://api.mongodb.org/python/>`_.
 
 
-Example configuration with multiple databases
-=============================================
+Using multiple databases
+========================
 
 WebCore can easily support the use of multiple databases, regardless of their
 type. For example, to configure three databases -- one PostgreSQL database, one
