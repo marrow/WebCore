@@ -22,11 +22,14 @@ Configuration is easy:
    db.connections = core
 
    db.X.engine = <engine>
-   db.X.model = yourproject.model
+   db.X.model = myapp.model
 
-``X`` here is the identifier of your model.
-Use whatever name you want in its place, and use a different identifier for
-each database you want to connect to. Here's what each bit of this represents:
+``X`` here is the identifier of your model. Use whatever name you want in its
+place, and use a different identifier for each database you want to connect to.
+Also, this and all the following examples assume that the top level package
+name of your application is **myapp**.
+
+Here's what each bit of this represents:
 
 ``db.connections``
    A comma-separated list of database connections. The name used here is used
@@ -40,7 +43,7 @@ each database you want to connect to. Here's what each bit of this represents:
    A dot-notation reference to the Python module which contains your model.
    Individual engines may have requirements about what needs to be in that module.
    
-   Example: ``db.core.model = myproject.model``
+   Example: ``db.core.model = myapp.model``
 
 ``db.X.url``
    The connection string that defines the location of the actual database.
@@ -65,8 +68,8 @@ this to your Paste ini file:
 .. code-block:: ini
 
     db.core.engine = sqlalchemy
-    db.core.model = myproject.model
-    db.core.url = mysql+oursql://alex:12345@localhost/myproject
+    db.core.model = myapp.model
+    db.core.url = mysql+oursql://alex:12345@localhost/myapp
     db.connections = core
 
 ``db.core.autocommit``
@@ -104,8 +107,8 @@ An Example Model
 
 It is strongly suggested that you define your models using SQLAlchemy's
 `declarative extension <http://www.sqlalchemy.org/docs/orm/extensions/declarative.html>`_.
-To get started quickly, create a new module called ``model.py`` inside your
-project's top level package and paste the following in:
+To get started quickly, create a new module in the ``myapp`` package called
+``model.py`` paste the following in:
 
 .. code-block:: python
 
@@ -233,10 +236,10 @@ documentation on SQLAlchemy's
 `website <http://www.sqlalchemy.org/docs/orm/extensions/sqlsoup.html>`_.
 
 
-Models In Large Projects
-------------------------
+Models In Large Applications
+----------------------------
 
-If your project has a lot of tables, you may want to split your model into
+If your application has a lot of tables, you may want to split your model into
 several different modules. In that case, you should turn your model module into
 a package instead. First, define ``Base``, ``metadata`` and ``session`` in the
 package's ``__init__.py`` module. After that, import the model classes (or just
@@ -257,8 +260,8 @@ something like the following in your INI file:
 .. code-block:: ini
 
     db.core.engine = mongo
-    db.core.model = yourproject.model
-    db.core.url = mongo://localhost/yourproject
+    db.core.model = myapp.model
+    db.core.url = mongo://localhost/myapp
 
 
 In your model module include something like the following::
@@ -291,14 +294,14 @@ following:
 .. code-block:: ini
 
     db.users.engine = sqlalchemy
-    db.users.model = myproject.auth.model
+    db.users.model = myapp.auth.model
     db.users.url = postgresql:///users
 
-    db.wiki.model = myproject.wiki.model
+    db.wiki.model = myapp.wiki.model
     db.wiki.url = mongo://localhost/wiki
 
     db.history.engine = sqlalchemy
-    db.history.model = myproject.history.model
+    db.history.model = myapp.history.model
     db.history.url = mysql+oursql://me:mypassword@localhost/history
 
     db.connections = users, wiki, history
