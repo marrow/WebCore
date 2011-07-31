@@ -164,6 +164,18 @@ The ``populate`` function is called whenever a new table has been created, and
 is meant to populate the table with data if necessary. The ``table`` argument
 is the name of the table in question.
 
+Transactions
+------------
+
+Transactions are the "working units" of a relational database. Almost any
+changes made to the database data while in a transaction can be reversed if
+something goes wrong so that either all the changes are persisted or none of
+them are. In a WebCore application, a transaction is automatically started for
+you when you access the database. When the controller method returns a value,
+the transaction is automatically committed. If instead an exception is raised
+from the controller, the transaction is rolled back. All this means is that you
+don't have to worry about managing transactions on your own. Just do your
+inserts, updates and deletes and let WebCore handle the transactions for you.
 
 Legacy Database Connections with SQLSoup
 ----------------------------------------
