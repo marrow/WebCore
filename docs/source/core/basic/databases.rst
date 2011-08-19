@@ -309,3 +309,6 @@ following:
 The above configuration uses separate databases and models for users, wiki and
 history. The models are completely independent of each other, and should be
 built according to the instructions detailed in the previous sections.
+
+.. note:: Two phase transactions are currently not supported. This will be
+          rectified in a future version of WebCore.
