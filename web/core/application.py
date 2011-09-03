@@ -131,6 +131,7 @@ class Application(object):
     
     def __call__(self, environment, start_response):
         environment['web.app'] = self.app
+        environment['web.base'] = environment.get('SCRIPT_NAME', '')
         
         try:
             if environment.has_key('paste.registry'):
@@ -151,7 +152,7 @@ class Application(object):
             # Treat non-Dialects as plain WSGI apps
             if not isinstance(self.root, Dialect):
                 return self.root(environment, start_response)
-
+            
             content = self.root(web.core.request._current_obj())
         
         except web.core.http.HTTPException, e:

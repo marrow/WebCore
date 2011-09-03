@@ -42,6 +42,7 @@ class Controller(Dialect):
         while True:
             last = part
             part = request.path_info_peek()
+            request.environ['web.controller'] = request.script_name
             
             if not part:
                 # If the last object under consideration was a controller, not a method,
@@ -64,24 +65,26 @@ class Controller(Dialect):
             remaining = request.path_info.strip('/')
             remaining = remaining.split('/') if remaining else []
             
-            if not protected:
-                if not isinstance(part, Controller) and isinstance(part, Dialect):
-                    log.debug("Context switching from Controller to other Dialect instance.")
-                    request.path_info_pop()
-                    return part(request)
-                
-                # If the URL portion exists as an attribute on the object in question, start searching again on that attribute.
-                if isinstance(part, Controller):
-                    log.debug("Continuing descent through controller structure.")
-                    request.path_info_pop()
-                    continue
-                
-                # If the current object under consideration is a decorated controller method, the search is ended.
-                if hasattr(part, '__call__'):
-                    log.debug("Found callable, passing control. part(%r, %r)", remaining[1:], data)
-                    request.path_info_pop()
-                    remaining, data = last.__before__(*remaining[1:], **data)
-                    return last.__after__(part(*remaining, **data))
+            if protected:
+                raise web.core.http.HTTPNotFound()
+            
+            if not isinstance(part, Controller) and isinstance(part, Dialect):
+                log.debug("Context switching from Controller to other Dialect instance.")
+                request.path_info_pop()
+                return part(request)
+            
+            # If the URL portion exists as an attribute on the object in question, start searching again on that attribute.
+            if isinstance(part, Controller):
+                log.debug("Continuing descent through controller structure.")
+                request.path_info_pop()
+                continue
+            
+            # If the current object under consideration is a decorated controller method, the search is ended.
+            if hasattr(part, '__call__'):
+                log.debug("Found callable, passing control. part(%r, %r)", remaining[1:], data)
+                request.path_info_pop()
+                remaining, data = last.__before__(*remaining[1:], **data)
+                return last.__after__(part(*remaining, **data))
             
             fallback = None
             

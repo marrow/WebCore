@@ -7,6 +7,7 @@ from web.core.application import Application
 from web.utils.dictionary import adict
 from webob import exc as http
 from web.core.middleware import middleware
+from web.utils.url import URLGenerator
 
 from paste.registry import StackedObjectProxy
 
@@ -26,6 +27,8 @@ session = StackedObjectProxy(name="session")
 
 translator = StackedObjectProxy(name="translator")
 
+url = URLGenerator()
+
 namespace = dict(
         web = adict(
                 request = request,
@@ -34,7 +37,8 @@ namespace = dict(
                 session = session,
                 i18n = translator,
                 release = release,
-                config = config
+                config = config,
+                url = url
             )
     )
 

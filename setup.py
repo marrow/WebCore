@@ -41,6 +41,7 @@ setup(
                 'PasteScript',
                 'WebOb',
                 'WebError',
+                'marrow.util < 1.3',
                 'marrow.templating'
             ],
         
