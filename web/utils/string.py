@@ -1,9 +1,16 @@
 # encoding: utf-8
+# pragma: no cover
 
 import re
+import warnings
+
+from marrow.util.text import normalize, ellipsis
 
 
 __all__ = ['CStringIO', 'normalize', 'ellipsis']
+
+
+warnings.warn("Use of web.utils.string is deprecated, use marrow.util.text instead.", DeprecationWarning)
 
 
 class CStringIO(object):
@@ -60,38 +67,3 @@ class CStringIO(object):
     
     def getvalue(self):
         return self.__csio.getvalue()
-
-
-def normalize(name, collection=[], expression=re.compile('\W+')):
-    base = expression.sub('-', name.lower())
-    suffix = 0
-    value = None
-    
-    while True:
-        value = ("%s%s" % (base.strip('-'), ("-%d" % (suffix, )) if suffix else ""))
-        if value not in collection:
-            return value
-        suffix += 1
-    
-    raise ValueError
-
-
-def ellipsis(text, length):
-    """
-    Present a block of text of given length.
-    
-    If the length of available text exceeds the requested length, truncate and
-    intelligently append an ellipsis.
-    """
-    
-    if len(text) > length:
-        pos = text.rfind(" ", 0, length)
-        
-        if pos < 0:
-            return text[:length].rstrip(".") + "..."
-        
-        else:
-            return text[:pos].rstrip(".") + "..."
-    
-    else:
-        return text

@@ -63,7 +63,7 @@ html_theme_path = ['tools/themes']
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-html_title = "WebCore %s Documentation" % (version, )
+html_title = "WebCore {} Documentation".format(version)
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.

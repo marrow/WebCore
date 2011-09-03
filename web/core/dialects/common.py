@@ -3,8 +3,7 @@
 """Basic dispatch routing."""
 
 from api import Dialect
-
-from webob.exc import *
+from web.core.http import HTTPNotImplemented
 
 
 __all__ = ['route']

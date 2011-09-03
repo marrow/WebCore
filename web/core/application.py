@@ -1,21 +1,18 @@
 # encoding: utf-8
 
-"""
-The base WSGI application definition.
+"""The base WSGI application definition.
 
 Applications which use the WebCore framework plug into this base application.
 """
 
 import types
-
 import paste
-from webob import Request, Response
+import web
 
-import web, web.core, web.utils
+from webob import Request, Response
 from web.core import middleware
 from web.core.dialects import Dialect
-
-from web.utils.object import get_dotted_object
+from marrow.util.object import load_object
 
 
 __all__ = ['Application']
@@ -78,10 +75,8 @@ class Application(object):
                     deps = [(i in satisfied) for i in obj.after if i in available]
                     if not all(deps):
                         continue
-                
                 elif obj.after is "*" and queue:
                     continue
-                
                 elif obj.after not in satisfied:
                     continue
                 
@@ -107,7 +102,7 @@ class Application(object):
         if isinstance(root, basestring):
             config['web.root.package'] = root.split('.', 1)[0]
             log.debug("Loading root controller from '%s'.", root)
-            root = get_dotted_object(root)
+            root = load_object(root)
         
         if isinstance(root, type):
             root = root()
@@ -168,10 +163,8 @@ class Application(object):
         
         if isinstance(content, (list, types.GeneratorType)):
             web.core.response.app_iter = content
-        
         elif isinstance(content, unicode):
             web.core.response.unicode_body = content
-        
         elif content is not None:
             web.core.response.body = content
         

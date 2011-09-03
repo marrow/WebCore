@@ -4,12 +4,10 @@
 
 
 import api
-import warnings
-
-from paste.deploy.converters import asbool, aslist
 
 from sqlalchemy import engine_from_config, event
 from sqlalchemy.orm import sessionmaker
+from marrow.util.convert import boolean
 
 
 __all__ = ['SQLAlchemyMiddleware']
@@ -35,13 +33,12 @@ class SQLAlchemyMiddleware(api.TransactionalMiddlewareInterface):
             from sqlalchemy.ext.sqlsoup import SqlSoup, Session
             self.model.__dict__['soup'] = SqlSoup(self.model.metadata)
             self._session = Session
-        
         else:
             args = dict(
                     bind = self.model.engine,
-                    autocommit = asbool(self.config.get('%s.autocommit' % (self.prefix, ), False)),
-                    autoflush = asbool(self.config.get('%s.autoflush' % (self.prefix, ), True)),
-                    twophase = asbool(self.config.get('%s.twophase' % (self.prefix, ), False)),
+                    autocommit = boolean(self.config.get('%s.autocommit' % (self.prefix, ), False)),
+                    autoflush = boolean(self.config.get('%s.autoflush' % (self.prefix, ), True)),
+                    twophase = boolean(self.config.get('%s.twophase' % (self.prefix, ), False)),
                 )
             
             setup = getattr(self.model, 'setup', None)
@@ -58,7 +55,6 @@ class SQLAlchemyMiddleware(api.TransactionalMiddlewareInterface):
     def begin(self, environ):
         if self.soup:
             environ['paste.registry'].register(self.session, self._session.current)
-        
         else:
             environ['paste.registry'].register(self.session, self._session())
     
@@ -83,7 +79,6 @@ class SQLAlchemyMiddleware(api.TransactionalMiddlewareInterface):
         
         try:
             self.model.populate(session, target.name)
-        
         except: # pragma: no cover
             session.rollback()
             raise

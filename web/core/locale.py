@@ -2,17 +2,19 @@
 
 """Internationalization (i18n) functions."""
 
-from gettext import NullTranslations, translation
 import os
-
-from paste.deploy.converters import aslist
-from web.core.templating import registry
 import web
 
+from gettext import NullTranslations, translation
+from web.core.templating import registry
+from marrow.util.convert import array
 
-__all__ = ['LanguageError', '_', '__', 'L_', 'N_', 'gettext',
-           'ugettext', 'ngettext', 'ungettext', 'get_lang', 'set_lang',
-           'get_translator', 'add_fallback']
+
+__all__ = [
+        'LanguageError', '_', '__', 'L_', 'N_', 'gettext',
+        'ugettext', 'ngettext', 'ungettext', 'get_lang', 'set_lang',
+        'get_translator', 'add_fallback'
+    ]
 
 log = __import__('logging').getLogger(__name__)
 
@@ -40,6 +42,7 @@ def ungettext(singular, plural, n):
 
 def N_(message):
     return message
+
 
 _ = ugettext
 __ = ungettext
@@ -152,29 +155,37 @@ class LocaleMiddleware(object):
         root_module = __import__(root_controller.__module__)
         root_path = os.path.dirname(root_module.__file__)
         steps = len(root_parts)
+        
         if not os.path.split(root_path)[1].startswith('__init__.'):
             steps -= 1
+        
         for _ in range(steps):
             root_path = os.path.split(root_path)[0]
 
         if 'web.locale.path' in self.config:
             # Validate the pre-defined locale path
             path = self.config['web.locale.path']
+            
             if not os.path.abspath(path) == os.path.normpath(path):
                 path = os.path.join(root_path, path)
+            
             if not os.path.isdir(path):
                 raise Exception("The locale path (%s) either does not exist or is not a directory." % path)
+            
             return path
 
         # Autodetect the locale path
         path = root_path
+        
         for part in root_parts:
             path = os.path.join(path, part)
             localedir = os.path.join(path, 'locale')
             log.debug("Looking for directory 'locale' in %s", localedir)
+            
             if os.path.isdir(localedir):
                 self.config['web.locale.path'] = localedir
                 return localedir
+        
         raise Exception("Unable to autodetect the locale directory. Please set web.locale.path manually.")
 
     def _find_text_domain(self, localedir):
@@ -184,9 +195,11 @@ class LocaleMiddleware(object):
 
         for _path, _dirs, files in os.walk(localedir, topdown=False):
             mofiles = [f for f in files if os.path.splitext(f)[1] == '.mo']
+            
             if len(mofiles) == 1:
                 self.config['web.locale.domain'] = mofiles[0][:-3]
                 return self.config['web.locale.domain']
+            
             if len(mofiles) > 1:
                 raise Exception("More than one text domain found -- please set web.locale.domain manually.")
 
@@ -195,13 +208,15 @@ class LocaleMiddleware(object):
     def _find_translations(self, localedir, domain):
         # Allow users to override
         if 'web.locale.languages' in self.config:
-            return aslist(self.config['web.locale.languages'])
+            return array(self.config['web.locale.languages'])
 
         translations = []
         for fname in os.listdir(localedir):
             mo_fname = os.path.join(localedir, fname, 'LC_MESSAGES', '%s.mo' % domain)
+            
             if os.path.exists(mo_fname):
                 translations.append(fname)
+        
         return translations
 
     def __call__(self, environ, start_response):
@@ -212,6 +227,7 @@ class LocaleMiddleware(object):
             i = i.strip(', ')
             i = i.split(';', 1)[0]
             lang.append(i)
+            
             if '-' in i:
                 lang.append(i.split('-', 1)[0])
 

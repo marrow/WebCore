@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-import web.core
+import web
 
 from api import Dialect
 
@@ -65,9 +65,6 @@ class Controller(Dialect):
             remaining = request.path_info.strip('/')
             remaining = remaining.split('/') if remaining else []
             
-            if protected:
-                raise web.core.http.HTTPNotFound()
-            
             if not isinstance(part, Controller) and isinstance(part, Dialect):
                 log.debug("Context switching from Controller to other Dialect instance.")
                 request.path_info_pop()
@@ -80,7 +77,7 @@ class Controller(Dialect):
                 continue
             
             # If the current object under consideration is a decorated controller method, the search is ended.
-            if hasattr(part, '__call__'):
+            if hasattr(part, '__call__') and not protected:
                 log.debug("Found callable, passing control. part(%r, %r)", remaining[1:], data)
                 request.path_info_pop()
                 remaining, data = last.__before__(*remaining[1:], **data)

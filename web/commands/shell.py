@@ -1,9 +1,12 @@
+# encoding: utf-8
+
 import os
 import sys
 
 import paste.fixture
 import paste.registry
 import paste.deploy.config
+
 from paste.deploy import loadapp, appconfig
 from paste.script.command import Command, BadCommand
 

@@ -3,6 +3,7 @@
 import os
 import pkg_resources
 
+from functools import wraps
 from marrow.templating.core import Engines
 from marrow.templating.resolver import Resolver
 
@@ -18,6 +19,7 @@ registry = []
 
 def template(template, **extras):
     def outer(func):
+        @wraps(func)
         def inner(*args, **kw):
             result = func(*args, **kw)
             
@@ -30,13 +32,8 @@ def template(template, **extras):
             
             return result
         
-        # Become more transparent.
-        inner.__name__ = func.__name__
-        inner.__doc__ = func.__doc__
-        inner.__dict__ = func.__dict__
-        inner.__module__ = func.__module__
-        
         return inner
+    
     return outer
 
 
@@ -84,7 +81,6 @@ class TemplatingMiddleware(object):
     def response(cls, result, environ, start_response):
         try:
             from web.core import response
-        
         except ImportError:
             from webob import Response
             response = Response()
@@ -93,7 +89,6 @@ class TemplatingMiddleware(object):
         
         if isinstance(result[1], str):
             response.body = result[1]
-        
         elif isinstance(result[1], unicode):
             response.unicode_body = result[1]
         
@@ -106,8 +101,10 @@ class TemplatingMiddleware(object):
         _buffet = dict((_engine.name, _engine) for _engine in pkg_resources.iter_entry_points('python.templating.engines'))
         
         options = dict(kw)
+        
         if 'buffet.format' in options:
             del options['buffet.format']
+        
         if 'buffet.fragment' in options:
             del options['buffet.fragment']
         
@@ -128,8 +125,10 @@ class TemplatingMiddleware(object):
         if not isinstance(result, tuple):
             return result
         
-        if len(result) == 2: template, data, extras = result + (dict(), )
-        elif len(result) == 3: template, data, extras = result
+        if len(result) == 2:
+            template, data, extras = result + (dict(), )
+        elif len(result) == 3:
+            template, data, extras = result
         
         if not isinstance(template, str) or not isinstance(data, dict) or not isinstance(extras, dict):
             raise TypeError("Invalid tuple values returned to TemplatingMiddleware.")

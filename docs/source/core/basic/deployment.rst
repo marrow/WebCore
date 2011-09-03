@@ -210,7 +210,7 @@ Then, create the WSGI stub file at ``/var/www/customer/myapp/application.wsgi``:
 
     # Load the application
     from paste.deploy import loadapp
-    application = loadapp('config:%s' % inifile)
+    application = loadapp('config:' + inifile)
 
 Finally, add this configuration to your Apache virtualhost:
 

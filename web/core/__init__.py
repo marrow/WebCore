@@ -1,24 +1,25 @@
 # encoding: utf-8
 
 import sys
-from web import release
-from web.core.dialects import Dialect, Controller, RESTMethod
-from web.core.application import Application
-from web.utils.dictionary import adict
-from webob import exc as http
-from web.core.middleware import middleware
-from web.utils.url import URLGenerator
 
+from webob import exc as http
 from paste.registry import StackedObjectProxy
+from web import release
+from web.core.application import Application
+from web.core.dialects import Dialect, Controller, RESTMethod
+from web.core.middleware import middleware
+from web.utils import URLGenerator
+from marrow.util.bunch import Bunch
 
 
 __all__ = [
         'Application', 'Dialect', 'Controller', 'RESTMethod',
         'http', 'i18n', 'middleware'
-        'config', 'request', 'response', 'cache', 'session', 'translator', 'namespace']
+        'config', 'request', 'response', 'cache', 'session', 'translator', 'namespace'
+    ]
 
 
-config = adict()
+config = Bunch()
 
 request = StackedObjectProxy(name="request")
 response = StackedObjectProxy(name="response")
@@ -29,8 +30,8 @@ translator = StackedObjectProxy(name="translator")
 
 url = URLGenerator()
 
-namespace = dict(
-        web = adict(
+namespace = Bunch(
+        web = Bunch(
                 request = request,
                 response = response,
                 cache = cache,

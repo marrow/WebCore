@@ -3,13 +3,13 @@
 """A basic XML-RPC Dialect class."""
 
 import xmlrpclib
+import web
 
-from webob.exc import *
-
-from web.core import Dialect, response
+from web.core.http import HTTPLengthRequired, HTTPRequestEntityTooLarge
 from web.rpc import route
 
 
+__all__ = ['XMLRPCController']
 log = __import__('logging').getLogger(__name__)
 
 
@@ -48,7 +48,6 @@ class XMLRPCController(Dialect):
         
         try:
             args = parent.__before__(*args)
-        
         except AttributeError:
             pass
         
@@ -56,12 +55,10 @@ class XMLRPCController(Dialect):
         
         try:
             result = parent.__after__(result, *args)
-        
         except AttributeError:
             pass
         
         log.debug("Got result: %r", result)
         
-        response.content_type = 'text/xml'
-        return xmlrpclib.dumps((result,), methodresponse=True,
-                               allow_none=self.__allow_none__)
+        web.core.response.content_type = 'text/xml'
+        return xmlrpclib.dumps((result,), methodresponse=True, allow_none=self.__allow_none__)

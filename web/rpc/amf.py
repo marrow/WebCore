@@ -2,9 +2,8 @@
 
 """A basic AMF Dialect class."""
 
-from webob.exc import *
+import web
 
-from web.core import Dialect, response
 from web.rpc import route
 
 try:
@@ -14,10 +13,10 @@ except ImportError:
     raise ImportError("If you want to use the AMFController class, you must install PyAMF.")
 
 
-log = __import__('logging').getLogger(__name__)
+__all__ = ['AMFController']
 
 
-class AMFController(Dialect):
+class AMFController(web.core.Dialect):
     __gateway__ = dict()
     
     def __init__(self):
@@ -36,6 +35,6 @@ class AMFController(Dialect):
             
             pyamf_response[name] = self._gateway.getProcessor(message)(message)
         
-        response.headers['Content-Type'] = pyamf.remoting.CONTENT_TYPE
+        web.core.response.headers['Content-Type'] = pyamf.remoting.CONTENT_TYPE
         
         return pyamf.remoting.encode(pyamf_response).getvalue()

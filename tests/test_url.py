@@ -3,9 +3,7 @@
 from unittest import TestCase
 from nose.tools import eq_ as eq
 
-from web.utils.url import URLGenerator
-from web.utils.object import *
-from web.utils.dictionary import *
+from web.utils import URLGenerator
 
 
 class MockURLGenerator(URLGenerator):

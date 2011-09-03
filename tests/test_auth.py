@@ -4,7 +4,7 @@ from unittest import TestCase
 import web.auth
 from web.core import Application
 from web.auth.middleware import WebAuth
-from web.utils.dictionary import adict
+from marrow.util.bunch import Bunch
 
 from paste.registry import StackedObjectProxy
 
@@ -157,7 +157,7 @@ class TestAnonymousPredicates(TestCase):
         self.failIf(member_of('admin'))
 
 
-class sadict(adict):
+class sadict(Bunch):
     def _current_obj(self):
         return self
 

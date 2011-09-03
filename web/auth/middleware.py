@@ -1,17 +1,17 @@
 # encoding: utf-8
 
 import urllib
-
 import web
-import webob.exc
 
-from paste.deploy.converters import asbool, aslist
+from marrow.util.bunch import Bunch
+from marrow.util.convert import boolean, array
+from marrow.util.object import load_object
 
 
 __all__ = ['WebAuth', 'BasicAuthMiddleware']
 log = __import__('logging').getLogger(__name__)
 
-default_config = web.utils.dictionary.adict(
+default_config = Bunch(
         name = 'uid',
         intercept = '401',
         handler = '/login',
@@ -26,14 +26,14 @@ class WebAuth(object):
         self.application = application
         
         prefix_length = len(prefix)
-        our_config = web.utils.dictionary.adict(default_config.copy())
+        our_config = Bunch(default_config.copy())
         
         for i, j in config.iteritems():
             if i.startswith(prefix):
                 our_config[i[prefix_length:]] = j
         
-        our_config.intercept = [i.strip() for i in aslist(our_config.intercept)]
-        our_config.internal = asbool(our_config.internal)
+        our_config.intercept = [i.strip() for i in array(our_config.intercept)]
+        our_config.internal = boolean(our_config.internal)
         
         if our_config.lookup is None:
             raise Exception('You must define an authentication lookup method.')
@@ -46,7 +46,8 @@ class WebAuth(object):
     def get_method(self, string):
         """Returns a lazily-evaluated callable."""
         
-        if not string: return None
+        if not string:
+            return None
         
         if hasattr(string, '__call__'):
             return string
@@ -57,7 +58,7 @@ class WebAuth(object):
         if '.' in reference:
             reference, prop = reference.rsplit('.', 1)
         
-        obj = web.utils.object.get_dotted_object('%s:%s' % (package, reference))
+        obj = load_object('%s:%s' % (package, reference))
         
         if not prop:
             def lazy(*args, **kw):
@@ -71,7 +72,7 @@ class WebAuth(object):
         return lazy
     
     def authenticate(self, environ, start_response):
-        raise webob.exc.HTTPTemporaryRedirect(location=\
+        raise web.core.http.HTTPTemporaryRedirect(location=\
                 web.auth.config.handler + '?redirect=' + \
                 urllib.quote_plus(environ['SCRIPT_NAME']) + \
                 urllib.quote_plus(environ['PATH_INFO'])
@@ -100,8 +101,7 @@ class WebAuth(object):
         
         try:
             result = self.application(environ, our_start_response)
-        
-        except webob.exc.HTTPException, e:
+        except web.core.http.HTTPException, e:
             return e(environ, start_response)
         
         return result
@@ -118,7 +118,6 @@ class BasicAuthMiddleware(object):
             if authtype.lower() == 'basic':
                 try:
                     un, pw = b64decode(auth).split(':')
-                
                 except TypeError:
                     return HTTPUnauthorized()
                 
@@ -127,6 +126,5 @@ class BasicAuthMiddleware(object):
         
         try:
             return self.application(environ, start_response)
-        
         except HTTPException, e:
             return e(environ, start_response)

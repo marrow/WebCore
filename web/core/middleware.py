@@ -6,10 +6,10 @@ configuration.
 
 import os
 import pkg_resources
-
-from paste.deploy.converters import asbool, asint, aslist
-
 import web
+
+from marrow.util.convert import boolean, array, integer
+from marrow.util.object import load_object
 
 
 __all__ = ['registry', 'middleware', 'template', 'TemplatingMiddleware']
@@ -122,37 +122,33 @@ def database(app, config):
         return app
     
     try:
-        for connection in aslist(config.get('db.connections')):
+        for connection in array(config.get('db.connections')):
             connection = connection.strip(',')
             
             engine = config.get('db.%s.engine' % (connection,), 'sqlalchemy')
             
             try:
                 if '.' in engine and ':' in engine:
-                    engine = web.utils.object.get_dotted_object(engine)
-                
+                    engine = load_object(engine)
                 else:
                     try:
                         engine = [i for i in pkg_resources.iter_entry_points(group='webcore.db.engines', name=engine)][0].load()
                     except IndexError:
                         raise Exception('No engine registered with the name: %s' % (engine,))
-            
             except:
                 log.exception("Unable to load engine middleware: %r.", engine)
                 raise
             
             try:
                 model = config.get('db.%s.model' % (connection,))
-                model = web.utils.object.get_dotted_object(model) if isinstance(model, basestring) else model
-            
+                model = load_object(model) if isinstance(model, basestring) else model
             except:
                 log.exception("Unable to load application model: %r.", model)
                 raise
             
             try:
                 session = config.get('db.%s.session' % (connection,), '%s:session' % (config.get('db.%s.model' % (connection,)),))
-                session = web.utils.object.get_dotted_object(session) if isinstance(session, basestring) else session
-            
+                session = load_object(session) if isinstance(session, basestring) else session
             except:
                 log.info("No session defined for the %s database connection.", connection)
             
@@ -193,6 +189,7 @@ def sessions(app, config):
         
         if 'session.cookie_expires' in beakerconfig and isinstance(beakerconfig['session.cookie_expires'], basestring):
             value = beakerconfig['session.cookie_expires']
+            
             if value.lower() in ['yes', 'on', 'true']:
                 beakerconfig['session.cookie_expires'] = True
             elif value.lower() in ['no', 'off', 'false']:
@@ -227,7 +224,6 @@ def caching(app, config):
         
         log.debug("Loading Beaker cache middleware.")
         return CacheMiddleware(app, beakerconfig)
-    
     except ImportError:  # pragma: no cover
         raise ImportError("You must install Beaker to enable caching")
 
@@ -244,18 +240,16 @@ def debugging(app, config):
             if i.startswith('debug.'):
                 localconfig[i[6:]] = j
         
-        if asbool(config.get('debug', False)):
+        if boolean(config.get('debug', False)):
             log.debug("Debugging enabled; exceptions raised will display an interactive traceback.")
             
             from weberror.evalexception import EvalException
             return EvalException(app, config, **localconfig)
-        
         else:
             log.debug("Debugging disabled; exceptions raised will display a 500 error.")
             
             from weberror.errormiddleware import ErrorMiddleware
             return ErrorMiddleware(app, config, **localconfig)
-    
     except ImportError:  # pragma: no cover
         raise ImportError("You must install WebError to enable debugging")
 
@@ -269,10 +263,10 @@ def threadlocal(app, config):
 @middleware('static', after="registry")
 def static(app, config):
     # Enabled explicitly or while debugging so you can use Paste's HTTP server.
-    if config.get('web.static', None) is None and not asbool(config.get('debug', False)):
+    if config.get('web.static', None) is None and not boolean(config.get('debug', False)):
         return app
     
-    if not asbool(config.get('web.static', False)):
+    if not boolean(config.get('web.static', False)):
         return app
     
     from paste.cascade import Cascade
@@ -303,6 +297,7 @@ def static(app, config):
             
             if parts[0] == '.':
                 break
+            
             module = getattr(module, parts.pop(0))
             path = module.__file__
     
@@ -325,7 +320,7 @@ def compression(app, config):
     log.debug("Enabling HTTP compression.")
     
     from paste.gzipper import middleware as GzipMiddleware
-    return GzipMiddleware(app, compress_level=asint(config.get('web.compress.level', 6)))
+    return GzipMiddleware(app, compress_level=integer(config.get('web.compress.level', 6)))
 
 
 @middleware('profiling', after="compression")
@@ -341,11 +336,10 @@ def profiling(app, config):
         return AccumulatingProfileMiddleware(
                 app,
                 log_filename=config.get('web.profile.log', 'profile.prof'),
-                discard_first_request=asbool(config.get('web.profile.discard', 'true')),
-                flush_at_shutdown=asbool(config.get('web.profile.flush', 'true')),
+                discard_first_request=boolean(config.get('web.profile.discard', 'true')),
+                flush_at_shutdown=boolean(config.get('web.profile.flush', 'true')),
                 path=config.get('web.profile.path', '/__profile__')
             )
-    
     except ImportError:  # pragma: no cover
         raise ImportError("You must install repoze.profile to enable profiling")
 

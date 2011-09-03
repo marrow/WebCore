@@ -2,11 +2,9 @@
 
 import functools
 import inspect
-
 import web.core
-import webob.exc
-from paste.registry import StackedObjectProxy
 
+from paste.registry import StackedObjectProxy
 from web.auth import middleware, predicates
 from web.auth.predicates import *
 
@@ -17,8 +15,8 @@ log = __import__('logging').getLogger(__name__)
 config = None
 user = StackedObjectProxy(name="user")
 
-web.core.namespace['web'].auth = predicates
-web.core.namespace['web'].user = user
+web.core.namespace.web.auth = predicates
+web.core.namespace.web.user = user
 
 
 def authenticate(identifier, password=None, force=False):
@@ -34,7 +32,6 @@ def authenticate(identifier, password=None, force=False):
     
     if force:
         result = (identifier, config.lookup(identifier))
-    
     else:
         result = config.authenticate(identifier, password)
     
@@ -83,7 +80,7 @@ def authorize(predicate):
         @functools.wraps(func)
         def wrapper(*args, **kw):
             if not bool(predicate):
-                raise webob.exc.HTTPUnauthorized()
+                raise web.core.http.HTTPUnauthorized()
             
             return func(*args, **kw)
         

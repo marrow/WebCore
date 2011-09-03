@@ -1,7 +1,8 @@
 # encoding: utf-8
 
+import web
+
 from webob import Request, Response
-import web.core
 
 
 log = __import__('logging').getLogger(__name__)

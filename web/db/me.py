@@ -3,7 +3,6 @@
 """MongoEngine database adapter."""
 
 import re
-
 import mongoengine
 
 

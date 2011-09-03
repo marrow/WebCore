@@ -1,4 +1,4 @@
-000# encoding: utf-8
+# encoding: utf-8
 
 """WebCore database middleware API."""
 
@@ -71,11 +71,9 @@ class TransactionalMiddlewareInterface(object):
         
         try:
             result = self.application(environ, local_start)
-        
         finally:
             if self.vote(environ, status[0] if status else None):
                 self.finish(environ)
-            
             else:
                 self.abort(environ)
         

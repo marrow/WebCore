@@ -189,6 +189,7 @@ You will need to write controllers to handle authentication, account creation, l
 
    import web
    from web.auth import authenticate, deauthenticate
+   from marrow.util.bunch import Bunch
 
 
    from YOURPROJECT import model as db
@@ -228,7 +229,7 @@ You will need to write controllers to handle authentication, account creation, l
            return "YOURPROJECT.templates.login", dict(redirect=redirect)
     
        def post(self, **kw):
-           data = web.utils.dictionary.adict(kw)
+           data = Bunch(kw)
         
            if not web.auth.authenticate(data.username, data.password):
                return "YOURPROJECT.templates.login", dict(redirect=kw['redirect'])
