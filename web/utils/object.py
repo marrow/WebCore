@@ -1,4 +1,5 @@
 # encoding: utf-8
+# pragma: no cover
 
 __all__ = ['yield_property', 'CounterMeta', 'get_dotted_object']
 
