@@ -54,7 +54,8 @@ setup(
                 'Beaker',
                 'ToscaWidgets',
                 'Routes',
-                'repoze.profile'
+                'repoze.profile',
+                'pyamf'
             ],
         
         classifiers = [
