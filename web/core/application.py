@@ -75,7 +75,7 @@ class Application(object):
                     deps = [(i in satisfied) for i in obj.after if i in available]
                     if not all(deps):
                         continue
-                elif obj.after is "*" and queue:
+                elif obj.after is "*" and queue: # pragma: no cover -- this works, but profiling can't be tested
                     continue
                 elif obj.after not in satisfied:
                     continue
