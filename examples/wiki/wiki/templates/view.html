@@ -3,7 +3,7 @@
         xmlns:py="http://genshi.edgewall.org/"
         xmlns:xi="http://www.w3.org/2001/XInclude">
     
-    <xi:include href="${lookup('web.extras.examples.wiki.templates.master')}" />
+    <xi:include href="${relative('wiki.templates.master')}" />
     
     <head>
         <meta content="text/html; charset=UTF-8" http-equiv="content-type" py:replace="''" />
@@ -14,11 +14,11 @@
             $(function(){
                 
                 $('.modify-link').click(function(){
-                    $('.content').load('/${article.name}/modify_ajax', function(){
+                    $('.content').load('${web.url.compose(article.name, 'modify_ajax')}', function(){
                         $('.links').hide();
                         $('textarea').focus();
                         $('.modify').submit(function(){
-                            $('.content').load('/${article.name}/modify_ajax', {
+                            $('.content').load('${web.url.compose(article.name, 'modify_ajax')}', {
                                     'name': $('input:first').val(),
                                     'content': $('textarea:first').val()
                                 }, function(){ $('.links').show(); });
@@ -36,9 +36,9 @@
     
     <body class="wiki article">
         <div class="links">
-            <a class="modify-link" href="/${article.name}/modify">Modify</a> |
-            <a class="delete-link" href="/${article.name}/delete">Delete</a> |
-            <a class="index-link" href="/Index">Article Index</a>
+            <a class="modify-link" href="${web.url.compose(article.name, 'modify')}">Modify</a> |
+            <a class="delete-link" href="${web.url.compose(article.name, 'delete')}">Delete</a> |
+            <a class="index-link" href="${web.url('/Index')}">Article Index</a>
         </div>
         
         <div class="content" py:content="HTML(content)">Wiki page content goes here.</div>

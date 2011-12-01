@@ -1,5 +1,4 @@
-#from setuptools import setup, find_packages
-from distutils.core import setup
+from setuptools import setup
 
 setup(
     name="WebCore-Example-i18n",

@@ -2,8 +2,8 @@
 
 from paste.registry import StackedObjectProxy
 
-from web.extras.examples.wiki.model.base import *
-from web.extras.examples.wiki.model.core import *
+from wiki.model.base import *
+from wiki.model.core import *
 
 
 metadata = Base.metadata

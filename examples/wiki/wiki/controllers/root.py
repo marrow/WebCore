@@ -2,9 +2,9 @@
 
 import textile
 
-import web
+import web.core
 
-from web.extras.examples.wiki import model as db
+from wiki import model as db
 
 
 __all__ = ['RootController']
@@ -16,9 +16,10 @@ class AJAXArticleForm(web.core.RESTMethod):
     def __init__(self, name, article):
         self.name = name
         self.article = article
+        super(AJAXArticleForm, self).__init__()
     
     def get(self):
-        return 'web.extras.examples.wiki.templates.modify_form', dict(name=self.name, article=self.article)
+        return 'wiki.templates.modify_form', dict(name=self.name, article=self.article)
     
     def post(self, name, content, **kw):
         if not self.article:
@@ -35,9 +36,10 @@ class ArticleForm(web.core.RESTMethod):
     def __init__(self, name, article):
         self.name = name
         self.article = article
+        super(ArticleForm, self).__init__()
     
     def get(self):
-        return 'web.extras.examples.wiki.templates.modify', dict(name=self.name, article=self.article)
+        return 'wiki.templates.modify', dict(name=self.name, article=self.article)
     
     def post(self, name, content, **kw):
         if not self.article:
@@ -47,7 +49,8 @@ class ArticleForm(web.core.RESTMethod):
         self.article.name = name
         self.article.content = content
         
-        raise web.core.http.HTTPFound(location='/' + self.article.name)
+        url = web.core.url.compose('/', self.article.name)
+        raise web.core.http.HTTPFound(location=url)
 
 
 class ArticleController(web.core.Controller):
@@ -65,28 +68,29 @@ class ArticleController(web.core.Controller):
     
     def index(self):
         if not self.article:
-            raise web.core.http.HTTPFound(location='/' + self.name + '/create')
+            url = web.core.url.compose('create')
+            raise web.core.http.HTTPFound(url)
         
         content = textile.textile(self.article.content)
         
-        return 'web.extras.examples.wiki.templates.view', dict(
+        return 'wiki.templates.view', dict(
                 article = self.article,
                 content = content
             )
     
     def delete(self):
         db.session.delete(self.article)
-        raise web.core.http.HTTPFound(location='/')
+        raise web.core.http.HTTPFound(location=web.core.url('/'))
 
 
 class RootController(web.core.Controller):
     def index(self):
-        raise web.core.http.HTTPMovedPermanently(location="/WikiHome")
+        raise web.core.http.HTTPMovedPermanently(location=web.core.url("/WikiHome"))
     
     def Index(self):
-        return 'web.extras.examples.wiki.templates.index', dict(
+        return 'wiki.templates.index', dict(
                 articles = db.session.query(db.Article.name)
             )
     
-    def lookup(self, article, *parts, **data):
+    def __lookup__(self, article, *parts, **data):
         return ArticleController(unicode(article)), parts

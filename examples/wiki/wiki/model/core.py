@@ -4,7 +4,7 @@
 from sqlalchemy import *
 from sqlalchemy.orm import *
 
-from web.extras.examples.wiki.model.base import Base
+from wiki.model.base import Base
 
 
 __all__ = ['Article']

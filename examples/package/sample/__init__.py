@@ -23,4 +23,4 @@ class RootController(Controller):
     
     def time(self):
         from datetime import datetime
-        return 'example.templates.now', dict(now=datetime.now())
+        return 'sample.templates.now', dict(now=datetime.now())

@@ -3,7 +3,7 @@
         xmlns:py="http://genshi.edgewall.org/"
         xmlns:xi="http://www.w3.org/2001/XInclude">
     
-    <xi:include href="${relative('web.extras.examples.wiki.templates.master')}" />
+    <xi:include href="${relative('wiki.templates.master')}" />
     
     <head>
         <meta content="text/html; charset=UTF-8" http-equiv="content-type" py:replace="''" />
@@ -16,7 +16,7 @@
             <h1>Article Index</h1>
             
             <ul>
-                <li py:for="name in articles"><a py:attrs="{'href': '/' + name[0]}" py:content="name">Article Name</a></li>
+                <li py:for="name in articles"><a py:attrs="{'href': web.url.compose(name[0])}" py:content="name">Article Name</a></li>
             </ul>
         </div>
     </body>

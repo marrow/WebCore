@@ -3,7 +3,7 @@
         xmlns:py="http://genshi.edgewall.org/"
         xmlns:xi="http://www.w3.org/2001/XInclude">
     
-    <xi:include href="${relative('web.extras.examples.wiki.templates.master')}" />
+    <xi:include href="${relative('wiki.templates.master')}" />
     
     <head>
         <meta content="text/html; charset=UTF-8" http-equiv="content-type" py:replace="''" />
@@ -14,7 +14,7 @@
     
     <body>
         <div class="content">
-            <xi:include href="${relative('web.extras.examples.wiki.templates.modify_form')}" />
+            <xi:include href="${relative('wiki.templates.modify_form')}" />
         </div>
     </body>
 </html>
