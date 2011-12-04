@@ -102,6 +102,7 @@ WebCore includes a number of useful helpers in the ``web`` and global template n
 
 ``relative``
    As per ``lookup``, but returns a relative path from the current template to the target.
+   This is mostly just useful in Genshi templates, where relative names are required when including other templates.
 
 ``web.request``
    Access to the WSGI request object and environment.
@@ -122,6 +123,32 @@ WebCore includes a number of useful helpers in the ``web`` and global template n
    WebCore version information.
 
 
+Rendering Templates Directly
+============================
+
+Sometimes you want to render templates directly in your controller code, like when you
+need to use them to format an e-mail message you're sending out. This is done using the
+:func:`~web.core.templating.render` function:
+
+.. code-block:: python
+
+    from web.core.templating import render
+
+    data = {'user': 'My Name', 'access_level', 'admin'}
+    mimetype, output = render('myproject.templates/email.html', data)
+
+The ``mimetype`` variable contains the MIME type that resulted from the rendering of
+this template, which is ``text/html`` in this case. The ``output`` variable contains
+the actual rendered HTML as a unicode string or bytestring depending on the rendering
+engine used. Of course, you can also use this function to serialize data using any
+supported serialization format (JSON, bencode etc.). 
+
+The :func:`~web.core.templating.render` function is used internally to render templates
+for controllers that return a tuple, so the syntax for the template name is the same
+as described in the first section here. The same global variables are also available,
+though they will be empty if not called from within a controller (or, in other words,
+when the current thread is not handling a request).
+
 
 Defining Your Own
 -----------------
@@ -133,7 +160,7 @@ To add objects to the global template namespace, append to the ``web.core.templa
    from web.core.templating import registry
    
    registry.append(dict(
-           myglobal = "foo"
+           myglobal="foo"
        ))
 
 To add objects to the ``web`` namespace, extend the ``web.core.namespace`` dictionary:
@@ -143,5 +170,5 @@ To add objects to the ``web`` namespace, extend the ``web.core.namespace`` dicti
    import web
    
    web.core.namespace.extend(dict(
-           myglobal = "foo"
+           myglobal="foo"
        ))

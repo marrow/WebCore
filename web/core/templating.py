@@ -1,39 +1,75 @@
 # encoding: utf-8
 
 import os
-import pkg_resources
 
 from functools import wraps
+
 from marrow.templating.core import Engines
-from marrow.templating.resolver import Resolver
+
+from web.core import request, response
 
 
-__all__ = ['template', 'TemplatingMiddleware', 'render', 'resolve', 'registry']
+__all__ = ['resolve', 'registry', 'render', 'template', 'TemplatingMiddleware']
 log = __import__('logging').getLogger(__name__)
 
-render = Engines()
-resolve = Resolver()
-
+_render = Engines()
+_lookup = lambda template: resolve(template)[1]
+resolve = _render.resolve
 registry = []
 
 
+def _relative(parent):
+    parent = _lookup(parent)
+
+    def inner(template):
+        return os.path.relpath(_lookup(template), os.path.dirname(parent))
+    return inner
+
+
+def render(template, variables, **extras):
+    """Renders a template using marrow.templating while supplementing the
+    given variables with the WebCore globals. Keyword arguments, if any, are
+    supplied to the renderer as renderer options.
+    """
+
+    # Do not add any extra data or options to serializers
+    if not template.endswith(':'):
+        data = dict(
+                lookup=_lookup,
+                relative=_relative(template)
+            )
+
+        for i in registry:
+            if callable(i):
+                data.update(i())
+            else:
+                data.update(i)
+
+        data.update(variables)
+        variables = data
+
+        if request and 'web.translator' in request.environ:
+            extras.setdefault('i18n', request.environ['web.translator'])
+
+    return _render(template, variables, **extras)
+
+
 def template(template, **extras):
+    """Decorates a function to output a rendered template, just like a
+    controller method. Keyword arguments, if any, are supplied to the renderer
+    as renderer options.
+    """
     def outer(func):
         @wraps(func)
         def inner(*args, **kw):
             result = func(*args, **kw)
-            
             if not isinstance(result, dict):
                 return result
-            
-            result = TemplatingMiddleware.variables(result, template)
-            
-            mime, result = render(template, result, **extras)
-            
-            return result
-        
+
+            return render(template, result, **extras)[1]
+
         return inner
-    
+
     return outer
 
 
@@ -42,103 +78,28 @@ class TemplatingMiddleware(object):
         self.config = config.copy()
         self.config.update(kw)
         self.application = application
-        
-        render.resolve.default = config.get('web.templating.engine', 'genshi')
-        self.use_buffet = config.get('web.templating.buffet', False)
-    
-    @staticmethod
-    def lookup(template):
-        return resolve(template)[1]
-    
-    @staticmethod
-    def relative(parent):
-        parent = resolve(parent)[1]
-        def inner(template):
-            return os.path.relpath(resolve(template)[1], os.path.dirname(parent))
-        return inner
-    
-    @classmethod
-    def variables(cls, udata, template):
-        if not template.split(':')[-1]:
-            return udata
-        
-        data = dict(
-                lookup = cls.lookup,
-                relative = cls.relative(template)
-            )
-        
-        for i in registry:
-            if callable(i):
-                data.update(i())
-            else:
-                data.update(i)
-        
-        data.update(udata)
-        
-        return data
-    
-    @classmethod
-    def response(cls, result, environ, start_response):
-        try:
-            from web.core import response
-        except ImportError:
-            from webob import Response
-            response = Response()
-        
-        response.content_type = result[0]
-        
-        if isinstance(result[1], str):
-            response.body = result[1]
-        elif isinstance(result[1], unicode):
-            response.unicode_body = result[1]
-        
-        return response(environ, start_response)
-    
-    @classmethod
-    def buffet(cls, engine, template, data, content_type='text/html', **kw):
-        """Backwards compatability with the Buffet ad-hoc template API."""
-        
-        _buffet = dict((_engine.name, _engine) for _engine in pkg_resources.iter_entry_points('python.templating.engines'))
-        
-        options = dict(kw)
-        
-        if 'buffet.format' in options:
-            del options['buffet.format']
-        
-        if 'buffet.fragment' in options:
-            del options['buffet.fragment']
-        
-        engine = _buffet[engine].load()
-        engine = engine(cls.variables, options)
-        
-        return content_type, engine.render(
-                data,
-                kw.get("buffet.format", "html"),
-                kw.get("buffet.fragment", False),
-                template
-            )
-    
+
+        resolve.default = config.get('web.templating.engine', 'genshi')
+
     def __call__(self, environ, start_response):
         result = self.application(environ, start_response)
-        
+
         # Bail if the returned value is not a tuple.
         if not isinstance(result, tuple):
             return result
-        
+
         if len(result) == 2:
-            template, data, extras = result + (dict(), )
+            template, data, extras = result + (dict(),)
         elif len(result) == 3:
             template, data, extras = result
         
         if not isinstance(template, basestring) or not isinstance(extras, dict):
             raise TypeError("Invalid tuple values returned to TemplatingMiddleware.")
-        
-        options = dict()
-        options.update(extras)
-        
-        if 'web.translator' in environ:
-            options['i18n'] = environ['web.translator']
-        
-        result = render(template, self.variables(data, template), **options)
-        
-        return self.response(result, environ, start_response)
+
+        response.content_type, output = render(template, data, **extras)
+        if isinstance(output, str):
+            response.body = output
+        elif isinstance(output, unicode):
+            response.unicode_body = output
+
+        return response(environ, start_response)
