@@ -50,6 +50,7 @@ setup(
                 'nose',
                 'coverage',
                 'Genshi',
+                'Mako',
                 'SQLAlchemy',
                 'Beaker',
                 'ToscaWidgets',
