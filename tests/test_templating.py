@@ -23,6 +23,9 @@ class RootController(Controller):
     def unicode(self):
         return 'templates.unicode', dict(), {'genshi.default_encoding': None}
     
+    def unicode_template(self):
+        return u'templates.test', dict()
+    
     def bad(self):
         return 'foo', 'bar'
 
@@ -56,6 +59,13 @@ class TestTemplates(TestCase):
         assert response.content_type == "text/html"
         assert response.charset == 'UTF-8'
         assert response.unicode_body == u'<html xmlns="http://www.w3.org/1999/xhtml"><body><h1>© 2009</h1></body></html>'
+        
+    def test_unicode_template(self):
+        response = Request.blank('/unicode_template').get_response(self.app)
+        
+        assert response.status == "200 OK"
+        assert response.content_type == "text/html"
+        assert response.body == '<html xmlns="http://www.w3.org/1999/xhtml"><body><h1>It works!</h1></body></html>'
     
     def test_template_globals(self):
         response = Request.blank('/variables').get_response(self.app)
@@ -68,7 +78,7 @@ class TestTemplates(TestCase):
         try:
             response = Request.blank('/bad').get_response(self.app)
             
-        except TypeError:
+        except (TypeError, ValueError):
             pass
         
         else:

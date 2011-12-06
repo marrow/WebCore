@@ -130,7 +130,7 @@ class TemplatingMiddleware(object):
         elif len(result) == 3:
             template, data, extras = result
         
-        if not isinstance(template, str) or not isinstance(extras, dict):
+        if not isinstance(template, basestring) or not isinstance(extras, dict):
             raise TypeError("Invalid tuple values returned to TemplatingMiddleware.")
         
         options = dict()
