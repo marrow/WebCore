@@ -67,10 +67,11 @@ this to your Paste ini file:
 
 .. code-block:: ini
 
+    db.connections = core
     db.core.engine = sqlalchemy
     db.core.model = myapp.model
     db.core.url = mysql+oursql://alex:12345@localhost/myapp
-    db.connections = core
+    db.core.ready = myapp.model:ready_callback
 
 ``db.core.autocommit``
    If ``True``, don't start a transaction implicitly. If False, a transaction is
@@ -82,6 +83,12 @@ this to your Paste ini file:
    :meth:`~sqlalchemy.orm.session.Session.commit` or
    :meth:`~sqlalchemy.orm.session.Session.flush` is called, or at the end of the
    request. The default is ``True``.
+
+``db.core.ready``
+  An optional dot-colon notation path to a callback.  This callback takes a single
+  positional parameter, ``sessionmaker``, and is called after the database connection
+  is configured.  If configuring directly in Python, you may pass a callable object
+  directly.
 
 Any options after ``db.X.sqlalchemy.`` will be passed directly to
 :func:`~sqlalchemy.engine_from_config`. SQLAlchemy has an extensive list of

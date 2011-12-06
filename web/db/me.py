@@ -39,4 +39,13 @@ def MongoEngineMiddleware(application, prefix, model, session=None, **config):
     if hasattr(prepare, '__call__'):
         prepare()
     
+    try:
+        cb = config.get('db.' + prefix + '.connected', None)
+        cb = load_object(cb) if isinstance(cb, basestring) else cb
+    except:
+        cb = None
+    
+    if hasattr(cb, '__call__'):
+        cb(self._session)
+    
     return application

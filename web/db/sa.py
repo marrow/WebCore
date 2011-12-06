@@ -3,11 +3,13 @@
 """SQLAlchemy and SQLSoup transactional database integration."""
 
 
+import warnings
 import api
 
 from sqlalchemy import engine_from_config, event
 from sqlalchemy.orm import sessionmaker
 from marrow.util.convert import boolean
+from marrow.util.object import load_object
 
 
 __all__ = ['SQLAlchemyMiddleware']
@@ -43,15 +45,31 @@ class SQLAlchemyMiddleware(api.TransactionalMiddlewareInterface):
             
             setup = getattr(self.model, 'setup', None)
             if hasattr(setup, '__call__'):
+                warnings.warn("Use of the hard-coded 'setup' callback is deprecated.\n"
+                        "Use the 'ready' callback instead.", DeprecationWarning)
                 args = setup(args)
             
             self._session = sessionmaker(**args)
+    
+    def ready(self):
+        super(SQLAlchemyMiddleware, self).ready()
         
         populate = getattr(self.model, 'populate', None)
         if hasattr(populate, '__call__'):
+            warnings.warn("Use of the hard-coded 'populate' callback is deprecated.\n"
+                    "Use the 'ready' callback instead.", DeprecationWarning)
+            
             for table in self.model.metadata.sorted_tables:
                 event.listen(table, 'after_create', self.populate_table)
-    
+        
+        cb = self.config.get(self.prefix + '.ready', None)
+        
+        if cb is not None:
+            cb = load_object(cb) if isinstance(cb, basestring) else cb
+            
+            if hasattr(cb, '__call__'):
+                cb(self._session)
+
     def begin(self, environ):
         if self.soup:
             environ['paste.registry'].register(self.session, self._session.current)
@@ -74,7 +92,8 @@ class SQLAlchemyMiddleware(api.TransactionalMiddlewareInterface):
     def abort(self, environ):
         self.session.close()
     
-    def populate_table(self, target, connection, **kw):
+    def populate_table(self, target, connection, **kw): # pragma: no cover
+        """Deprecated."""
         session = self._session()
         
         try:

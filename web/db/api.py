@@ -3,6 +3,7 @@
 """WebCore database middleware API."""
 
 
+import warnings
 import re
 
 
@@ -40,6 +41,8 @@ class TransactionalMiddlewareInterface(object):
     def ready(self):
         """Called by the middleware after the middleware has been configured."""
         if hasattr(self.model, 'prepare') and hasattr(self.model.prepare, '__call__'):
+            warnings.warn("Use of the hard-coded 'prepare' callback is deprecated.\n"
+                    "Use the 'ready' callback instead.", DeprecationWarning)
             self.model.prepare()
     
     def begin(self, environ):

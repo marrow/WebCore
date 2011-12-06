@@ -27,12 +27,20 @@ class Foo(Base):
     name = Column(Unicode(250), primary_key=True)
 
 
+def setup(args):
+    return args
+
+
 def populate(a, b):
     pass
 
 
 def prepare():
     metadata.create_all()
+
+
+def ready(sm):
+    pass
 
 
 class RootController(PlainController):
@@ -97,7 +105,8 @@ test_config = {
         'db.connections': 'test',
         'db.test.engine': 'sqlalchemy',
         'db.test.model': RootController.__module__,
-        'db.test.url': 'sqlite:///:memory:'
+        'db.test.url': 'sqlite:///:memory:',
+        'db.test.ready': ready
     }
 
 app = Application.factory(root=RootController, **test_config)
