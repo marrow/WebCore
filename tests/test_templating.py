@@ -120,7 +120,7 @@ class TestTemplates(TestCase):
         eq_(response.content_type, "text/html")
         eq_(response.body, '<html xmlns="http://www.w3.org/1999/xhtml"><body>123 456</body></html>')
 
-    @raises(TypeError)
+    @raises(TypeError, ValueError)
     def test_exception(self):
         Request.blank('/bad').get_response(self.app)
 
