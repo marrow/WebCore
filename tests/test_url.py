@@ -3,7 +3,11 @@
 from unittest import TestCase
 from nose.tools import eq_ as eq
 
+import web
+from web.core import Application
 from web.utils import URLGenerator
+
+from common import PlainController, WebTestCase
 
 
 class MockURLGenerator(URLGenerator):
@@ -98,3 +102,15 @@ def test_nonroot_composition():
     
     for i, o in test_set:
         yield eq, url.compose(*i), o
+
+
+class RootController(PlainController):
+    def index(self):
+        return "\n".join(web.core.url._base)
+
+
+class TestURLContext(WebTestCase):
+    app = Application.factory(root=RootController)
+    
+    def test_url_context(self):
+        self.assertResponse('/', body="\nhttp://localhost/\n")
