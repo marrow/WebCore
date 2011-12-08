@@ -61,8 +61,8 @@ class TestRESTfulDispatch(WebTestCase):
         self.assertEqual(get.content_length, 17)
         
         head = self.assertResponse('/test/', _method="HEAD", body="")
-        # self.assertEqual(head.content_length, 17) # -- buggy: http://trac.pythonpaste.org/pythonpaste/ticket/371
-        
-        # TODO: Iteratively compare headers.
-
-        
+        self.assertEqual(head.content_length, 17)
+    
+    def test_override(self):
+        head = self.assertResponse('/test/?_verb=HEAD', body="")
+        self.assertEqual(head.content_length, 17)

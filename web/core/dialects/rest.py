@@ -31,11 +31,8 @@ class RESTMethod(object):
         self.methods = methods
     
     def __call__(self, *args, **kw):
-        if '_method' in kw:
-            log.warning("Use of _method to override the HTTP verb is deprecated.  Use _verb instead.")
-            kw['_verb'] = kw['_method']
-        
         verb = kw.pop('_verb', web.core.request.method).lower()
+        web.core.request.method = verb.upper()
         web.core.response.allow = self.methods
         
         log.debug("Performing REST dispatch to %s(%r, %r)", verb, args, kw)
@@ -43,7 +40,9 @@ class RESTMethod(object):
         if verb.upper() not in self.methods:
             raise web.core.http.HTTPMethodNotAllowed()
         
-        return getattr(self, verb)(*args, **kw)
+        args, kw = self.__before__(*args, **kw)
+        
+        return self.__after__(getattr(self, verb)(*args, **kw), *args, **kw)
     
     index = __call__
     __default__ = __call__
