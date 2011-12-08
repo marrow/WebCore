@@ -58,4 +58,9 @@ class RoutingController(web.core.Dialect):
         
         del result['action']
         
-        return getattr(controller, method)(**result)
+        m = getattr(controller, method, None)
+        
+        if not m:
+            raise HTTPNotFound()
+        
+        return m(**result)
