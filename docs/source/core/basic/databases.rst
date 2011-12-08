@@ -137,16 +137,8 @@ To get started quickly, create a new module in the ``myapp`` package called
        content = Column(UnicodeText, nullable=False)
 
 
-   def setup(**opts)
-       return opts
-
-
-   def prepare():
+   def connected():
        metadata.create_all()
-
-
-   def populate(session, table):
-       pass
 
 This example model defines a single table named **articles**. It contains three
 columns, **id**, **name** and **content**. Of all the variables and functions
@@ -158,21 +150,10 @@ The ``Base`` class should be used as the base class of all your model classes.
 The ``metadata`` variable contains information about the tables in your model.
 
 The ``session`` variable is a thread-local proxy that is usable while your
-application is processing a request. The ``setup``, ``prepare`` and ``populate``
-functions are all optional and can freely be omitted.
+application is processing a request.
 
-The ``setup`` function
-can be used to modify the arguments passed to sessionmaker(). It receives the
-arguments as keyword arguments and should return a dict of the final arguments,
-which will be passed directly to sessionmaker().
-
-The ``prepare`` function is usually used to set up the database schema,
-including creating any missing tables and/or migrating the schema to a newer
-version.
-
-The ``populate`` function is called whenever a new table has been created, and
-is meant to populate the table with data if necessary. The ``table`` argument
-is the name of the table in question.
+The ``connected`` function, when referenced by the ``db.*.ready`` configuration
+value, is executed after the database connection is prepared.
 
 
 An example controller using SQLAlchemy
@@ -269,6 +250,7 @@ something like the following in your INI file:
     db.core.engine = mongo
     db.core.model = myapp.model
     db.core.url = mongo://localhost/myapp
+    db.core.ready = myapp.model:connected
 
 
 In your model module include something like the following::
@@ -279,7 +261,7 @@ In your model module include something like the following::
     wiki = None
     history = None
     
-    def prepare():
+    def connected():
         global profiling, users, wiki, history
         
         users, wiki, history = db.users, db.wiki, db.history
