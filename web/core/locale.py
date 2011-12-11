@@ -11,8 +11,7 @@ from marrow.util.convert import array
 
 
 __all__ = [
-        'LanguageError', '_', '__', 'L_', 'N_', 'gettext',
-        'ugettext', 'ngettext', 'ungettext', 'get_lang', 'set_lang',
+        'LanguageError', '_', '__', 'L_', 'N_', 'gettext', 'ugettext', 'ngettext', 'ungettext', 'get_lang', 'set_lang',
         'get_translator', 'add_fallback'
     ]
 
@@ -62,6 +61,12 @@ class L_(object):
 
     def __getattr__(self, name):
         return getattr(self.__translated, name)
+    
+    def __str__(self):
+        return web.core.translator.gettext(self.__message)
+
+    def __unicode__(self):
+        return web.core.translator.ugettext(self.__message)
 
 
 def get_translator(lang, conf=None, **kwargs):
@@ -76,9 +81,7 @@ def get_translator(lang, conf=None, **kwargs):
         lang = [lang]
 
     try:
-        translator = translation(conf['web.locale.domain'], conf['web.locale.path'],
-                                 languages=lang, **kwargs)
-
+        translator = translation(conf['web.locale.domain'], conf['web.locale.path'], languages=lang, **kwargs)
     except IOError, ioe:
         raise LanguageError('IOError: %s' % ioe)
 
@@ -97,19 +100,19 @@ def set_lang(lang, **kwargs):
     If ``lang`` is None, the override will be removed from the session.
     """
 
+    session = web.core.request.environ.get('beaker.session')
     if lang is None:
-        if web.core.request.environ.has_key('beaker.session') and 'lang' in web.core.session:
-            del web.core.session['lang']
-            web.core.session.save()
-
+        if session and 'lang' in session:
+            del session['lang']
+            session.save()
         return
 
     translator = get_translator(lang, **kwargs)
     web.core.request.environ['paste.registry'].replace(web.core.translator, translator)
 
-    if web.core.request.environ.has_key('beaker.session'):
-        web.core.session['lang'] = translator.lang
-        web.core.session.save()
+    if session:
+        session['lang'] = translator.lang
+        session.save()
 
 
 def get_lang():
@@ -170,17 +173,17 @@ class LocaleMiddleware(object):
                 path = os.path.join(root_path, path)
             
             if not os.path.isdir(path):
-                raise Exception("The locale path (%s) either does not exist or is not a directory." % path)
+                raise ValueError("The locale path (%s) either does not exist or is not a directory." % path)
             
             return path
 
         # Autodetect the locale path
         path = root_path
-        
-        for part in root_parts:
+
+        for part in [''] + root_parts:
             path = os.path.join(path, part)
             localedir = os.path.join(path, 'locale')
-            log.debug("Looking for directory 'locale' in %s", localedir)
+            log.debug("Looking for directory 'locale' in %s", path)
             
             if os.path.isdir(localedir):
                 self.config['web.locale.path'] = localedir
@@ -220,22 +223,22 @@ class LocaleMiddleware(object):
         return translations
 
     def __call__(self, environ, start_response):
-        lang = []
-        lang.extend(environ.get('beaker.session', dict()).get('lang', []))
+        languages = []
+        languages.extend(environ.get('beaker.session', {}).get('lang', []))
 
         for i in environ.get('HTTP_ACCEPT_LANGUAGE', '').split(','):
             i = i.strip(', ')
             i = i.split(';', 1)[0]
-            lang.append(i)
+            languages.append(i)
             
             if '-' in i:
-                lang.append(i.split('-', 1)[0])
+                languages.append(i.split('-', 1)[0])
 
-        lang.extend(environ['paste.config'].get('lang', ['en']))
+        languages.extend(environ['paste.config'].get('web.locale.fallback', ['en']))
 
-        log.debug("Call language path: %r", lang)
+        log.debug("Call language path: %r", languages)
 
-        translator = get_translator(lang, self.config)
+        translator = get_translator(languages, self.config)
         environ['web.translator'] = translator
         environ['paste.registry'].register(web.core.translator, translator)
 
