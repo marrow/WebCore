@@ -16,8 +16,10 @@ class PlainController(web.core.Controller):
 
 
 class WebTestCase(TestCase):
-    def assertResponse(self, path, status='200 OK', content_type='text/plain', _method='get', **kw):
-        request = Request.blank(path, environ=dict(REMOTE_ADDR='127.0.0.1'))
+    def assertResponse(self, path, status='200 OK', content_type='text/plain', _method='GET', _environ=None, **kw):
+        _environ = _environ or {}
+        _environ.setdefault('REMOTE_ADDR', '127.0.0.1')
+        request = Request.blank(path, environ=_environ)
         request.method = _method
         
         response = request.get_response(self.app)
@@ -29,9 +31,10 @@ class WebTestCase(TestCase):
         
         return response
     
-    def assertPostResponse(self, path, data={}, status='200 OK', content_type='text/plain', **kw):
-        request = Request.blank(path)
-        
+    def assertPostResponse(self, path, data={}, status='200 OK', content_type='text/plain', _environ=None, **kw):
+        _environ = _environ or {}
+        _environ.setdefault('REMOTE_ADDR', '127.0.0.1')
+        request = Request.blank(path, environ=_environ)
         request.method = "POST"
         request.POST.update(data)
         
