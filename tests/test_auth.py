@@ -107,17 +107,8 @@ class TestAuthApp(WebTestCase):
                 ('/kill', "ok")
             ]
         
-        for url, expected_body in pairs:
-            yield self.check_authentication, url, expected_body
-    
-    # def test_authentication(self):
-    #     # TODO: Functional testing; ensure the session and thread-local are set.
-    #     self.assertResponse('/authenticate?username=nobody&password=baz', body="error")
-    #     self.assertResponse('/authenticate?username=amcgregor&password=bar', body="error")
-    #     self.assertResponse('/authenticate?username=amcgregor&password=foo', body="ok")
-    #     self.assertResponse('/force?username=nobody', body="error")
-    #     self.assertResponse('/force?username=amcgregor', body="ok")
-    #     self.assertResponse('/kill', body="ok")
+        for url, expected in pairs:
+            self.assertResponse(url, body=expected)
     
     def test_deauthenticate(self):
         # TODO: Functional testing; ensure the session and thread-local are cleared.
