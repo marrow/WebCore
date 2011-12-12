@@ -1,15 +1,17 @@
 # encoding: utf-8
 
+import warnings
+
 from webob import Request
 
 import web
-from web.core import Application, RESTMethod
+from web.core import Application, HTTPMethod, RESTMethod
 
 from common import PlainController, WebTestCase
 
 
 
-class Hello(RESTMethod):
+class Hello(HTTPMethod):
     def __init__(self):
         super(Hello, self).__init__()
         self.name = 'world'
@@ -66,3 +68,13 @@ class TestRESTfulDispatch(WebTestCase):
     def test_override(self):
         head = self.assertResponse('/test/?_verb=HEAD', body="")
         self.assertEqual(head.content_length, 17)
+    
+    def test_deprecation(self):
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            RESTMethod()
+            self.assertEquals(len(w), 1)
+            self.assertTrue(issubclass(w[-1].category, DeprecationWarning))
+            self.assertTrue("HTTPMethod" in str(w[-1].message))
+            self.assertTrue("RESTMethod" in str(w[-1].message))
+            self.assertTrue("deprecated" in str(w[-1].message))
