@@ -106,7 +106,7 @@ test_config = {
         'db.test.engine': 'sqlalchemy',
         'db.test.model': RootController.__module__,
         'db.test.url': 'sqlite:///:memory:',
-        'db.test.ready': ready
+        'db.test.ready': ready,
     }
 
 app = Application.factory(root=RootController, **test_config)
@@ -175,3 +175,9 @@ class TestSAOperations(WebTestCase):
         self.assertResponse('/list', '200 OK', 'text/plain', body="foo")
         self.assertPostResponse('/delete', dict(name="foo"), '200 OK', 'text/plain', body="ok")
         self.assertResponse('/list', '200 OK', 'text/plain', body="")
+
+
+class TestSoup(WebTestCase):
+    app = app
+    
+    
