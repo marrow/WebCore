@@ -105,26 +105,3 @@ class WebAuth(object):
             return e(environ, start_response)
         
         return result
-
-
-class BasicAuthMiddleware(object):
-    def __init__(self, application):
-        self.application = application
-    
-    def __call__(self, environ, start_response):
-        if 'HTTP_AUTHORIZATION' in environ:
-            authtype, auth = environ['HTTP_AUTHORIZATION'].split()
-            
-            if authtype.lower() == 'basic':
-                try:
-                    un, pw = b64decode(auth).split(':')
-                except TypeError:
-                    return HTTPUnauthorized()
-                
-                if not web.auth.authenticate(un, pw):
-                    return HTTPUnauthorized()
-        
-        try:
-            return self.application(environ, start_response)
-        except HTTPException, e:
-            return e(environ, start_response)

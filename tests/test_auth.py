@@ -1,6 +1,7 @@
 # encoding: utf-8
 from unittest import TestCase
 
+import web.core
 import web.auth
 from web.core import Application
 from web.auth.middleware import WebAuth
@@ -77,9 +78,28 @@ class RootController(PlainController):
         return "ok"
 
 
+def app_root(environ, start_response):
+    start_response('200 OK', [])
+    return []
+
+
 class TestWebAuthMiddleware(WebTestCase):
+    def setUp(self):
+        self.wa = WebAuth(app_root, test_config, 'web.auth.')
+    
     def test_exceptions(self):
         self.assertRaises(Exception, lambda: WebAuth(None))
+    
+    def test_get_method_null(self):
+        self.assertEqual(self.wa.get_method(''), None)
+    
+    def test_get_method_shallow(self):
+        foo = self.wa.get_method('web.core.application:Application')
+        self.assertTrue(isinstance(foo(app_root), web.core.Application))
+    
+    def test_get_method_deep(self):
+        foo = self.wa.get_method('web.core.application:Application.factory')
+        foo(dict(), app_root)
 
 
 class TestAuthApp(WebTestCase):
@@ -91,11 +111,6 @@ class TestAuthApp(WebTestCase):
     def test_anonymous(self):
         self.assertResponse('/anonymous', body="anonymous")
         self.assertResponse('/authenticated', '307 Temporary Redirect', 'text/plain')
-    
-    def check_authentication(self, url, expected_body):
-        print url, expected_body
-        assert False
-        # self.assertResponse(url, body=expected_body)
     
     def test_authentication_not_existant(self):
         pairs = [
