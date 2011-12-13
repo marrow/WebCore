@@ -52,6 +52,8 @@ setup(
                 'Genshi',
                 'Mako',
                 'SQLAlchemy',
+                'pymongo',
+                'MongoEngine',
                 'Beaker',
                 'ToscaWidgets',
                 'Routes',
