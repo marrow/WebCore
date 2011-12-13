@@ -11,6 +11,8 @@ __all__ = ['URLGenerator']
 class URLGenerator(object):
     @property
     def _base(self):
+        """Return a 3-tuple of the application base path, current processed
+        script_path, and the script_path"""
         import web.core
         r = web.core.request
         return r.environ['web.base'], r.path_url, r.environ['web.controller']
@@ -75,6 +77,8 @@ class URLGenerator(object):
         return self('/'.join(str(i) for i in args), kw)
     
     def _full(self, path, params, anchor, protocol, host, port):
+        """Prepare a complete URL."""
+        
         base, current, controller = self._base
         url = URL(current)
         
@@ -95,6 +99,8 @@ class URLGenerator(object):
         return str(url)
     
     def _partial(self, path, params, anchor):
+        """Prepare a resource path."""
+        
         base, current, controller = self._base
         url = URL()
         
