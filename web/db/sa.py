@@ -29,13 +29,13 @@ class SQLAlchemyMiddleware(api.TransactionalMiddlewareInterface):
     
     def setup(self):
         self.model.__dict__['engine'] = engine_from_config(self.config, prefix="%s.sqlalchemy." % (self.prefix, ))
-        self.model.metadata.bind = self.model.engine
         
         if self.soup:
             from sqlalchemy.ext.sqlsoup import SqlSoup, Session
             self.model.__dict__['soup'] = SqlSoup(self.model.metadata)
             self._session = Session
         else:
+            self.model.metadata.bind = self.model.engine
             args = dict(
                     bind = self.model.engine,
                     autocommit = boolean(self.config.get('%s.autocommit' % (self.prefix, ), False)),
