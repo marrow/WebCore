@@ -1,16 +1,17 @@
 # encoding: utf-8
 
+import warnings
 import web
 
 from webob import Request, Response
 
 
 log = __import__('logging').getLogger(__name__)
-__all__ = ['RESTMethod']
+__all__ = ['HTTPMethod', 'RESTMethod']
 
 
-class RESTMethod(object):
-    """Enable the writing of individual methods that map to REST verbs.
+class HTTPMethod(object):
+    """Enable the writing of individual methods that map to HTTP verbs.
     
     Any HTTP method is allowed: GET PUT POST DELETE HEAD TRACE OPTIONS
     
@@ -20,7 +21,7 @@ class RESTMethod(object):
     """
     
     def __init__(self):
-        super(RESTMethod, self).__init__()
+        super(HTTPMethod, self).__init__()
         
         methods = []
         
@@ -31,19 +32,18 @@ class RESTMethod(object):
         self.methods = methods
     
     def __call__(self, *args, **kw):
-        if '_method' in kw:
-            log.warning("Use of _method to override the HTTP verb is deprecated.  Use _verb instead.")
-            kw['_verb'] = kw['_method']
-        
         verb = kw.pop('_verb', web.core.request.method).lower()
+        web.core.request.method = verb.upper()
         web.core.response.allow = self.methods
         
-        log.debug("Performing REST dispatch to %s(%r, %r)", verb, args, kw)
+        log.debug("Performing HTTP dispatch to %s(%r, %r)", verb, args, kw)
         
         if verb.upper() not in self.methods:
             raise web.core.http.HTTPMethodNotAllowed()
         
-        return getattr(self, verb)(*args, **kw)
+        args, kw = self.__before__(*args, **kw)
+        
+        return self.__after__(getattr(self, verb)(*args, **kw), *args, **kw)
     
     index = __call__
     __default__ = __call__
@@ -76,3 +76,10 @@ class RESTMethod(object):
         """The allowed methods are present in the returned headers."""
         
         return ''
+
+
+class RESTMethod(HTTPMethod):
+    def __init__(self):
+        super(RESTMethod, self).__init__()
+        
+        warnings.warn("RESTMethod has been deprecated and renamed to HTTPMethod; use that instead.", DeprecationWarning)

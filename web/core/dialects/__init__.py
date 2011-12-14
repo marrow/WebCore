@@ -2,7 +2,7 @@
 
 from api import Dialect
 from core import Controller
-from rest import RESTMethod
+from rest import HTTPMethod, RESTMethod
 
 
-__all__ = ('Dialect', 'Controller', 'RESTMethod')
+__all__ = ('Dialect', 'Controller', 'HTTPMethod', 'RESTMethod')

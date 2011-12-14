@@ -38,7 +38,7 @@ class RootController(Controller):
         return 'templates.registry', dict()
 
     def bad(self):
-        return 'foo', 'bar'
+        return object(), 'bar'
     
     def relative(self):
         return 'templates.relativetest', dict()

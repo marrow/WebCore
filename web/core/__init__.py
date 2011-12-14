@@ -6,14 +6,14 @@ from webob import exc as http
 from paste.registry import StackedObjectProxy
 from web import release
 from web.core.application import Application
-from web.core.dialects import Dialect, Controller, RESTMethod
+from web.core.dialects import Dialect, Controller, HTTPMethod, RESTMethod
 from web.core.middleware import middleware
 from web.utils import URLGenerator
 from marrow.util.bunch import Bunch
 
 
 __all__ = [
-        'Application', 'Dialect', 'Controller', 'RESTMethod',
+        'Application', 'Dialect', 'Controller', 'HTTPMethod', 'RESTMethod',
         'http', 'i18n', 'middleware'
         'config', 'request', 'response', 'cache', 'session', 'translator', 'namespace'
     ]
