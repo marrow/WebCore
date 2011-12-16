@@ -82,7 +82,7 @@ def get_translator(lang, conf=None, **kwargs):
 
     try:
         translator = translation(conf['web.locale.domain'], conf['web.locale.path'], languages=lang, **kwargs)
-    except IOError, ioe:
+    except IOError, ioe: # pragma: no cover
         raise LanguageError('IOError: %s' % ioe)
 
     translator.lang = lang
@@ -105,7 +105,9 @@ def set_lang(lang, **kwargs):
         if session and 'lang' in session:
             del session['lang']
             session.save()
-        return
+        
+        lang = LocaleMiddleware.parse_linguas(web.core.request.environ)
+        session = None
 
     translator = get_translator(lang, **kwargs)
     web.core.request.environ['paste.registry'].replace(web.core.translator, translator)
@@ -221,11 +223,12 @@ class LocaleMiddleware(object):
                 translations.append(fname)
         
         return translations
-
-    def __call__(self, environ, start_response):
+    
+    @classmethod
+    def parse_linguas(cls, environ):
         languages = []
         languages.extend(environ.get('beaker.session', {}).get('lang', []))
-
+        
         for i in environ.get('HTTP_ACCEPT_LANGUAGE', '').split(','):
             i = i.strip(', ')
             i = i.split(';', 1)[0]
@@ -233,9 +236,13 @@ class LocaleMiddleware(object):
             
             if '-' in i:
                 languages.append(i.split('-', 1)[0])
-
+        
         languages.extend(environ['paste.config'].get('web.locale.fallback', ['en']))
+        return languages
 
+    
+    def __call__(self, environ, start_response):
+        languages = self.parse_linguas(environ)
         log.debug("Call language path: %r", languages)
 
         translator = get_translator(languages, self.config)

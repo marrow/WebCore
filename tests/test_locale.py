@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from gettext import NullTranslations
+import web.core
 from web.core import Application
 from web.core.locale import L_, N_, _, __, ugettext, gettext, ngettext, ungettext, get_translator, set_lang
 from common import PlainController, WebTestCase
@@ -43,12 +44,19 @@ class RootController(PlainController):
     def placeholder(self):
         return N_('This works!')
 
-    def set_lang(self):
-        set_lang('en')
+    def set_lang(self, l=None):
+        set_lang(l)
         return gettext('This works!')
+    
+    def cookies(self):
+        return 'json:', web.core.request.headers.get('Cookie', "")
+    
+    def sid(self):
+        return web.core.session.id
 
 
-test_config = {'debug': True, 'web.locale.i18n': True}
+test_config = {'debug': True, 'web.locale.i18n': True, 'web.sessions': True,
+        'web.sessions.type': 'memory', 'web.sessions.validate_key': 'a', 'web.sessions.auto': True}
 
 class TestI18n(WebTestCase):
     app = Application.factory(root=RootController, **test_config)
@@ -94,5 +102,29 @@ class TestI18n(WebTestCase):
         tr = get_translator(None, {})
         assert isinstance(tr, NullTranslations)
 
+
+class TestI18nSession(WebTestCase):
+    app = Application.factory(root=RootController, **test_config)
+    environ = {'HTTP_ACCEPT_LANGUAGE': 'fi, en-US, en'}
+    
+    def test_session(self):
+        # print "\n>>>", self._cookies
+        # resp = self.assertResponse('/cookies', _environ=self.environ, content_type='application/json')
+        # print "<<<", resp.body
+        # print "<<<", resp.headers.getall('Set-Cookie')
+        
+        resp1 = self.assertResponse('/sid', _environ=self.environ)
+        resp2 = self.assertResponse('/sid', _environ=self.environ)
+        self.assertEqual(resp1.body, resp2.body)
+    
     def test_set_lang(self):
-        self.assertResponse('/set_lang', _environ=self.environ, body='This works!')
+        self.assertResponse('/set_lang?l=en', _environ=self.environ, body='This works!')
+        self.assertResponse('/gettext', _environ=self.environ, body='This works!'.encode('utf-8'))
+        self.assertResponse('/set_lang?l=fi', _environ=self.environ, body='Tämä toimii!'.encode('utf-8'))
+        self.assertResponse('/gettext', _environ=self.environ, body='Tämä toimii!'.encode('utf-8'))
+    
+    def test_set_lang_default(self):
+        self.assertResponse('/set_lang?l=en', _environ=self.environ, body='This works!')
+        self.assertResponse('/gettext', _environ=self.environ, body='This works!'.encode('utf-8'))
+        self.assertResponse('/set_lang', _environ=self.environ, body='Tämä toimii!'.encode('utf-8'))
+        self.assertResponse('/gettext', _environ=self.environ, body='Tämä toimii!'.encode('utf-8'))
