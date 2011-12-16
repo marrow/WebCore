@@ -4,6 +4,8 @@ import web
 
 from api import Dialect
 
+from marrow.util.convert import boolean
+
 
 log = __import__('logging').getLogger(__name__)
 __all__ = ['Controller']
@@ -38,6 +40,7 @@ class Controller(Dialect):
         
         last = None
         part = self
+        trailing = boolean(web.core.config.get('trailing_slashes', True))
         
         while True:
             last = part
@@ -49,7 +52,7 @@ class Controller(Dialect):
                 # attempt to call the index method, then attempt the default, or bail
                 # with a 404 error.
                 
-                if not request.path.endswith('/') and getattr(last, '__trailing_slash__', web.core.config.get('trailing_slashes', True)):
+                if not request.path.endswith('/') and getattr(last, '__trailing_slash__', trailing):
                     location = request.path + '/' + (('?' + request.query_string) if request.query_string else '')
                     log.debug("Trailing slash omitted from path, redirecting to %s.", location)
                     raise web.core.http.HTTPMovedPermanently(location=location)
