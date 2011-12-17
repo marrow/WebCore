@@ -12,7 +12,7 @@ from marrow.util.convert import array
 
 __all__ = [
         'LanguageError', '_', '__', 'L_', 'N_', 'gettext', 'ugettext', 'ngettext', 'ungettext', 'get_lang', 'set_lang',
-        'get_translator', 'add_fallback'
+        'get_translator'
     ]
 
 log = __import__('logging').getLogger(__name__)
@@ -122,20 +122,6 @@ def get_lang():
     return getattr(web.core.translator, 'lang', None)
 
 
-def add_fallback(lang, **kwargs):
-    """Add a fallback language from which words not matched in other
-    languages will be translated to.
-
-    This fallback will be associated with the currently selected
-    language -- that is, resetting the language via set_lang() resets
-    the current fallbacks.
-
-    This function can be called multiple times to add multiple
-    fallbacks.
-    """
-    return web.core.translator.add_fallback(get_translator(lang, **kwargs))
-
-
 class LocaleMiddleware(object):
     def __init__(self, application, config=dict(), **kw):
         self.application = application
@@ -167,7 +153,7 @@ class LocaleMiddleware(object):
         for _ in range(steps):
             root_path = os.path.split(root_path)[0]
 
-        if 'web.locale.path' in self.config:
+        if 'web.locale.path' in self.config: # pragma: no cover
             # Validate the pre-defined locale path
             path = self.config['web.locale.path']
             
@@ -191,7 +177,7 @@ class LocaleMiddleware(object):
                 self.config['web.locale.path'] = localedir
                 return localedir
         
-        raise Exception("Unable to autodetect the locale directory. Please set web.locale.path manually.")
+        raise Exception("Unable to autodetect the locale directory. Please set web.locale.path manually.") # pragma: no cover
 
     def _find_text_domain(self, localedir):
         # Allow users to override
@@ -205,10 +191,10 @@ class LocaleMiddleware(object):
                 self.config['web.locale.domain'] = mofiles[0][:-3]
                 return self.config['web.locale.domain']
             
-            if len(mofiles) > 1:
+            if len(mofiles) > 1: # pragma: no cover
                 raise Exception("More than one text domain found -- please set web.locale.domain manually.")
 
-        raise Exception('No .mo files found -- cannot determine the text domain.')
+        raise Exception('No .mo files found -- cannot determine the text domain.') # pragma: no cover
 
     def _find_translations(self, localedir, domain):
         # Allow users to override
