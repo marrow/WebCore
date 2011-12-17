@@ -1,0 +1,10 @@
+#: test_locale.py:13 test_locale.py:16 test_locale.py:19 test_locale.py:34
+msgid "This works!"
+msgstr ""
+
+#: test_locale.py:22 test_locale.py:25
+msgid "Singular works!"
+msgid_plural "Plural works!"
+msgstr[0] ""
+msgstr[1] ""
+

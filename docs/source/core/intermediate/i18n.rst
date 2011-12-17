@@ -25,7 +25,7 @@ WebCore includes one example project that demonstrates the use of translation
 functions. As examples are not included in the downloadable WebCore
 distribution, you need to get the source tarball from
 `Github <https://github.com/GothAlice/WebCore/archives/master>`_. The example
-is located in the ``examples/example-i18n`` directory. To run the example, make
+is located in the ``examples/i18n`` directory. To run the example, make
 sure you have WebCore and Genshi installed. Then, run the following commands
 (the first one only needs to be run once):
 
@@ -59,7 +59,7 @@ in the code and in the templates of your application. This is typically either
 English or your native language. This is the language that will be used as a
 basis for translating the strings to other languages. It also works as the
 fallback language for any untranslated strings. To add more fallback languages,
-you can use the :func:`~web.core.i18n.add_fallback` function.
+you can use the :func:`~web.core.locale.add_fallback` function.
 
 
 Configuring Your Application's INI File
@@ -70,15 +70,16 @@ make the following changes to your application's INI file:
 
 .. code-block:: ini
 
-    web.i18n = True
-    lang = fr
+    web.locale.i18n = True
+    web.locale.fallback = fr
 
 Replace ``fr`` with the appropriate `ISO 639-1 <http://en.wikipedia.org/wiki/ISO_639-1>`_
-code for the language you want to use as the default. If you omit the ``lang``
-parameter, ``en`` will be the default. The ``web.i18n`` parameter is necessary
-for automatic language detection and inclusion of the translation machinery
-in the global template namespace. These modifications are unnecessary if you
-don't need automatic language detection and only use the translation machinery
+code for the language you want to use as the fallback language (when automatic
+negotiation fails). If you omit the ``web.locale.preferred`` parameter, ``en``
+will be the default. The``web.locale.i18n`` parameter is necessary for
+automatic language detection and inclusion of the translation machinery in
+the global template namespace. These modifications are unnecessary if you don't
+need automatic language detection and only use the translation machinery
 explicitly in the code (covered later in this tutorial).
 
 
@@ -124,24 +125,24 @@ A newly created setup.cfg might look like this:
     # Babel configuration
     [compile_catalog]
     domain = myproject
-    directory = myproject/i18n
+    directory = myproject/locale
     statistics = true
 
     [extract_messages]
-    keywords = __:1,2 L_ L__:1,2
+    keywords = __:1,2 L_
     mapping_file = babel.cfg
-    output_file = myproject/i18n/myproject.pot
+    output_file = myproject/locale/myproject.pot
     width = 80
 
     [init_catalog]
     domain = services
-    input_file = myproject/i18n/myproject.pot
-    output_dir = myproject/i18n
+    input_file = myproject/locale/myproject.pot
+    output_dir = myproject/locale
 
     [update_catalog]
     domain = services
-    input_file = myproject/i18n/myproject.pot
-    output_dir = myproject/i18n
+    input_file = myproject/locale/myproject.pot
+    output_dir = myproject/locale
     previous = true
 
 Just replace ``myproject`` with the actual name of your project.
@@ -159,7 +160,7 @@ In order to mark that literal as translatable, it needs to be prefixed with
 ``_`` or any other keyword previously defined in the ``extract_messages``
 section of setup.cfg::
 
-    from web.core.i18n import _
+    from web.core.locale import _
 
     print _('Hello World')
 
@@ -171,12 +172,11 @@ Function Gettext equivalent Notes
 ``_``    ugettext           Returns unicode
 ``__``   ungettext          Returns unicode
 ``L_``   ugettext           Lazily evaluated, returns unicode
-``L__``  ungettext          Lazily evaluated, returns unicode
 ======== ================== =================================
 
-The ``L_`` and ``L__`` functions are special in the way that the wrapped string
+The ``L_`` function is special in the way that the wrapped string
 is not translated when the expression is evaluated, but instead each time the
-string is accessed. Thus you can use them to put translatable strings on the
+string is accessed. Thus you can use it to put translatable strings on the
 module or class level without it being translated at import time, but instead
 after the correct language for the request has been determined.
 
@@ -226,24 +226,24 @@ namespace by WebCore's i18n middleware.
           translation procedure will likely fail.
 
 
-Changing the current language
+Changing the Current Language
 -----------------------------
 
 To change the user's current language, use the
-:func:`web.core.i18n.set_lang` function. Similarly,
-:func:`web.core.i18n.get_lang` will tell you what the user's current language
+:func:`web.core.locale.set_lang` function. Similarly,
+:func:`web.core.locale.get_lang` will tell you what the user's current language
 is. When you set the language, the setting is saved in the user's session if
 sessions are enabled (``web.sessions = True``).
 
 
-Using Arbitrary Translations Directly
--------------------------------------
+Using Translations Directly
+---------------------------
 
 Applications sometimes need to work with several different languages within a
 single request. In such situations it is necessary to use a different
 translator than the default one::
 
-    from web.core.i18n import get_translator
+    from web.core.locale import get_translator
     
     _ = get_translator('de').ugettext
     print _('Hello World!')

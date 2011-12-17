@@ -344,9 +344,9 @@ def profiling(app, config):
         raise ImportError("You must install repoze.profile to enable profiling")
 
 
-@middleware('i18n', after="widgets")
-def i18n(app, config):
-    if not defaultbool(config.get('web.locale', False), ['gettext']):
+@middleware('locale', after="widgets")
+def locale(app, config):
+    if not defaultbool(config.get('web.locale.i18n', False), ['gettext']):
         return app
     
     from web.core.locale import LocaleMiddleware

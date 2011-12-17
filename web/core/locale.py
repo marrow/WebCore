@@ -11,9 +11,8 @@ from marrow.util.convert import array
 
 
 __all__ = [
-        'LanguageError', '_', '__', 'L_', 'N_', 'gettext',
-        'ugettext', 'ngettext', 'ungettext', 'get_lang', 'set_lang',
-        'get_translator', 'add_fallback'
+        'LanguageError', '_', '__', 'L_', 'N_', 'gettext', 'ugettext', 'ngettext', 'ungettext', 'get_lang', 'set_lang',
+        'get_translator'
     ]
 
 log = __import__('logging').getLogger(__name__)
@@ -62,6 +61,12 @@ class L_(object):
 
     def __getattr__(self, name):
         return getattr(self.__translated, name)
+    
+    def __str__(self):
+        return web.core.translator.gettext(self.__message)
+
+    def __unicode__(self):
+        return web.core.translator.ugettext(self.__message)
 
 
 def get_translator(lang, conf=None, **kwargs):
@@ -76,10 +81,8 @@ def get_translator(lang, conf=None, **kwargs):
         lang = [lang]
 
     try:
-        translator = translation(conf['web.locale.domain'], conf['web.locale.path'],
-                                 languages=lang, **kwargs)
-
-    except IOError, ioe:
+        translator = translation(conf['web.locale.domain'], conf['web.locale.path'], languages=lang, **kwargs)
+    except IOError, ioe: # pragma: no cover
         raise LanguageError('IOError: %s' % ioe)
 
     translator.lang = lang
@@ -97,38 +100,26 @@ def set_lang(lang, **kwargs):
     If ``lang`` is None, the override will be removed from the session.
     """
 
+    session = web.core.request.environ.get('beaker.session')
     if lang is None:
-        if web.core.request.environ.has_key('beaker.session') and 'lang' in web.core.session:
-            del web.core.session['lang']
-            web.core.session.save()
-
-        return
+        if session and 'lang' in session:
+            del session['lang']
+            session.save()
+        
+        lang = LocaleMiddleware.parse_linguas(web.core.request.environ)
+        session = None
 
     translator = get_translator(lang, **kwargs)
     web.core.request.environ['paste.registry'].replace(web.core.translator, translator)
 
-    if web.core.request.environ.has_key('beaker.session'):
-        web.core.session['lang'] = translator.lang
-        web.core.session.save()
+    if session:
+        session['lang'] = translator.lang
+        session.save()
 
 
 def get_lang():
     """Return a list of the currently selected languages, in priority order."""
     return getattr(web.core.translator, 'lang', None)
-
-
-def add_fallback(lang, **kwargs):
-    """Add a fallback language from which words not matched in other
-    languages will be translated to.
-
-    This fallback will be associated with the currently selected
-    language -- that is, resetting the language via set_lang() resets
-    the current fallbacks.
-
-    This function can be called multiple times to add multiple
-    fallbacks.
-    """
-    return web.core.translator.add_fallback(get_translator(lang, **kwargs))
 
 
 class LocaleMiddleware(object):
@@ -162,7 +153,7 @@ class LocaleMiddleware(object):
         for _ in range(steps):
             root_path = os.path.split(root_path)[0]
 
-        if 'web.locale.path' in self.config:
+        if 'web.locale.path' in self.config: # pragma: no cover
             # Validate the pre-defined locale path
             path = self.config['web.locale.path']
             
@@ -170,23 +161,23 @@ class LocaleMiddleware(object):
                 path = os.path.join(root_path, path)
             
             if not os.path.isdir(path):
-                raise Exception("The locale path (%s) either does not exist or is not a directory." % path)
+                raise ValueError("The locale path (%s) either does not exist or is not a directory." % path)
             
             return path
 
         # Autodetect the locale path
         path = root_path
-        
-        for part in root_parts:
+
+        for part in [''] + root_parts:
             path = os.path.join(path, part)
             localedir = os.path.join(path, 'locale')
-            log.debug("Looking for directory 'locale' in %s", localedir)
+            log.debug("Looking for directory 'locale' in %s", path)
             
             if os.path.isdir(localedir):
                 self.config['web.locale.path'] = localedir
                 return localedir
         
-        raise Exception("Unable to autodetect the locale directory. Please set web.locale.path manually.")
+        raise Exception("Unable to autodetect the locale directory. Please set web.locale.path manually.") # pragma: no cover
 
     def _find_text_domain(self, localedir):
         # Allow users to override
@@ -200,10 +191,10 @@ class LocaleMiddleware(object):
                 self.config['web.locale.domain'] = mofiles[0][:-3]
                 return self.config['web.locale.domain']
             
-            if len(mofiles) > 1:
+            if len(mofiles) > 1: # pragma: no cover
                 raise Exception("More than one text domain found -- please set web.locale.domain manually.")
 
-        raise Exception('No .mo files found -- cannot determine the text domain.')
+        raise Exception('No .mo files found -- cannot determine the text domain.') # pragma: no cover
 
     def _find_translations(self, localedir, domain):
         # Allow users to override
@@ -218,24 +209,29 @@ class LocaleMiddleware(object):
                 translations.append(fname)
         
         return translations
-
-    def __call__(self, environ, start_response):
-        lang = []
-        lang.extend(environ.get('beaker.session', dict()).get('lang', []))
-
+    
+    @classmethod
+    def parse_linguas(cls, environ):
+        languages = []
+        languages.extend(environ.get('beaker.session', {}).get('lang', []))
+        
         for i in environ.get('HTTP_ACCEPT_LANGUAGE', '').split(','):
             i = i.strip(', ')
             i = i.split(';', 1)[0]
-            lang.append(i)
+            languages.append(i)
             
             if '-' in i:
-                lang.append(i.split('-', 1)[0])
+                languages.append(i.split('-', 1)[0])
+        
+        languages.extend(environ['paste.config'].get('web.locale.fallback', ['en']))
+        return languages
 
-        lang.extend(environ['paste.config'].get('lang', ['en']))
+    
+    def __call__(self, environ, start_response):
+        languages = self.parse_linguas(environ)
+        log.debug("Call language path: %r", languages)
 
-        log.debug("Call language path: %r", lang)
-
-        translator = get_translator(lang, self.config)
+        translator = get_translator(languages, self.config)
         environ['web.translator'] = translator
         environ['paste.registry'].register(web.core.translator, translator)
 

@@ -3,6 +3,7 @@
 from unittest import TestCase
 import web.core
 from webob import Request
+from webob.cookies import Cookie
 
 
 __all__ = ['PlainController', 'WebTestCase']
@@ -16,11 +17,34 @@ class PlainController(web.core.Controller):
 
 
 class WebTestCase(TestCase):
-    def assertResponse(self, path, status='200 OK', content_type='text/plain', _method='get', **kw):
-        request = Request.blank(path, environ=dict(REMOTE_ADDR='127.0.0.1'))
+    def __init__(self, *args, **kw):
+        self._cookies = dict()
+        super(WebTestCase, self).__init__(*args, **kw)
+    
+    def _handle_cookies(self, resp):
+        existing = resp.headers.getall('Set-Cookie')
+        if not existing:
+            return dict()
+        
+        cookies = Cookie()
+        for header in existing:
+            cookies.load(header)
+        
+        for key in cookies:
+            self._cookies[key] = cookies[key].value
+    
+    def assertResponse(self, path, status='200 OK', content_type='text/plain', _method='GET', _environ=None, **kw):
+        _environ = _environ or {}
+        _environ.setdefault('REMOTE_ADDR', '127.0.0.1')
+        
+        #_environ.setdefault('HTTP_COOKIE', "; ".join((a + "=" + b) for a, b in self._cookies.iteritems()))
+        
+        request = Request.blank(path, environ=_environ)
         request.method = _method
+        request.cookies.update(self._cookies)
         
         response = request.get_response(self.app)
+        self._handle_cookies(response)
         
         self.assertEqual((response.status, response.content_type), (status, content_type))
         
@@ -29,13 +53,17 @@ class WebTestCase(TestCase):
         
         return response
     
-    def assertPostResponse(self, path, data={}, status='200 OK', content_type='text/plain', **kw):
-        request = Request.blank(path)
-        
+    def assertPostResponse(self, path, data={}, status='200 OK', content_type='text/plain', _environ=None, **kw):
+        _environ = _environ or {}
+        _environ.setdefault('REMOTE_ADDR', '127.0.0.1')
+        request = Request.blank(path, environ=_environ)
         request.method = "POST"
+        for key in self._cookies:
+            request.cookies[key] = self._cookies[key]
         request.POST.update(data)
         
         response = request.get_response(self.app)
+        self._handle_cookies(response)
         
         self.assertEqual((response.status, response.content_type), (status, content_type))
         
@@ -43,3 +71,6 @@ class WebTestCase(TestCase):
             self.assertEqual(getattr(response, i), j)
         
         return response
+
+
+
