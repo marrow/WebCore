@@ -86,16 +86,20 @@ You'll need a working version of the GCC compiler installed, as well as the Pyth
 Installation using the Bootstrap Script
 =======================================
 
-Download http://www.web-core.org/webcore-bootstrap.py and run it from a command prompt.  The bootstrap script accepts the same arguments as the ``virtualenv`` command, and defaults to using the ``--distribute`` and ``--no-site-packages`` options.  Pass the name of your desired virtual environment as the last argument.  Additionally, the ``WebCore-Start`` package will be installed unless you pass the ``--production`` argument.
-
-.. warning:: Until the graphical quickstart package is available, you **must** use the ``--production`` switch!
+Download http://get.web-core.org/webcore-bootstrap.py and run it from a command prompt.  The bootstrap script accepts the same arguments as the ``virtualenv`` command, and defaults to using the ``--distribute`` and ``--no-site-packages`` options.  Pass the name of your desired virtual environment as the last argument.
 
 For example:
 
 .. code-block:: bash
 
-   $ wget http://www.web-core.org/webcore-bootstrap.py
-   $ python webcore-bootstrap.py --production myenv
+   $ wget http://get.web-core.org/webcore-bootstrap.py
+   $ python webcore-bootstrap.py myenv
+
+Or if you prefer curl:
+
+.. code-block:: bash
+
+   $ curl get.web-core.org | python - myenv
 
 
 Manual Installation
@@ -212,15 +216,13 @@ You'll be able to install the latest released version of WebCore via:
 
 .. code-block:: bash
 
-    (core)$ pip install WebCore WebCore-Start
+    (core)$ pip install WebCore
 
 .. warning:: If you are upgrading from a previous version your command should be:
 
     .. code-block:: bash
 
-        (core)$ pip install -U WebCore WebCore-Start
-
-.. note:: In a production environment you probably do not want to install WebCore-Start; simply omit it from this command line.  The WebCore-Start package contains templates used to build new projects.
+        (core)$ pip install -U WebCore
 
 WebCore and all of its dependencies should download and install themselves.
 
@@ -254,7 +256,7 @@ Check out the latest code from the Github repository into your virtual environme
 
 .. code-block:: bash
 
-  (core)$ git clone git://github.com/GothAlice/WebCore.git
+  (core)$ git clone git://github.com/marrow/WebCore.git
 
 Installing the Sources
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -275,35 +277,4 @@ To check if you installed WebCore correctly, type:
 .. code-block:: bash
 
    (core)$ python -c 'print __import__("web.release").release.version'
-   0.1
-
-If you installed the WebCore-Start development package, type the following:
-
-.. code-block:: bash
-
-   (core)$ paster --help
-
-and you should see something like::
-
-    Usage: paster [paster_options] COMMAND [command_options]
-
-    Options:
-      --version         show program's version number and exit
-      --plugin=PLUGINS  Add a plugin to the list of commands (plugins are Egg
-                        specs; will also require() the Egg)
-      -h, --help        Show this help message
-
-    Commands:
-      create       Create the file layout for a Python distribution
-      help         Display help
-      make-config  Install a package and create a fresh config file/directory
-      points       Show information about entry points
-      post         Run a request for the described application
-      request      Run a request for the described application
-      serve        Serve the described application
-      setup-app    Setup an application, given a config file
-
-    WebCore:
-      quickstart   Create a new WebCore project.
-
-Notice the "WebCore" command section at the end of the output -- this indicates that WebCore is installed in your current path.
+   1.1.0

@@ -24,7 +24,7 @@ Running the i18n Example
 WebCore includes one example project that demonstrates the use of translation
 functions. As examples are not included in the downloadable WebCore
 distribution, you need to get the source tarball from
-`Github <https://github.com/GothAlice/WebCore/archives/master>`_. The example
+`Github <https://github.com/marrow/WebCore/archives/master>`_. The example
 is located in the ``examples/i18n`` directory. To run the example, make
 sure you have WebCore and Genshi installed. Then, run the following commands
 (the first one only needs to be run once):
