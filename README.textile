@@ -6,7 +6,7 @@ h2. Core Features
 
 * *Extreme performance.* Benchmarked on the same system, WebCore is 2-10 times faster than other frameworks on a bare-bones "Hello World" test, while offering the same core features.
 
-* *Everything you need, out of the box.* Sessions, authentication, database, JSON, internationalization, form generation, templating, and more, without locking you into any given component. _Use as much or as little as you want._
+* *Everything you need, out of the box.* Sessions, authentication, database, JSON, internationalization, templating, and more, without locking you into any given component. _Use as much or as little as you want._
 
 * *Makes complex things easy.* From multiple database connections to dynamic template selection, many of WebCore's features were taken directly from community discussion.
 
