@@ -5,14 +5,13 @@ configuration.
 """
 
 import os
+import warnings
 import pkg_resources
 import web
 
 from marrow.util.convert import boolean, array, integer
 from marrow.util.object import load_object
 
-
-__all__ = ['registry', 'middleware', 'template', 'TemplatingMiddleware']
 
 log = __import__('logging').getLogger(__name__)
 
@@ -78,9 +77,11 @@ def templateinterface(app, config):
 
 
 @middleware('widgets', after="templating")
-def toscawidgets(app, config):
+def toscawidgets(app, config): # pragma: no cover
     if not defaultbool(config.get('web.widgets', False), ['toscawidgets']):
         return app
+    
+    warnings.warn("ToscaWidgets support is deprecated; try marrow.tags instead.", DeprecationWarning)
     
     try:
         from tw.api import make_middleware as ToscaWidgetsMiddleware
@@ -283,7 +284,7 @@ def static(app, config):
         if not parts:
             parts = ['.']
         
-        while parts:
+        while parts: # pragma: no cover
             # Search up the package tree, in case this is an application in a sub-module.
             
             path = os.path.abspath(path)

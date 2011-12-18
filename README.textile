@@ -12,7 +12,7 @@ h2. Core Features
 
 * *Follows the Zen of Python.* WebCore follows all of the guidelines outlined in the "Zen of Python":http://www.python.org/dev/peps/pep-0020/ as closely as possible. This helps everything just make sense.
 
-* *Rapid web _application_ development.* The web has grown to be more complicated than simple HTML pages and forms. YAPWF includes alternate dialects for things like XML-RPC and Flash AMF to help you develop powerful applications.
+* *Rapid web _application_ development.* The web has grown to be more complicated than simple HTML pages and forms. WebCore includes alternate dialects for things like XML-RPC and Flash AMF to help you develop powerful applications.
 
 * *Simple applications.* WebCore can host an application as simple as a single file, or as complicated as you like.  (We like setuptools packages, though.)
 
