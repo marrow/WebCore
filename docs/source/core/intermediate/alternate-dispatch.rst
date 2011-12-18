@@ -89,16 +89,16 @@ REST stands for "Representational State Transfer", a way of applying a distinct 
 
 You may notice the similarity to the previous section's CRUD layout, and is, in fact, a more specific example of it.  WebDAV is an example of a complete system written with this structure.  To implement RESTful services in WebCore you use a combination of the techniques described by CRUD and a helper class.
 
-The RESTMethod helper class understands all HTTP verbs: get, put, post, delete, head, trace, and options, with head and options written for you.
+The HTTPMethod helper class understands all HTTP verbs: get, put, post, delete, head, trace, and options, with head and options written for you.
 
 Form Processing
 ---------------
 
-At its most light-weight, the RESTMethod helper class allows you to create a separation between the presentation of a form and the processing of the data returned by the form.  Take the following example controller:
+At its most light-weight, the HTTPMethod helper class allows you to create a separation between the presentation of a form and the processing of the data returned by the form.  Take the following example controller:
 
 .. code-block:: python
 
-   class SignInMethod(web.core.RESTMethod):
+   class SignInMethod(web.core.HTTPMethod):
       def get(self):
          return "myapp.templates.signin", dict()
       

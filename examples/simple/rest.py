@@ -3,11 +3,11 @@
 
 """A restful hello world application."""
 
-from web.core import Controller, RESTMethod
+from web.core import Controller, HTTPMethod
 
 
 
-class Index(RESTMethod):
+class Index(HTTPMethod):
     def get(self):
         return "Hello world!"
     

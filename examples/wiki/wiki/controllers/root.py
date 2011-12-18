@@ -12,7 +12,7 @@ log = __import__('logging').getLogger(__name__)
 
 
 
-class AJAXArticleForm(web.core.RESTMethod):
+class AJAXArticleForm(web.core.HTTPMethod):
     def __init__(self, name, article):
         self.name = name
         self.article = article
@@ -32,7 +32,7 @@ class AJAXArticleForm(web.core.RESTMethod):
         return textile.textile(self.article.content)
 
 
-class ArticleForm(web.core.RESTMethod):
+class ArticleForm(web.core.HTTPMethod):
     def __init__(self, name, article):
         self.name = name
         self.article = article
