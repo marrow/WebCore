@@ -15,9 +15,8 @@ log = __import__('logging').getLogger(__name__)
 config = None
 user = StackedObjectProxy(name="user")
 
-web.core.namespace.web.auth = predicates
-web.core.namespace.web.user = user
-
+web.core.namespace['web']['auth'] = predicates
+web.core.namespace['web']['user'] = user
 
 def authenticate(identifier, password=None, force=False):
     """Authenticate a user.
