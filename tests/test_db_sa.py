@@ -66,35 +66,35 @@ class RootController(PlainController):
         return "ok"
     
     def create(self, name, die=False):
-        o = Foo(name=name)
+        o = Foo(name=unicode(name))
         session.add(o)
         
         if die: raise getattr(web.core.http, die)()
         return "ok"
     
     def delete(self, name, die=False):
-        o = session.query(Foo).filter_by(name=name).one()
+        o = session.query(Foo).filter_by(name=unicode(name)).one()
         session.delete(o)
         
         if die: raise getattr(web.core.http, die)()
         return "ok"
     
     def load(self, name, die=False):
-        o = session.query(Foo).filter_by(name=name).one()
+        o = session.query(Foo).filter_by(name=unicode(name)).one()
         
         if die: raise getattr(web.core.http, die)()
         return "ok"
     
     def rename(self, name, newname, die=False):
-        o = session.query(Foo).filter_by(name=name).one()
-        o.name = newname
+        o = session.query(Foo).filter_by(name=unicode(name)).one()
+        o.name = unicode(newname)
         
         if die: raise getattr(web.core.http, die)()
         return "ok"
     
     def list(self):
-        return ", ".join([i.name for i in session.query(Foo).order_by('name').all()])
-        
+        return u", ".join([i.name for i in session.query(Foo).order_by('name').all()])
+
 
 test_config = {
         'debug': False,
