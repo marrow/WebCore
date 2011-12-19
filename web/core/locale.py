@@ -181,7 +181,7 @@ class LocaleMiddleware(object):
 
     def _find_text_domain(self, localedir):
         # Allow users to override
-        if 'web.locale.domain' in self.config:
+        if 'web.locale.domain' in self.config: # pragma: no cover
             return self.config['web.locale.domain']
 
         for _path, _dirs, files in os.walk(localedir, topdown=False):
@@ -198,7 +198,7 @@ class LocaleMiddleware(object):
 
     def _find_translations(self, localedir, domain):
         # Allow users to override
-        if 'web.locale.languages' in self.config:
+        if 'web.locale.languages' in self.config: # pragma: no cover
             return array(self.config['web.locale.languages'])
 
         translations = []
