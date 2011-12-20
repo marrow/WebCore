@@ -1,8 +1,9 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
-from gettext import NullTranslations
 import web.core
+
+from gettext import NullTranslations
 from web.core import Application
 from web.core.locale import L_, N_, _, __, ugettext, gettext, ngettext, ungettext, get_translator, set_lang, get_lang
 from common import PlainController, WebTestCase
