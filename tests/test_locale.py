@@ -1,8 +1,9 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
-from gettext import NullTranslations
 import web.core
+
+from gettext import NullTranslations
 from web.core import Application
 from web.core.locale import L_, N_, _, __, ugettext, gettext, ngettext, ungettext, get_translator, set_lang, get_lang
 from common import PlainController, WebTestCase
@@ -13,19 +14,19 @@ class RootController(PlainController):
 
     def gettext(self):
         return gettext('This works!')
-    
+
     def ugettext(self):
         return ugettext('This works!')
-    
+
     def ugettext_alt(self):
         return _('This works!')
 
     def ngettext(self, n):
         return ngettext('Singular works!', 'Plural works!', int(n))
-    
+
     def ungettext(self, n):
         return ungettext('Singular works!', 'Plural works!', int(n))
-    
+
     def ungettext_alt(self, n):
         return __('Singular works!', 'Plural works!', int(n))
 
@@ -47,17 +48,13 @@ class RootController(PlainController):
     def set_lang(self, l=None):
         set_lang(l)
         return gettext('This works!')
-    
+
     def get_lang(self):
         return ','.join(get_lang())
-    
-    def add_fallback(self, l):
-        add_fallback(l)
-        return ','.join(get_lang())
-    
+
     def cookies(self):
         return 'json:', web.core.request.headers.get('Cookie', "")
-    
+
     def sid(self):
         return web.core.session.id
 
@@ -101,7 +98,7 @@ class TestI18n(WebTestCase):
 
     def test_lazy_upper(self):
         self.assertResponse('/lazy_upper', _environ=self.environ, body='TÄMÄ TOIMII!'.encode('utf-8'))
-    
+
     def test_placeholder(self):
         self.assertResponse('/placeholder', _environ=self.environ, body='This works!')
 
@@ -113,17 +110,17 @@ class TestI18n(WebTestCase):
 class TestI18nSession(WebTestCase):
     app = Application.factory(root=RootController, **test_config)
     environ = {'HTTP_ACCEPT_LANGUAGE': 'fi, en-US, en'}
-    
+
     def test_session(self):
         # print "\n>>>", self._cookies
         # resp = self.assertResponse('/cookies', _environ=self.environ, content_type='application/json')
         # print "<<<", resp.body
         # print "<<<", resp.headers.getall('Set-Cookie')
-        
+
         resp1 = self.assertResponse('/sid', _environ=self.environ)
         resp2 = self.assertResponse('/sid', _environ=self.environ)
         self.assertEqual(resp1.body, resp2.body)
-    
+
     def test_set_lang(self):
         self.assertResponse('/get_lang', _environ=self.environ, body='fi,en-US,en,en,en')
         self.assertResponse('/set_lang?l=en', _environ=self.environ, body='This works!')
@@ -132,7 +129,7 @@ class TestI18nSession(WebTestCase):
         self.assertResponse('/set_lang?l=fi', _environ=self.environ, body='Tämä toimii!'.encode('utf-8'))
         self.assertResponse('/gettext', _environ=self.environ, body='Tämä toimii!'.encode('utf-8'))
         self.assertResponse('/get_lang', _environ=self.environ, body='fi,fi,en-US,en,en,en')
-    
+
     def test_set_lang_default(self):
         self.assertResponse('/get_lang', _environ=self.environ, body='fi,en-US,en,en,en')
         self.assertResponse('/set_lang?l=en', _environ=self.environ, body='This works!')

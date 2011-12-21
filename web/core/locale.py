@@ -4,6 +4,7 @@
 
 import os
 import web
+import warnings
 
 from gettext import NullTranslations, translation
 from web.core.templating import registry
@@ -80,8 +81,9 @@ def get_translator(lang, conf=None, **kwargs):
     if not isinstance(lang, list):
         lang = [lang]
 
+    domain = conf.get('web.locale.domain') or conf['web.root.package']
     try:
-        translator = translation(conf['web.locale.domain'], conf['web.locale.path'], languages=lang, **kwargs)
+        translator = translation(domain, conf['web.locale.path'], languages=lang, **kwargs)
     except IOError, ioe: # pragma: no cover
         raise LanguageError('IOError: %s' % ioe)
 
@@ -145,13 +147,12 @@ class LocaleMiddleware(object):
         root_parts = root_controller.__module__.split('.')
         root_module = __import__(root_controller.__module__)
         root_path = os.path.dirname(root_module.__file__)
-        steps = len(root_parts)
         
-        if not os.path.split(root_path)[1].startswith('__init__.'):
-            steps -= 1
-        
-        for _ in range(steps):
-            root_path = os.path.split(root_path)[0]
+        if 'web.i18n.path' in self.config:
+            warnings.warn("The 'web.i18n.path' directive should be named 'web.locale.path'.\n"
+                    "Please change your configuration accordingly for compatibility with future versions.",
+                    DeprecationWarning)
+            self.config['web.locale.path'] = self.config['web.i18n.path']
 
         if 'web.locale.path' in self.config: # pragma: no cover
             # Validate the pre-defined locale path
@@ -165,17 +166,21 @@ class LocaleMiddleware(object):
             
             return path
 
-        # Autodetect the locale path
-        path = root_path
-
-        for part in [''] + root_parts:
-            path = os.path.join(path, part)
-            localedir = os.path.join(path, 'locale')
-            log.debug("Looking for directory 'locale' in %s", path)
-            
-            if os.path.isdir(localedir):
-                self.config['web.locale.path'] = localedir
-                return localedir
+        # Look for the "locale" directory along the path to the root controller's package
+        for dirname in 'locale', 'i18n':
+            path = root_path
+            for part in [''] + root_parts[1:]:
+                path = os.path.join(path, part)
+                localedir = os.path.join(path, dirname)
+                log.debug("Looking for directory '%s' in %s", dirname, path)
+                
+                if os.path.isdir(localedir):
+                    if dirname == 'i18n':
+                        warnings.warn("The 'i18n' directory should be named 'locale'.\n"
+                                "Please rename the directory accordingly for compatibility with future versions.",
+                                DeprecationWarning)
+                    self.config['web.locale.path'] = localedir
+                    return localedir
         
         raise Exception("Unable to autodetect the locale directory. Please set web.locale.path manually.") # pragma: no cover
 
@@ -226,7 +231,6 @@ class LocaleMiddleware(object):
         languages.extend(environ['paste.config'].get('web.locale.fallback', ['en']))
         return languages
 
-    
     def __call__(self, environ, start_response):
         languages = self.parse_linguas(environ)
         log.debug("Call language path: %r", languages)
