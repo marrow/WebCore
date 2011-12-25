@@ -4,7 +4,7 @@
 class Extension(object):
     uses = []
     needs = []
-    provides = []
+    provides = ['db', 'database']
     
     def __init__(self, config):
         """Executed to configure the extension."""

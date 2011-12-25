@@ -2,6 +2,7 @@
 
 
 class SessionExtension(object):
+    uses = ['database']
     provides = ['session']
     
     def __init__(self, config):
