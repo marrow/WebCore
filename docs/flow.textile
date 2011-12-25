@@ -1,0 +1,32 @@
+h1. WebCore 2 Application Flow
+
+h2. Startup
+
+# Application configuration is loaded from one of two sources:
+## Directly passed-in dictionary configuration.
+## Configuration file extended by command-line options.
+# A dependency graph of extensions is built.  E.g.:
+## Application needs @template@, @session@, and @db@.
+## The @base@ extension is always active and always first.
+## Final sorting: @['base', 'template', 'session', 'db']@
+# Each extension is initialized as encountered.  This allows extensions to dynamically adjust their @needs@ and @uses@ based on configuration values.
+# Each extension, after dependency sorting, then has its @start@ method called.
+
+
+h2. Shutdown
+
+# Each extension, in reverse order, has its @stop@ method called.
+
+
+h2. Request
+
+# Request is captured by the WebCore WSGI Application.
+# A context object is prepared, containing:
+## Global configuration in @config@.
+## WSGI environment in @environ@.
+# Extension @prepare@ methods are called in order.
+# Extension @before@ methods are called in order.
+# Dispatch is called to route the request to the final controller.
+## Controllers are instantiated with the context as the sole argument.
+# Extension @after@ methods are called in reverse order.
+# The WebCore WSGI application takes the @context.resopnse@ object and serves it to the client.
