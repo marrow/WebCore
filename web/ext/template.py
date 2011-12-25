@@ -4,6 +4,8 @@
 class Extension(object):
     uses = []
     needs = []
+    always = False
+    never = False
     provides = []
     
     def __init__(self, config):
@@ -12,7 +14,7 @@ class Extension(object):
     
     def __call__(self, app):
         """Executed to wrap the application in middleware."""
-        pass
+        return app
     
     def start(self):
         """Executed during application startup just after binding the server."""
