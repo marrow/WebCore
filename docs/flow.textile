@@ -30,3 +30,20 @@ h2. Request
 ## Controllers are instantiated with the context as the sole argument.
 # Extension @after@ methods are called in reverse order.
 # The WebCore WSGI application takes the @context.resopnse@ object and serves it to the client.
+
+
+h2. Optimizations
+
+The following are stored at application startup in order to eliminate the need to calculate them during a request.
+
+# @_ext@ is a dependency-sorted list of instantiated extension objects.
+# @_prepare@ is a sorted list of extension @prepare@ methods.
+# @_before@ is a sorted list of extension @before@ methods.
+# @_after@ is a reverse-sorted list of extension @after@ methods.
+
+In the avove example, these variables would contain:
+
+# @_ext = [BaseExtension(), TemplateExtension(), SessionExtension(), DatabaseExtension()]@
+# @_prepare = [BaseExtension.prepare, TemplateExtension.prepare, SessionExtension.prepare, DatabaseExtension.prepare]@
+# @_before = [DatabaseExtension.before]@
+# @_after = [DatabaseExtension.after, SessionExtension.after]@
