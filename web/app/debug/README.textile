@@ -1,0 +1,12 @@
+h1. WebCore 2 Debugging
+
+This application handles interactive debugging and toolbar requests.
+
+* Installed package versions.
+* Configuration explorer and exporter.
+* Request object inspector.
+* Rendering engine information.
+* Log output.
+* Dispatch and routing information.
+* Database logging.
+* Profiling output.

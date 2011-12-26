@@ -1,0 +1,8 @@
+h1. WebCore 2 Analytics
+
+This application accompanies the analyics extension.  Where the extension captures data, this application allows you to visualize, import and export, as well as track and replay requests, and monitor a user's flow through your own application live.
+
+See:
+
+# http://twitpic.com/12qr1a (overview)
+# http://twitpic.com/12vmdg (detail)
