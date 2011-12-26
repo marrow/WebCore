@@ -1,0 +1,5 @@
+h1. WebCore 2 Profile Data Inspector
+
+This application allows you to display profile information for individual requests and otherwise sort and explore the data in-depth.
+
+This application is automatically integrated into the debug toolbar if that extension is enabled.
