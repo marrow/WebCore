@@ -12,7 +12,7 @@ class BaseExtension(object):
     provides = ["request", "response"]
     
     def __init__(self, config):
-        super(Extension, self).__init__()
+        super(BaseExtension, self).__init__()
     
     def start(self):
         # Register the default return handlers.

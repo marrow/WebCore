@@ -3,8 +3,11 @@
 from weakref import proxy
 from functools import partial
 
+from marrow.util.bunch import Bunch
+
 from web.core.response import registry
 from web.ext.template.handler import template_handler
+
 
 
 class TemplateExtension(object):
