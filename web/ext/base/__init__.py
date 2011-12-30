@@ -1,9 +1,10 @@
-#.encoding: utf-8
+# encoding: utf-8
 
 from marrow.wsgi.objects import Request, Response
 
 from web.core.response import registry
 from web.ext.base import handler
+from web.ext.base.helpers import URLGenerator
 
 
 class BaseExtension(object):
@@ -21,5 +22,23 @@ class BaseExtension(object):
             registry.register(h, *h.types)
     
     def prepare(self, context):
+        """Add the usual suspects to the context.
+        
+        The following are provided by the underlying application:
+        
+        * app -- the composed WSGI application
+        * root -- the root controller object
+        * config -- the complete configuration bunch
+        * environ -- the current request environment
+        """
+        
         context.request = Request(context.environ)
         context.response = Response(request=context.request)
+        
+        context.environ['web.base'] = context.request.path
+        
+        context.url = URLGenerator(context)
+        context.path = [context.root] # XXX: named tuple of controller, path
+        context.log = None # pre-configured marrow.logging object
+        # XXX: The above can be a lazily-configured proxy object to
+        # avoid overhead.
