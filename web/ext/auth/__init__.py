@@ -10,6 +10,16 @@ class AuthenticationExtension(object):
         super(Extension, self).__init__()
     
     def prepare(self, context):
+        """Prepare the variables from the context."""
         context.user = None
+        context.acl = []
         context.namespace.user = context.user
         context.namespace.auth = predicates
+    
+    def dispatch(self, context, consumed, handler):
+        acl = getattr(handler, '__acl__', [])
+        context.acl.append(acl)
+    
+    def before(self, context):
+        """Validate the ACL."""
+        

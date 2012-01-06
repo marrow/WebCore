@@ -28,6 +28,10 @@ class Extension(object):
         """Executed during request set-up."""
         pass
     
+    def dispatch(self, context, consumed, handler):
+        """Executed as dispatch descends into a tier."""
+        pass
+    
     def before(self, context):
         """Executed after all extension prepare methods have been called, prior to dispatch."""
         pass
