@@ -17,7 +17,6 @@ class Extension(object):
     The names of method arguments are unimportant; all values are passed positionally.
     """
     
-    
     uses = []
     needs = []
     always = False
