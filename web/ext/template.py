@@ -70,6 +70,27 @@ class Extension(object):
         The @consumed@ argument is a Path object containing one or more path elements.
         The @handler@ argument is the literal object that was selected to process the consumed elements.
         The @is_endpoint@ argument is @True@ if there will be no futher dispatch.
+        
+        Generally called in series, like:
+        
+            # Index method example.
+            dispatch(context, '/', RootController, False)
+            dispatch(context, '', RootController.__call__, True)
+            
+            # Data-based example.
+            dispatch(context, '/', RootController, False)
+            dispatch(context, 'admin', AdminController, False)
+            dispatch(context, 'user', UsersController, False)
+            dispatch(context, '27', UserController(27), False)
+            dispatch(context, 'modify', UserController(27).modify, True)
+            
+            # Contentment example.
+            dispatch(context, '/', AssetController, False)
+            dispatch(context, 'company/about/staff', PageController, False)
+            dispatch(context, 'view:page', PageController.page, True)
+            
+            # Route example.
+            dispatch(context, '/admin/user/27/modify', modify_user, True)
         """
         
         pass
