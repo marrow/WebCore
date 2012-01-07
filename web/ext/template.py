@@ -78,5 +78,7 @@ class Extension(object):
         """Executed after dispatch has returned and the response populated, prior to anything being sent to the client.
         
         Similar to middleware, the first extension registered has its @after@ method called last.
+        
+        If this method returns any value that evaluates to @True@, the current exception is not propagated.
         """
         pass
