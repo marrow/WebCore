@@ -12,6 +12,8 @@ class Extension(object):
     * @needs@ -- As per @uses@, but additionally activates those extensions.
     * @always@ -- If @True@ always load this extension.  Useful for applicaiton-provided extensions.
     * @never@ -- The opposite of @always@.
+    * @first@ -- Always try to be first in the extension stack.
+    * @last@ -- Always try to be last in the extension stack.
     * @provides@ -- A list of keywords usable in @uses@ and @needs@ declarations.
     
     The names of method arguments are unimportant; all values are passed positionally.
@@ -21,6 +23,8 @@ class Extension(object):
     needs = []
     always = False
     never = False
+    first = False
+    last = False
     provides = []
     
     def __init__(self, config):
