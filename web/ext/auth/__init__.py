@@ -1,4 +1,4 @@
-#.encoding: utf-8
+# encoding: utf-8
 
 
 class AuthenticationExtension(object):
@@ -16,10 +16,10 @@ class AuthenticationExtension(object):
         context.namespace.user = context.user
         context.namespace.auth = predicates
     
-    def dispatch(self, context, consumed, handler):
+    def dispatch(self, context, consumed, handler, is_endpoint):
         acl = getattr(handler, '__acl__', [])
         context.acl.append(acl)
     
     def before(self, context):
         """Validate the ACL."""
-        
+        pass
