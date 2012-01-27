@@ -54,3 +54,6 @@ class BaseExtension(object):
         
         if not is_endpoint:
             context.environ['web.controller'] = str(context.request.path)
+    
+    def after(self, context, exc=None):
+        pass

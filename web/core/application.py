@@ -88,7 +88,7 @@ class Application(object):
                 
                 # If the current return value isn't of the expceted type, invalidate the cache.
                 # or, if the previous handler can't process the current result, invalidate the cache.
-                if type(result) is not kind or not handler(context, result):
+                if not isinstance(result, kind) or not handler(context, result):
                     raise KeyError('Invalidating.')
                 
                 # Reset the cache miss counter.
@@ -114,10 +114,16 @@ class Application(object):
             context.response = exc
         
         except Exception as exc:
-            raise
+            for ext in self._after:
+                if ext(context, exc):
+                    exc = None
+            
+            if exc:
+                raise
         
-        for ext in self._after:
-            ext(context, exc)
+        else:
+            for ext in self._after:
+                ext(context, None)
         
         result = context.response(environ)
         

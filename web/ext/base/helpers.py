@@ -1,11 +1,12 @@
 # encoding: utf-8
 
 import weakref
+import math
 
 from marrow.util.url import URL
 
 
-__all__ = ['URLGenerator']
+__all__ = ['URLGenerator', 'Pager']
 
 
 class URLGenerator(object):
@@ -115,3 +116,78 @@ class URLGenerator(object):
         url.fragment = anchor
         
         return str(url)
+
+
+class Pager(object):
+    def __init__(self, iterable, page, per, total=None):
+        self.iterable = iterable
+        self.page = page
+        self.per = per
+        
+        try:
+            self.total = total or len(iterable)
+        except TypeError:
+            self.total = None # indeterminate maximum
+        
+        self._iterable = iterable[self.slice]
+    
+    def __len__(self):
+        try:
+            return len(self._iterable)
+        except TypeError:
+            if self.total is None:
+                return self.per
+            else:
+                return min(self.total, self.per)
+    
+    @property
+    def count(self):
+        return int(math.ceil(self.total / float(self.per)))
+    
+    def prev(self):
+        return Pager(self.iterable, max(0, self.page - 1), self.per, self.total)
+    
+    def next(self):
+        if self.total is not None:
+            return Pager(self.iterable, self.page + 1, self.per, self.total)
+        
+        return Pager(self.iterable, min(len(self), self.page + 1), self.per, self.total)
+    
+    def __iter__(self):
+        return self._iterable.__iter__()
+    
+    @property
+    def slice(self):
+        return slice(self.per * (self.page - 1), (self.per * self.page) - 1)
+    
+    def __getitem__(self, item):
+        return self._iterable.__getitem__(item)
+    
+    def pages(self, left_edge=2, left_current=2, right_current=5, right_edge=2):
+        """Iterates over the page numbers in the pagination.  The four
+        parameters control the thresholds how many numbers should be produced
+        from the sides.  Skipped page numbers are represented as `None`.
+        This is how you could render such a pagination in the templates:
+        """
+        last = 0
+        page = self.page
+        pages = self.count
+        for num in range(1, pages + 1):
+            if num <= left_edge or \
+               (num > page - left_current - 1 and \
+                num < page + right_current) or \
+               num > pages - right_edge:
+                if last + 1 != num:
+                    yield None
+                yield num
+                last = num
+
+
+if __name__ == '__main__':
+    stuff = [1,2,3,4,5,6,7,8,9]
+    p = Pager(stuff, 1, 2)
+    
+    print(p.page, p.per, p.total, p.count)
+    print(len(p), p.slice)
+    print(list(p.pages()))
+    print(list(p))

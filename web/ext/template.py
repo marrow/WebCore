@@ -57,6 +57,13 @@ class Extension(object):
         """Executed during application shutdown after the last request has been served."""
         pass
     
+    def graceful(self):
+        """Called when a SIGHUP is sent to the application.
+        
+        Allows your code to re-load configuration and your code should close then re-open sockets and files.
+        """
+        pass
+    
     def prepare(self, context):
         """Executed during request set-up to populate the @context@ attribute-access dictionary.
         
