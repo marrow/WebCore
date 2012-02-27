@@ -5,6 +5,7 @@
 import re
 import warnings
 import mongoengine
+from marrow.util.object import load_object
 
 
 __all__ = ['MongoEngineMiddleware']

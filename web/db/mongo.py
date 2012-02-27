@@ -4,6 +4,7 @@ import re
 import warnings
 
 from pymongo.connection import Connection
+from marrow.util.object import load_object
 
 
 __all__ = ['MongoMiddleware']
