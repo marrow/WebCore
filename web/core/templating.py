@@ -8,6 +8,8 @@ from marrow.templating.core import Engines
 
 from web.core import request, response
 
+from marrow.util.compat import unicode
+
 
 __all__ = ['resolve', 'registry', 'render', 'template', 'TemplatingMiddleware']
 log = __import__('logging').getLogger(__name__)
@@ -97,6 +99,10 @@ class TemplatingMiddleware(object):
             raise TypeError("Invalid tuple values returned to TemplatingMiddleware.")
 
         response.content_type, output = render(template, data, **extras)
+        
+        if isinstance(response.content_type, unicode):
+            response.content_type = response.content_type.encode('iso-8859-1')
+        
         if isinstance(output, str):
             response.body = output
         elif isinstance(output, unicode):
