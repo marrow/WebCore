@@ -49,6 +49,11 @@ class URLGenerator(object):
         
         return self._partial(path, params, anchor)
     
+    def complete(self, path=None, params=None, anchor=None, protocol=None, host=None, port=None):
+        """As per the default syntax, but always returns a complete URL."""
+        
+        return self._full(path, params, anchor, protocol, host, port)
+    
     def compose(self, *args, **kw):
         """An alternate syntax for simpler URL generation.
         
