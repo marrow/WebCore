@@ -97,6 +97,11 @@ setup(
                         'sqlalchemy = web.db.sa:SQLAlchemyMiddleware',
                         'mongo = web.db.mongo:MongoMiddleware',
                         'mongoengine = web.db.me:MongoEngineMiddleware'
+                    ],
+                'webcore.dispatch': [
+                        'object = web.dialect.dispatch:ObjectDispatchDialect',
+                        'route = web.dialect.route:RoutingDialect',
+                        'traversal = web.dialect.traversal:TraversalDialect'
                     ]
             }
     )
