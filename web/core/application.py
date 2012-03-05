@@ -128,31 +128,3 @@ class Application(object):
         result = context.response(environ)
         
         return result
-
-
-if __name__ == '__main__':
-    import logging
-    logging.basicConfig(level=logging.DEBUG)
-    
-    # enhanced wsgi2 application
-    def enhanced(context):
-        return b'200 OK', [(b'Content-Type', b'text/plain'), (b'Content-Length', b'12')], [b'Hello world.']
-    
-    # one-function WebCore 2 application
-    def basic(context):
-        context.response.mime = b'text/plain'
-        return "Hello world."
-    
-    # template-based one-function WebCore 2 application
-    def template(context):
-        context.log.warning("Returning template result.")
-        return 'mako:./test.html', dict()
-    
-    # test of exception handling
-    def exception(context):
-        raise HTTPNotFound()
-    
-    app = Application(template)
-    
-    from marrow.server.http import HTTPServer
-    HTTPServer('127.0.0.1', 8080, application=app).start()
