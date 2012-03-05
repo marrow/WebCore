@@ -1,7 +1,8 @@
 # encoding: utf-8
 
-from functools import partial
+from functools import partial, wraps
 
+from web.ext.auth import predicate
 
 class AuthenticationExtension(object):
     uses = ['template']
@@ -9,24 +10,30 @@ class AuthenticationExtension(object):
     provides = ['auth', 'authentication', 'identity']
     
     def __init__(self, config):
-        super(Extension, self).__init__()
+        super(AuthenticationExtension, self).__init__()
     
     def prepare(self, context):
         """Prepare the variables from the context."""
         context.user = None
         context.acl = []
         context.namespace.user = context.user
-        context.namespace.auth = predicates
+        context.namespace.auth = predicate
         
         context.authenticate = partial(self.authenticate, context)
+        
+        context.log = context.log.data(user=context.user)
     
     def dispatch(self, context, consumed, handler, is_endpoint):
-        acl = getattr(handler, '__acl__', [])
-        context.acl.append(acl)
+        if not getattr(handler, '__acl_inherit__', True):
+            del context.acl[:]
+        
+        context.acl.extend(getattr(handler, '__acl__', []))
     
     def before(self, context):
         """Validate the ACL."""
-        pass
+        for rule in context.acl:
+            if rule.evaluate():
+                return
     
     def authenticate(self, context, identifier, password=None, force=False):
         """Authenticate a user.
@@ -83,7 +90,7 @@ def authorize(predicate):
     """
     
     def decorator(func):
-        @functools.wraps(func)
+        @wraps(func)
         def wrapper(*args, **kw):
             if not bool(predicate):
                 raise web.core.http.HTTPUnauthorized()

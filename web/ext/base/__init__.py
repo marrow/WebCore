@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 from marrow.wsgi.objects import Request, Response
+from marrow.logging import log
 
 from web.core.response import registry
 from web.ext.base import handler
@@ -38,18 +39,16 @@ class BaseExtension(object):
         context.environ['web.base'] = context.request.path
         
         context.url = URLGenerator(context)
-        context.path = [context.root] # XXX: named tuple of controller, path
-        context.log = None # pre-configured marrow.logging object
-        # XXX: The above can be a lazily-configured proxy object to
-        # avoid overhead.
+        context.path = []
+        context.log = log.data(request=context.request)
     
     def dispatch(self, context, consumed, handler, is_endpoint):
         """Called as dispatch descends into a tier.
         
         The base extension uses this to maintain the "current url".
         """
-        context.path.append(handler)
         context.request.path += consumed
+        context.path.append((handler, context.request.path))
         del context.request.remainder[:len(consumed)]
         
         if not is_endpoint:

@@ -145,6 +145,7 @@ if __name__ == '__main__':
     
     # template-based one-function WebCore 2 application
     def template(context):
+        context.log.warning("Returning template result.")
         return 'mako:./test.html', dict()
     
     # test of exception handling

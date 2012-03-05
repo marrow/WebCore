@@ -1,18 +1,20 @@
 # encoding: utf-8
 
 
-class Extension(object):
-    uses = []
+class DatabaseExtension(object):
+    uses = ['transaction']
     needs = []
     provides = ['db', 'database']
     
     def __init__(self, config):
         """Executed to configure the extension."""
-        super(Extension, self).__init__()
+        super(DatabaseExtension, self).__init__()
+        
+        self.config = config
     
     def __call__(self, app):
         """Executed to wrap the application in middleware."""
-        pass
+        return app
     
     def start(self):
         """Executed during application startup just after binding the server."""

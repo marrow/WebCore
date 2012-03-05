@@ -1,39 +1,32 @@
 # encoding: utf-8
 
-from marrow.mailer import Mailer
+try:
+    import transaction
+except ImportError:
+    raise ImportError("Unable to import transaction; pip install transaction to fix this.")
 
 
-class MailExtension(object):
+class TransactionExtension(object):
     uses = []
     needs = []
-    provides = ['mail']
-    
+    provides = ['transaction']
+
     def __init__(self, config):
         """Executed to configure the extension."""
-        super(MailExtension, self).__init__()
-        
-        self.mailer = Mailer(config)
-    
+        super(TransactionExtension, self).__init__()
+
     def start(self):
         """Executed during application startup just after binding the server."""
-        self.mailer.start()
-    
+        pass
+
     def stop(self):
         """Executed during application shutdown after the last request has been served."""
-        self.mailer.stop()
-    
-    def graceful(self, config):
-        """Reload the configuration on SIGHUP."""
-        
-        self.stop()
-        del self.mailer
-        self.mailer = Mailer(config)
-        self.start()
-    
+        pass
+
     def prepare(self, context):
         """Executed during request set-up."""
-        context.mail = self.mailer
-    
+        pass
+
     def after(self, context, exc=None):
         """Executed after dispatch has returned and the response populated, prior to anything being sent to the client."""
-        pass # conditional sending
+        pass
