@@ -3,7 +3,7 @@
 """Everything all in one convienent file."""
 
 from web.dialect.route import route
-from web.dialect.helper import Resource, Collection, method, render, condition
+from web.dialect.helper import Resource, Collection, method, render, require
 
 
 class Person(Resource):
@@ -53,6 +53,12 @@ class Root(object):
     people = People
     diz = Routed
     
+    # The following is a static page definition.
+    about = 'myapp.templates.about', dict()
+    
+    # This works, too!  In fact, you can use any registry-handleable value!
+    readme = open('../README.textile', 'r')
+    
     def __call__(self):
         """Handle "index" lookups."""
         return "Path: /"
@@ -90,6 +96,12 @@ class Root(object):
     @foo.otherwise
     def foo(self):
         return "We didn't match anything.  :("
+    
+    def __getattr__(self, name):
+        if name.isdigit():
+            return lambda: "Numerical lookup!"
+        
+        raise AttributeError()
 
 
 
