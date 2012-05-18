@@ -120,7 +120,7 @@ class TestSASession(WebTestCase):
     
     def test_in_session(self):
         response = self.assertResponse('/in_session')
-        assert response.body.startswith('<sqlalchemy.orm.session.Session object')
+        assert response.body.startswith('<sqlalchemy.orm.session.Session'), response.body
     
     def test_http_exceptions(self):
         self.assertResponse('/http_ok', '200 OK', 'text/plain')

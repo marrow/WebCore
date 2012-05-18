@@ -61,12 +61,19 @@ class TransactionalMiddlewareInterface(object):
         
         status = []
         
-        def local_start(stat_str, headers=[]):
+        def local_start(stat_str, headers=[], exc_info=None):
             status.append(int(stat_str.split(' ')[0]))
-            return start_response(stat_str, headers)
+            return start_response(stat_str, headers, exc_info)
         
         try:
             result = self.application(environ, local_start)
+        
+        except Exception as e:
+            if self.vote(environ, None, e):
+                self.finish(environ)
+            else:
+                self.abort(environ)
+        
         finally:
             if self.vote(environ, status[0] if status else None):
                 self.finish(environ)

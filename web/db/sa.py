@@ -67,7 +67,11 @@ class SQLAlchemyMiddleware(api.TransactionalMiddlewareInterface):
     def begin(self, environ):
         environ['paste.registry'].register(self.session, self._session())
     
-    def vote(self, environ, status):
+    def vote(self, environ, status, exc=None):
+        if exc:
+            log.debug("Rolling back database session due to internal error: %r", exc)
+            return False
+        
         if status >= 400:
             log.debug("Rolling back database session due to HTTP status: %r", status)
             return False
