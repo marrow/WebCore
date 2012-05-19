@@ -72,10 +72,8 @@ class TransactionalMiddlewareInterface(object):
         
         try:
             result = self.application(environ, local_start)
-        
-        except HTTPException as e:
+        except HTTPException:
             pass
-        
         except Exception as e:
             exc.append(e)
         
