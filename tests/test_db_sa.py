@@ -25,20 +25,8 @@ class Foo(Base):
     name = Column(Unicode(250), primary_key=True)
 
 
-def setup(args):
-    return args
-
-
-def populate(a, b):
-    pass
-
-
-def prepare():
-    metadata.create_all()
-
-
 def ready(sm):
-    pass
+    metadata.create_all()
 
 
 class RootController(PlainController):
