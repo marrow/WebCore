@@ -122,9 +122,12 @@ class TestSASession(WebTestCase):
 
 class TestSAOperations(WebTestCase):
     app = app
+
+    def setUp(self):
+        self.assertResponse('/clear', '200 OK', 'text/plain', body="ok")
+        self.assertResponse('/list', '200 OK', 'text/plain', body="")
     
     def test_successful_operations(self):
-        self.assertResponse('/clear', '200 OK', 'text/plain', body="ok")
         self.assertPostResponse('/create', dict(name="foo"), '200 OK', 'text/plain', body="ok")
         self.assertPostResponse('/load', dict(name="foo"), '200 OK', 'text/plain', body="ok")
         self.assertResponse('/list', '200 OK', 'text/plain', body="foo")
@@ -134,18 +137,12 @@ class TestSAOperations(WebTestCase):
         self.assertResponse('/list', '200 OK', 'text/plain', body="")
         
     def test_bad_create(self):
-        self.assertResponse('/clear', '200 OK', 'text/plain', body="ok")
-        self.assertResponse('/list', '200 OK', 'text/plain', body="")
-        
         self.assertPostResponse('/create', dict(name="foo", die="HTTPInternalServerError"),
                 '500 Internal Server Error', 'text/plain')
         
         self.assertResponse('/list', '200 OK', 'text/plain', body="")
     
     def test_bad_rename(self):
-        self.assertResponse('/clear', '200 OK', 'text/plain', body="ok")
-        self.assertResponse('/list', '200 OK', 'text/plain', body="")
-
         self.assertPostResponse('/create', dict(name="foo"), '200 OK', 'text/plain', body="ok")
         self.assertResponse('/list', '200 OK', 'text/plain', body="foo")
         
@@ -155,9 +152,6 @@ class TestSAOperations(WebTestCase):
         self.assertResponse('/list', '200 OK', 'text/plain', body="foo")
 
     def test_bad_delete(self):
-        self.assertResponse('/clear', '200 OK', 'text/plain', body="ok")
-        self.assertResponse('/list', '200 OK', 'text/plain', body="")
-
         self.assertPostResponse('/create', dict(name="foo"), '200 OK', 'text/plain', body="ok")
         self.assertResponse('/list', '200 OK', 'text/plain', body="foo")
         
@@ -169,9 +163,6 @@ class TestSAOperations(WebTestCase):
         self.assertResponse('/list', '200 OK', 'text/plain', body="")
 
     def test_rollback_on_exception(self):
-        self.assertResponse('/clear', '200 OK', 'text/plain', body="ok")
-        self.assertResponse('/list', '200 OK', 'text/plain', body="")
-
         try:
             self.assertPostResponse('/create_raise', dict(name="foo", http_error=False))
         except Exception:
