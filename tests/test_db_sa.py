@@ -1,17 +1,15 @@
 # encoding: utf-8
 
-from unittest import TestCase
-
-from webob import Request
 from paste.registry import StackedObjectProxy
 
 import web
-from web.core import Application, Controller, request
+from web.core import Application
 
 from common import PlainController, WebTestCase
 
 from sqlalchemy import Column, Unicode
 from sqlalchemy.ext.declarative import declarative_base
+from webob.exc import HTTPInternalServerError
 
 
 
@@ -95,6 +93,12 @@ class RootController(PlainController):
     def list(self):
         return u", ".join([i.name for i in session.query(Foo).order_by('name').all()])
 
+    def create_raise(self, name, http_error=False):
+        session.add(Foo(name=name))
+        session.flush()
+        if not http_error:
+            raise Exception
+        return HTTPInternalServerError()
 
 test_config = {
         'debug': False,
@@ -174,4 +178,18 @@ class TestSAOperations(WebTestCase):
 
         self.assertResponse('/list', '200 OK', 'text/plain', body="foo")
         self.assertPostResponse('/delete', dict(name="foo"), '200 OK', 'text/plain', body="ok")
+        self.assertResponse('/list', '200 OK', 'text/plain', body="")
+
+    def test_rollback_on_exception(self):
+        self.assertResponse('/clear', '200 OK', 'text/plain', body="ok")
+        self.assertResponse('/list', '200 OK', 'text/plain', body="")
+
+        try:
+            self.assertPostResponse('/create_raise', dict(name="foo", http_error=False))
+        except Exception:
+            pass
+        self.assertResponse('/list', '200 OK', 'text/plain', body="")
+
+        self.assertPostResponse('/create_raise', dict(name="foo", http_error=True),
+                '500 Internal Server Error', 'text/plain')
         self.assertResponse('/list', '200 OK', 'text/plain', body="")
