@@ -1,5 +1,6 @@
 # encoding: utf-8
 
+from inspect import ismethod
 from itertools import chain
 from weakref import WeakKeyDictionary
 
@@ -48,11 +49,12 @@ class Application(object):
         self._start = []
         self._stop = []
         self._prepare = []
+        self._dispatch = []
         self._before = []
         self._after = []
         
         for ext in self.extensions:
-            for mn in ('start', 'stop', 'prepare', 'before', 'after'):
+            for mn in ('start', 'stop', 'prepare', 'dispatch', 'before', 'after'):
                 m = getattr(ext, mn, None)
                 if not m: continue
                 getattr(self, '_' + mn).append(m)
@@ -75,40 +77,59 @@ class Application(object):
         
         exc = None
         
-        # TODO: Dispatch.
-        callable = self.root
+        context.log.debug("Starting dispatch.")
+        
+        # Terrible! Temporary! Hack! :D
+        router = __import__('web.dialect.dispatch').dialect.dispatch.ObjectDispatchDialect(self.config)
+        
+        for consumed, handler, is_endpoint in router(context, self.root):
+            for listener in self._dispatch:
+                listener(context, consumed, handler, is_endpoint)
+        
         count = 0
         
         try:
-            result = callable(context)
+            # We need to determine if the returned object is callable.
+            #  If not, continue.
+            # Then if the callable is a bound instance method.
+            #  If not call with the context as an argument.
+            # Otherwise call.
+            
+            if callable(handler):
+                if ismethod(handler) and getattr(handler, '__self__', None):
+                    result = handler()
+                else:
+                    result = handler(context)
+            else:
+                result = handler
             
             try:
                 # We optimize for the general case whereby callables always return the same type of result.
-                kind, handler, count = self._cache[callable]
+                kind, renderer, count = self._cache[handler]
                 
                 # If the current return value isn't of the expceted type, invalidate the cache.
                 # or, if the previous handler can't process the current result, invalidate the cache.
-                if not isinstance(result, kind) or not handler(context, result):
+                if not isinstance(result, kind) or not renderer(context, result):
                     raise KeyError('Invalidating.')
                 
                 # Reset the cache miss counter.
                 if count > 1:
-                    self._cache[callable] = (kind, handler, 1)
+                    self._cache[handler] = (kind, renderer, 1)
             
             except KeyError:
                 # Perform the expensive deep-search for a valid handler.
-                handler = registry(context, result)
+                renderer = registry(context, result)
                 
-                if not handler:
+                if not renderer:
                     raise Exception("Inappropriate return value or return value does not match response registry:\n\t" +
                             __import__('pprint').pformat(result))
                 
                 # If we're updating the cache excessively the optimization is worse than the problem.
                 if count > 5:
-                    handler = registry
+                    renderer = registry
                 
                 # Update the cache.
-                self._cache[callable] = (type(result), handler, count + 1)
+                self._cache[handler] = (type(result), renderer, count + 1)
         
         except HTTPException as exc:
             context.response = exc

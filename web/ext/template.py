@@ -81,18 +81,17 @@ class Extension(object):
         Generally called in series, like:
         
             # Index method example.
-            dispatch(context, '/', RootController, False)
-            dispatch(context, '', RootController.__call__, True)
+            dispatch(context, '', RootController, True)
             
             # Data-based example.
-            dispatch(context, '/', RootController, False)
+            dispatch(context, '', RootController, False)
             dispatch(context, 'admin', AdminController, False)
             dispatch(context, 'user', UsersController, False)
             dispatch(context, '27', UserController(27), False)
             dispatch(context, 'modify', UserController(27).modify, True)
             
             # Contentment example.
-            dispatch(context, '/', AssetController, False)
+            dispatch(context, '', AssetController, False)
             dispatch(context, 'company/about/staff', PageController, False)
             dispatch(context, 'view:page', PageController.page, True)
             

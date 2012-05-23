@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 from marrow.wsgi.objects import Request, Response
-from marrow.logging import log
+from marrow.logging import Log, DEBUG
 
 from web.core.response import registry
 from web.ext.base import handler
@@ -33,6 +33,10 @@ class BaseExtension(object):
         * environ -- the current request environment
         """
         
+        log = Log(level=DEBUG).name('request')  # TODO: Split this into the logging extension.
+        
+        log.debug("Preparing request context.")
+        
         context.request = Request(context.environ)
         context.response = Response(request=context.request)
         
@@ -47,9 +51,13 @@ class BaseExtension(object):
         
         The base extension uses this to maintain the "current url".
         """
+        context.log.data(consumed=consumed, handler=handler, endpoint=is_endpoint).debug("Handling dispatch.")
+        
         context.request.path += consumed
         context.path.append((handler, context.request.path))
-        del context.request.remainder[:len(consumed)]
+        
+        for i in range(len(consumed)):
+            context.request.remainder.pop()
         
         if not is_endpoint:
             context.environ['web.controller'] = str(context.request.path)

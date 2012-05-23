@@ -7,6 +7,9 @@ Applications can be as simple or as complex and layered as your needs dictate.
 
 
 class Root(object):
+    def __init__(self, context):
+        self._ctx = context
+    
     def __call__(self):
         """Handle "index" lookups."""
         return "Path: /"
