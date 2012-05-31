@@ -2,6 +2,7 @@
 
 """WebCore database middleware API."""
 
+from webob.exc import HTTPException
 
 import warnings
 import re
@@ -59,18 +60,26 @@ class TransactionalMiddlewareInterface(object):
         
         self.begin(environ)
         
+        result = None
         status = []
+        exc = []
         
-        def local_start(stat_str, headers=[]):
+        def local_start(stat_str, headers=[], exc_info=None):
             status.append(int(stat_str.split(' ')[0]))
-            return start_response(stat_str, headers)
+            if exc_info:
+                exc.append(exc_info)
+            return start_response(stat_str, headers, exc_info)
         
         try:
             result = self.application(environ, local_start)
-        finally:
-            if self.vote(environ, status[0] if status else None):
-                self.finish(environ)
-            else:
-                self.abort(environ)
+        except HTTPException:
+            pass
+        except Exception as e:
+            exc.append(e)
+        
+        if self.vote(environ, status[0] if status else None, exc[0] if exc else None):
+            self.finish(environ)
+        else:
+            self.abort(environ)
         
         return result

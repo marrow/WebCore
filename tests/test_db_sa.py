@@ -1,17 +1,15 @@
 # encoding: utf-8
 
-from unittest import TestCase
-
-from webob import Request
 from paste.registry import StackedObjectProxy
 
 import web
-from web.core import Application, Controller, request
+from web.core import Application
 
 from common import PlainController, WebTestCase
 
 from sqlalchemy import Column, Unicode
 from sqlalchemy.ext.declarative import declarative_base
+from webob.exc import HTTPInternalServerError
 
 
 
@@ -27,20 +25,8 @@ class Foo(Base):
     name = Column(Unicode(250), primary_key=True)
 
 
-def setup(args):
-    return args
-
-
-def populate(a, b):
-    pass
-
-
-def prepare():
-    metadata.create_all()
-
-
 def ready(sm):
-    pass
+    metadata.create_all()
 
 
 class RootController(PlainController):
@@ -95,6 +81,12 @@ class RootController(PlainController):
     def list(self):
         return u", ".join([i.name for i in session.query(Foo).order_by('name').all()])
 
+    def create_raise(self, name, http_error=False):
+        session.add(Foo(name=name))
+        session.flush()
+        if not http_error:
+            raise Exception
+        return HTTPInternalServerError()
 
 test_config = {
         'debug': False,
@@ -120,7 +112,7 @@ class TestSASession(WebTestCase):
     
     def test_in_session(self):
         response = self.assertResponse('/in_session')
-        assert response.body.startswith('<sqlalchemy.orm.session.Session object')
+        assert response.body.startswith('<sqlalchemy.orm.session.Session'), response.body
     
     def test_http_exceptions(self):
         self.assertResponse('/http_ok', '200 OK', 'text/plain')
@@ -130,9 +122,12 @@ class TestSASession(WebTestCase):
 
 class TestSAOperations(WebTestCase):
     app = app
+
+    def setUp(self):
+        self.assertResponse('/clear', '200 OK', 'text/plain', body="ok")
+        self.assertResponse('/list', '200 OK', 'text/plain', body="")
     
     def test_successful_operations(self):
-        self.assertResponse('/clear', '200 OK', 'text/plain', body="ok")
         self.assertPostResponse('/create', dict(name="foo"), '200 OK', 'text/plain', body="ok")
         self.assertPostResponse('/load', dict(name="foo"), '200 OK', 'text/plain', body="ok")
         self.assertResponse('/list', '200 OK', 'text/plain', body="foo")
@@ -142,18 +137,12 @@ class TestSAOperations(WebTestCase):
         self.assertResponse('/list', '200 OK', 'text/plain', body="")
         
     def test_bad_create(self):
-        self.assertResponse('/clear', '200 OK', 'text/plain', body="ok")
-        self.assertResponse('/list', '200 OK', 'text/plain', body="")
-        
         self.assertPostResponse('/create', dict(name="foo", die="HTTPInternalServerError"),
                 '500 Internal Server Error', 'text/plain')
         
         self.assertResponse('/list', '200 OK', 'text/plain', body="")
     
     def test_bad_rename(self):
-        self.assertResponse('/clear', '200 OK', 'text/plain', body="ok")
-        self.assertResponse('/list', '200 OK', 'text/plain', body="")
-
         self.assertPostResponse('/create', dict(name="foo"), '200 OK', 'text/plain', body="ok")
         self.assertResponse('/list', '200 OK', 'text/plain', body="foo")
         
@@ -163,9 +152,6 @@ class TestSAOperations(WebTestCase):
         self.assertResponse('/list', '200 OK', 'text/plain', body="foo")
 
     def test_bad_delete(self):
-        self.assertResponse('/clear', '200 OK', 'text/plain', body="ok")
-        self.assertResponse('/list', '200 OK', 'text/plain', body="")
-
         self.assertPostResponse('/create', dict(name="foo"), '200 OK', 'text/plain', body="ok")
         self.assertResponse('/list', '200 OK', 'text/plain', body="foo")
         
@@ -174,4 +160,15 @@ class TestSAOperations(WebTestCase):
 
         self.assertResponse('/list', '200 OK', 'text/plain', body="foo")
         self.assertPostResponse('/delete', dict(name="foo"), '200 OK', 'text/plain', body="ok")
+        self.assertResponse('/list', '200 OK', 'text/plain', body="")
+
+    def test_rollback_on_exception(self):
+        try:
+            self.assertPostResponse('/create_raise', dict(name="foo", http_error=False))
+        except Exception:
+            pass
+        self.assertResponse('/list', '200 OK', 'text/plain', body="")
+
+        self.assertPostResponse('/create_raise', dict(name="foo", http_error=True),
+                '500 Internal Server Error', 'text/plain')
         self.assertResponse('/list', '200 OK', 'text/plain', body="")
