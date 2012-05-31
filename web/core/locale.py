@@ -228,7 +228,7 @@ class LocaleMiddleware(object):
             if '-' in i:
                 languages.append(i.split('-', 1)[0])
         
-        languages.extend(environ['paste.config'].get('web.locale.fallback', ['en']))
+        languages.append(environ['paste.config'].get('web.locale.fallback', 'en'))
         return languages
 
     def __call__(self, environ, start_response):
