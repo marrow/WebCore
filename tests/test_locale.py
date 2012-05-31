@@ -59,7 +59,7 @@ class RootController(PlainController):
         return web.core.session.id
 
 
-test_config = {'debug': True, 'web.locale.i18n': True, 'web.sessions': True,
+test_config = {'debug': True, 'web.locale.i18n': True, 'web.locale.fallback': 'fr', 'web.sessions': True,
         'web.sessions.type': 'memory', 'web.sessions.validate_key': 'a', 'web.sessions.auto': True}
 
 class TestI18n(WebTestCase):
@@ -122,19 +122,19 @@ class TestI18nSession(WebTestCase):
         self.assertEqual(resp1.body, resp2.body)
 
     def test_set_lang(self):
-        self.assertResponse('/get_lang', _environ=self.environ, body='fi,en-US,en,en,en')
+        self.assertResponse('/get_lang', _environ=self.environ, body='fi,en-US,en,en,fr')
         self.assertResponse('/set_lang?l=en', _environ=self.environ, body='This works!')
         self.assertResponse('/gettext', _environ=self.environ, body='This works!'.encode('utf-8'))
-        self.assertResponse('/get_lang', _environ=self.environ, body='en,fi,en-US,en,en,en')
+        self.assertResponse('/get_lang', _environ=self.environ, body='en,fi,en-US,en,en,fr')
         self.assertResponse('/set_lang?l=fi', _environ=self.environ, body='Tämä toimii!'.encode('utf-8'))
         self.assertResponse('/gettext', _environ=self.environ, body='Tämä toimii!'.encode('utf-8'))
-        self.assertResponse('/get_lang', _environ=self.environ, body='fi,fi,en-US,en,en,en')
+        self.assertResponse('/get_lang', _environ=self.environ, body='fi,fi,en-US,en,en,fr')
 
     def test_set_lang_default(self):
-        self.assertResponse('/get_lang', _environ=self.environ, body='fi,en-US,en,en,en')
+        self.assertResponse('/get_lang', _environ=self.environ, body='fi,en-US,en,en,fr')
         self.assertResponse('/set_lang?l=en', _environ=self.environ, body='This works!')
         self.assertResponse('/gettext', _environ=self.environ, body='This works!'.encode('utf-8'))
-        self.assertResponse('/get_lang', _environ=self.environ, body='en,fi,en-US,en,en,en')
+        self.assertResponse('/get_lang', _environ=self.environ, body='en,fi,en-US,en,en,fr')
         self.assertResponse('/set_lang', _environ=self.environ, body='Tämä toimii!'.encode('utf-8'))
         self.assertResponse('/gettext', _environ=self.environ, body='Tämä toimii!'.encode('utf-8'))
-        self.assertResponse('/get_lang', _environ=self.environ, body='fi,en-US,en,en,en')
+        self.assertResponse('/get_lang', _environ=self.environ, body='fi,en-US,en,en,fr')
