@@ -6,6 +6,7 @@ configuration.
 
 import os
 import warnings
+import functools
 import pkg_resources
 import web
 
@@ -266,50 +267,63 @@ def static(app, config):
     # Enabled explicitly or while debugging so you can use Paste's HTTP server.
     if config.get('web.static', None) is None and not boolean(config.get('debug', False)):
         return app
-    
+
     if not boolean(config.get('web.static', False)):
         return app
-    
+
     from paste.cascade import Cascade
     from paste.fileapp import DirectoryApp
-    
+
     path = config.get('web.static.path', None)
-    
+    base = config.get('web.static.root', None)
+
     if path is None:
         # Attempt to discover the path automatically.
         module = __import__(config['web.root'].__module__)
         parts = config['web.root'].__module__.split('.')[1:]
         path = module.__file__
-        
+
         if not parts:
             parts = ['.']
-        
+
         while parts: # pragma: no cover
             # Search up the package tree, in case this is an application in a sub-module.
-            
+
             path = os.path.abspath(path)
             path = os.path.dirname(path)
             path = os.path.join(path, 'public')
-            
+
             log.debug("Trying %r", path)
-            
+
             if os.path.isdir(path):
                 break
-            
+
             if parts[0] == '.':
                 break
-            
+
             module = getattr(module, parts.pop(0))
             path = module.__file__
-    
+
     if not os.path.isdir(path):
         log.warn("Unable to find folder to serve static content from. "
                  "Please specify web.static.path in your config.")
         return app
-    
-    log.debug("Serving static files from '%s'.", path)
-    
-    return Cascade([DirectoryApp(path), app], catch=[401, 403, 404])
+
+    log.debug("Serving static files from '%s' at '%s'.", path, base or '/')
+
+    subapp = DirectoryApp(path)
+
+    if base:
+        def inner(app, environ, start_response):
+            from webob.exc import HTTPNotFound
+            if not environ['PATH_INFO'].startswith(base):
+                return HTTPNotFound()(environ, start_response)
+            environ['PATH_INFO'] = environ['PATH_INFO'][len(base.rstrip('/')):]
+            return app(environ, start_response)
+
+        subapp = functools.partial(inner, subapp)
+
+    return Cascade([subapp, app], catch=[401, 403, 404])
 
 
 @middleware('compression', after="static")
