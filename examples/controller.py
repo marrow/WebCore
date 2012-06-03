@@ -17,6 +17,9 @@ class Root(object):
     def index(self):
         """Handle calls to /index -- this is no longer the 'default' index lookup."""
         return "Path: /index"
+    
+    foo = "Static string!"
+    bar = "mako:./examples/template.html", dict()
 
 
 if __name__ == '__main__':

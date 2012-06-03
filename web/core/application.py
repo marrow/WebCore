@@ -62,7 +62,7 @@ class Application(object):
         for ext in self._start:
             ext()
         
-        self._cache = WeakKeyDictionary()
+        self._cache = dict() # WeakKeyDictionary
     
     def __call__(self, environ):
         context = Bunch()
@@ -116,7 +116,7 @@ class Application(object):
                 if count > 1:
                     self._cache[handler] = (kind, renderer, 1)
             
-            except KeyError:
+            except (TypeError, KeyError):
                 # Perform the expensive deep-search for a valid handler.
                 renderer = registry(context, result)
                 
@@ -129,7 +129,10 @@ class Application(object):
                     renderer = registry
                 
                 # Update the cache.
-                self._cache[handler] = (type(result), renderer, count + 1)
+                try:
+                    self._cache[handler] = (type(result), renderer, count + 1)
+                except TypeError:
+                    pass
         
         except HTTPException as exc:
             context.response = exc

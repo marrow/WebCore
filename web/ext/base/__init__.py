@@ -51,13 +51,15 @@ class BaseExtension(object):
         
         The base extension uses this to maintain the "current url".
         """
+        request = context.request
+        
         context.log.data(consumed=consumed, handler=handler, endpoint=is_endpoint).debug("Handling dispatch.")
         
-        context.request.path += consumed
-        context.path.append((handler, context.request.path))
+        if len(consumed) != 1 or consumed[0]:
+            context.request.path += consumed
         
-        for i in range(len(consumed)):
-            context.request.remainder.pop()
+        context.path.append((handler, context.request.path))
+        context.request.remainder = context.request.remainder[len(consumed):]
         
         if not is_endpoint:
             context.environ['web.controller'] = str(context.request.path)

@@ -52,20 +52,20 @@ class ObjectDispatchDialect(object):
                         chunk = '/'.join(consumed)
                         del chunks[1:len(consumed)]
                 else:
-                    yield last, parent, True
+                    yield last.split('/'), parent, True
                     return
             
             if isclass(current):
                 current = current(context)
             
-            yield last, parent, False
+            yield last.split('/'), parent, False
             
             last = chunk
         
         if isclass(current) and hasattr(current, '__call__'):
             current = current(context).__call__
         
-        yield last, current, True
+        yield last.split('/'), current, True
 
 
 def main():

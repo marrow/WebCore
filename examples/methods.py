@@ -6,6 +6,9 @@ from web.dialect.helper import method
 
 
 class Root(object):
+    def __init__(self, context):
+        self._ctx = context
+    
     @method.get
     def login(self):
         return "Present login form."
@@ -14,7 +17,6 @@ class Root(object):
     def login(self, **data):
         # can call login.get() to explicitly call that handler.
         return "Actually log in."
-
 
 
 if __name__ == '__main__':

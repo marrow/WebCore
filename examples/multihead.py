@@ -6,16 +6,20 @@ from web.dialect.helper import render, condition
 
 
 class Root(object):
-    @render('mako:myapp.templates.details')
-    @render('json:')  # used if request.format == 'json'
+    @render('mako:./multihead.html')  # default if no extension
+    @render('mako:./multihead.html', 'html')  # /details.html
+    @render('mako:./multihead.xml', 'xml')  # /details.xml
+    @render('json:')  # /details.json
+    @render('bencode:')  # /details.bencode
+    @render('yaml:')  # /details.yaml
     def details(self):
         return dict(name="Bob", age=27)
     
-    @condition(predicate)
+    @condition(False)
     def foo(self):
         return "We matched the predicate."
     
-    @foo.condition(other_predicate)
+    @foo.condition(True)
     def foo(self):
         return "We matched a different predicate."
 
