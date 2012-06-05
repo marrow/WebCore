@@ -5,6 +5,8 @@
 from web.dialect.route import route
 from web.dialect.helper import Resource, Collection, method, render, require
 
+from marrow.util.object import load_object as load
+
 
 class Person(Resource):
     def _get(self):
@@ -52,6 +54,8 @@ class Routed(object):
 class Root(object):
     people = People
     diz = Routed
+    
+    foo = load('myapp.controllers.foo:FooController')
     
     # The following is a static page definition.
     about = 'myapp.templates.about', dict()

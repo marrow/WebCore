@@ -2,7 +2,7 @@
 
 """Allow a single method to return different data formats."""
 
-from web.dialect.helper import render, condition
+from web.dialect.helper import render, require
 
 
 class Root(object):
@@ -15,11 +15,11 @@ class Root(object):
     def details(self):
         return dict(name="Bob", age=27)
     
-    @condition(False)
+    @require(False)
     def foo(self):
         return "We matched the predicate."
     
-    @foo.condition(True)
+    @foo.require(True)
     def foo(self):
         return "We matched a different predicate."
 
