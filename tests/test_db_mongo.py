@@ -1,6 +1,10 @@
 # encoding: utf-8
 
-from unittest import TestCase, skip
+try:
+    # This to handle Python 2.6 which is missing skip.
+    from unittest2 import TestCase, skip
+except ImportError:
+    from unittest import TestCase, skip
 
 try:
     import pymongo

@@ -101,14 +101,12 @@ class TestXMLRPC(WebTestCase):
     def test_bad_xml_input(self):
         request = Request.blank('/', method="POST", body="<foo")
         response = request.get_response(self.app)
-
-        with self.assertRaises(xmlrpclib.Fault):
-            try:
-                data = xmlrpclib.loads(response.body)
-            except Exception, e:
-                raise
-
-        self.assertEquals(repr(e), "<Fault -32700: 'Not well formed.'>")
+        self.assertRaises(xmlrpclib.Fault, xmlrpclib.loads, response.body)
+        
+        try:
+            xmlrpclib.loads(response.body)
+        except xmlrpclib.Fault, e:
+            self.assertEquals(repr(e), "<Fault -32700: 'Not well formed.'>")
 
     def test_before(self):
         response, data = self.assertRPCResponse('add', [2, 4])
