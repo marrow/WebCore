@@ -84,11 +84,11 @@ setup(
                 'paste.app_factory': [
                         'main = web.core:Application.factory'
                     ],
-                'paste.paster_command': [
-                        'shell = web.commands.shell:ShellCommand'
+                'console_scripts': [
+                        'web = web.cli.core:main'
                     ],
-                'webcore.command': [
-                        'shell = web.commands.shell:ShellCommand'
+                'web.command': [
+                        'sys.versions = web.cli.versions:versions'
                     ],
                 'toscawidgets.host_frameworks': [
                         'webcore = web.extras.twframework:WebCoreHostFramework'
