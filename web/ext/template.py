@@ -15,6 +15,7 @@ class Extension(object):
     * @first@ -- Always try to be first in the extension stack.
     * @last@ -- Always try to be last in the extension stack.
     * @provides@ -- A list of keywords usable in @uses@ and @needs@ declarations.
+    * @extensions@ -- A tuple of entry_point namespaces to search for extensions.
     
     The names of method arguments are unimportant; all values are passed positionally.
     """
@@ -26,6 +27,7 @@ class Extension(object):
     first = False
     last = False
     provides = []
+    extensions = ()
     
     def __init__(self, config):
         """Executed to configure the extension.
