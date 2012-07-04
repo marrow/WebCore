@@ -78,24 +78,16 @@ setup(
             ],
 
         entry_points = {
-                'paste.app_factory': [
-                        'main = web.core:Application.factory'
-                    ],
-                'console_scripts': [
-                        'web = web.cli.core:main'
-                    ],
+                'console_scripts': ['web = web.cli.core:main'],
                 'web.command': [
-                        'sys.versions = web.cli.versions:versions'
+                        'versions = web.cli.versions:versions'
                     ],
-                'toscawidgets.host_frameworks': [
-                        'webcore = web.extras.twframework:WebCoreHostFramework'
-                    ],
-                'webcore.db.engines': [
+                'web.db.engines': [
                         'sqlalchemy = web.db.sa:SQLAlchemyMiddleware',
                         'mongo = web.db.mongo:MongoMiddleware',
                         'mongoengine = web.db.me:MongoEngineMiddleware'
                     ],
-                'webcore.dispatch': [
+                'web.dispatch': [
                         'object = web.dialect.dispatch:ObjectDispatchDialect',
                         'route = web.dialect.route:RoutingDialect',
                         'traversal = web.dialect.traversal:TraversalDialect'
