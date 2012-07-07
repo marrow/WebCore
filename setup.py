@@ -14,7 +14,7 @@ except ImportError:
     raise
 
 
-if sys.version_info < (2, 6) or sys.version_info.major >= 3:
+if sys.version_info < (2, 6) or sys.version_info[0] >= 3:
     raise SystemExit("Python 2.6 or 2.7 is required.")
 
 execfile(os.path.join("web", "release.py"))
