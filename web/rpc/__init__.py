@@ -48,5 +48,5 @@ def route(root, method, expects):
             parts.pop()
             return part, last
         
-        log.error("An attempt as made to call an unroutable method: %s", method)
+        log.error("An attempt was made to call an unroutable method: %s", method)
         raise RoutingError

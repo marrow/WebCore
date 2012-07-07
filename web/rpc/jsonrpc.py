@@ -39,7 +39,7 @@ class JSONRPCController(Dialect):
         id = json.get('id', None)
         
         if not isinstance(args, list):
-            raise HTTPBadRequest("Bad paramaters, must be a list: {0!r}".format(args))
+            raise HTTPBadRequest("Bad parameters, must be a list: {0!r}".format(args))
         
         log.debug("JSON-RPC Call: %s%r", method, args)
         
