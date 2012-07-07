@@ -29,7 +29,7 @@ CoreAuth requires that Beaker sessions be enabled.
 
 The following are descriptions of the configuration values and their defaults:
 
-``web.auth.triggers`` (default: ``401``)
+``web.auth.intercept`` (default: ``401``)
    A comma-separated list of HTTP status codes that will trigger redirection to the login form.
 
 ``web.auth.name`` (default: ``uid``)
