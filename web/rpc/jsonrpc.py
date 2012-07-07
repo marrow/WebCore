@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-"""A JSON-RPC Dialect class."""
+"""A Dialect class that implements the JSON-RPC protocol (version 1.0)."""
 
 import web.core
 
@@ -20,7 +20,7 @@ log = __import__('logging').getLogger(__name__)
 
 class JSONRPCController(Dialect):
     def __call__(self, request):
-        """Parse an XML-RPC body and dispatch."""
+        """Parse the JSON body and dispatch."""
         
         if request.method != 'POST':
             raise HTTPMethodNotAllowed("POST required.")
@@ -30,13 +30,13 @@ class JSONRPCController(Dialect):
         except ValueError:
             raise HTTPBadRequest("Unable to parse JSON request.")
         
-        for key in ('method', 'params'):
+        for key in ('method', 'params', 'id'):
             if key not in json:
                 raise HTTPBadRequest("Missing required JSON-RPC value: " + key)
         
         method = json['method']
         args = json['params']
-        id = json.get('id', None)
+        id_ = json['id']
         
         if not isinstance(args, list):
             raise HTTPBadRequest("Bad parameters, must be a list: {0!r}".format(args))
@@ -61,11 +61,11 @@ class JSONRPCController(Dialect):
             web.core.response.content_type = 'application/json'
             
             return 'json:', dict(result=None, error=dict(
-                    name = 'JSONRPCError',
-                    code = 100,
-                    message = str(exc.exception),
-                    error = "Not disclosed." if not web.core.config.get('debug', False) else exc.formatted
-                ), id=id)
+                    name='JSONRPCError',
+                    code=100,
+                    message=str(exc.exception),
+                    error="Not disclosed." if not web.core.config.get('debug', False) else exc.formatted
+                ), id=id_)
         
         try:
             result = parent.__after__(result, *args)
@@ -75,8 +75,4 @@ class JSONRPCController(Dialect):
         log.debug("Got result: %r", result)
         
         web.core.response.content_type = 'application/json'
-        
-        if id:
-            return 'json:', dict(result=result, error=None, id=id)
-        
-        return ''
+        return 'json:', dict(result=result, error=None, id=id_)
