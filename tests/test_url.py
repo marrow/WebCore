@@ -1,12 +1,10 @@
 # encoding: utf-8
 
-from unittest import TestCase
-from nose.tools import eq_ as eq
-
 import web
+
+from nose.tools import eq_ as eq
 from web.core import Application
 from web.utils import URLGenerator
-
 from common import PlainController, WebTestCase
 
 
@@ -15,7 +13,7 @@ class MockURLGenerator(URLGenerator):
         self.base = base
         self.full = full
         self.controller = controller
-    
+
     @property
     def _base(self):
         return self.base, self.full, self.controller
@@ -29,7 +27,7 @@ def test_paths():
             ('/foo/bar', '/foo/bar'),
             ('baz', '/foo/baz')
         ]
-    
+
     for i, o in test_set:
         yield eq, url(i), o
 
@@ -41,7 +39,7 @@ def test_urls():
             (dict(path='/', host="google.com"), 'http://google.com/'),
             (dict(path='/foo/bar', port=8080), 'http://example.com:8080/foo/bar')
         ]
-    
+
     for i, o in test_set:
         yield eq, url(**i), o
 
@@ -52,7 +50,7 @@ def test_arguments():
             (dict(path='', params=dict(text="Hello world.")), '/foo/bar?text=Hello+world.'),
             (dict(path='/', anchor="hello"), '/#hello')
         ]
-    
+
     for i, o in test_set:
         yield eq, url(**i), o
 
@@ -64,7 +62,7 @@ def test_composition():
             (['/'], '/'),
             ([27, 'delete'], '/foo/27/delete')
         ]
-    
+
     for i, o in test_set:
         yield eq, url.compose(*i), o
 
@@ -76,7 +74,7 @@ def test_nonroot_urls():
             (dict(path='/', host="google.com"), 'http://google.com/app/'),
             (dict(path='/foo/bar', port=8080), 'http://example.com:8080/app/foo/bar')
         ]
-    
+
     for i, o in test_set:
         yield eq, url(**i), o
 
@@ -87,7 +85,7 @@ def test_nonroot_arguments():
             (dict(path='', params=dict(text="Hello world.")), '/app/foo/bar?text=Hello+world.'),
             (dict(path='/', anchor="hello"), '/app/#hello')
         ]
-    
+
     for i, o in test_set:
         yield eq, url(**i), o
 
@@ -99,7 +97,7 @@ def test_nonroot_composition():
             (['/'], '/app/'),
             ([27, 'delete'], '/app/foo/27/delete')
         ]
-    
+
     for i, o in test_set:
         yield eq, url.compose(*i), o
 
@@ -111,6 +109,6 @@ class RootController(PlainController):
 
 class TestURLContext(WebTestCase):
     app = Application.factory(root=RootController)
-    
+
     def test_url_context(self):
         self.assertResponse('/', body="\nhttp://localhost/\n")

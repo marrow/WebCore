@@ -3,7 +3,6 @@
 import xmlrpclib
 
 from webob import Request
-
 from web.core import Application
 from web.rpc.xml import XMLRPCController
 from common import WebTestCase
@@ -102,7 +101,7 @@ class TestXMLRPC(WebTestCase):
         request = Request.blank('/', method="POST", body="<foo")
         response = request.get_response(self.app)
         self.assertRaises(xmlrpclib.Fault, xmlrpclib.loads, response.body)
-        
+
         try:
             xmlrpclib.loads(response.body)
         except xmlrpclib.Fault, e:

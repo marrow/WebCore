@@ -62,6 +62,7 @@ class RootController(PlainController):
 test_config = {'debug': True, 'web.locale.i18n': True, 'web.locale.fallback': 'fr', 'web.sessions': True,
         'web.sessions.type': 'memory', 'web.sessions.validate_key': 'a', 'web.sessions.auto': True}
 
+
 class TestI18n(WebTestCase):
     app = Application.factory(root=RootController, **test_config)
     environ = {'HTTP_ACCEPT_LANGUAGE': 'fi, en-US, en'}

@@ -1,12 +1,10 @@
 # encoding: utf-8
 
-from unittest import TestCase
-
-from webob import Response
-
 import web
-from web.core import Application
 
+from unittest import TestCase
+from webob import Response
+from web.core import Application
 from common import PlainController, WebTestCase
 
 

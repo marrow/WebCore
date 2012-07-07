@@ -3,12 +3,9 @@
 import os
 
 from functools import wraps
-
 from marrow.templating.core import Engines
-
-from web.core import request, response
-
 from marrow.util.compat import unicode
+from web.core import request, response
 
 
 __all__ = ['resolve', 'registry', 'render', 'template', 'TemplatingMiddleware']
@@ -94,15 +91,15 @@ class TemplatingMiddleware(object):
             template, data, extras = result + (dict(),)
         elif len(result) == 3:
             template, data, extras = result
-        
+
         if not isinstance(template, basestring) or not isinstance(extras, dict):
             raise TypeError("Invalid tuple values returned to TemplatingMiddleware.")
 
         response.content_type, output = render(template, data, **extras)
-        
+
         if isinstance(response.content_type, unicode):
             response.content_type = response.content_type.encode('iso-8859-1')
-        
+
         if isinstance(output, str):
             response.body = output
         elif isinstance(output, unicode):

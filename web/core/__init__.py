@@ -31,15 +31,15 @@ translator = StackedObjectProxy(name="translator")
 url = URLGenerator()
 
 namespace = Bunch(
-        web = Bunch(
-                request = request,
-                response = response,
-                cache = cache,
-                session = session,
-                i18n = translator,
-                release = release,
-                config = config,
-                url = url
+        web=Bunch(
+                request=request,
+                response=response,
+                cache=cache,
+                session=session,
+                i18n=translator,
+                release=release,
+                config=config,
+                url=url
             )
     )
 

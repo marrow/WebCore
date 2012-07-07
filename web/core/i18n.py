@@ -18,7 +18,7 @@ __all__ = web.core.locale.__all__
 def i18n(app, config):
     if not defaultbool(config.get('web.i18n', True), ['gettext']):
         return app
-    
+
     from web.core.locale import LocaleMiddleware
     return LocaleMiddleware(app, config)
 

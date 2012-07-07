@@ -22,20 +22,20 @@ registry = []
 def defaultbool(value, extended=[]):
     if value is True:
         return True
-    
+
     if isinstance(value, basestring) and str(value).lower() in (['true', 'on', 'yes'] + extended):
         return True
-    
+
     return False
 
 
 class MiddlewareWrapper(object):
     def __init__(self, func, name, after=None):
         self.func, self.name, self.after = func, name, after
-    
+
     def __repr__(self):
         return "Wrapper(%s, %r) for %r" % (self.name, self.after, self.func)
-    
+
     def __call__(self, *args, **kw):
         return self.func(*args, **kw)
 
@@ -44,7 +44,7 @@ class middleware(object):
     def __init__(self, name, after=None):
         self.name = name
         self.after = after
-    
+
     def __call__(self, func):
         registry.append(
                 MiddlewareWrapper(
@@ -53,7 +53,7 @@ class middleware(object):
                         self.after
                     )
             )
-        
+
         return func
 
 
@@ -62,31 +62,30 @@ def templateinterface(app, config):
     # Automatically use TemplateInterface templating engines unless explicitly forbidden.
     if not defaultbool(config.get('web.templating', True), ['templateinterface']):
         return app
-    
+
     log.debug("Loading TemplateInterface template engine middleware.")
-    
+
     try:
         from web.core.templating import TemplatingMiddleware, registry
-        
+
         registry.append(web.core.namespace)
-        
+
         return TemplatingMiddleware(app, config)
-    
     except ImportError:  # pragma: no cover
         log.exception("Error loading templating middleware")
         raise
 
 
 @middleware('widgets', after="templating")
-def toscawidgets(app, config): # pragma: no cover
+def toscawidgets(app, config):  # pragma: no cover
     if not defaultbool(config.get('web.widgets', False), ['toscawidgets']):
         return app
-    
+
     warnings.warn("ToscaWidgets support is deprecated; try marrow.tags instead.", DeprecationWarning)
-    
+
     try:
         from tw.api import make_middleware as ToscaWidgetsMiddleware
-        
+
         twconfig = {
                 'toscawidgets.framework': 'webcore',
                 'toscawidgets.framework.default_view': config.get('web.templating.engine', 'genshi'),
@@ -95,10 +94,10 @@ def toscawidgets(app, config): # pragma: no cover
                 'toscawidgets.middleware.inject_resources': config.get('web.widgets.inject', True),
                 'toscawidgets.middleware.serve_resources': config.get('web.widgets.serve', True)
             }
-        
+
         log.debug("Loading ToscaWidgets middleware.")
         return ToscaWidgetsMiddleware(app, twconfig)
-    
+
     except ImportError:  # pragma: no cover
         raise ImportError("You must install ToscaWidgets to enable toscawidgets support")
 
@@ -108,12 +107,12 @@ def webauth(app, config):
     # Use WebAuth (WebCore) authentication and authorization.
     if not defaultbool(config.get('web.auth', False), ['webauth']):
         return app
-    
+
     log.debug("Loading WebAuth middleware.")
-    
+
     from web.auth.middleware import WebAuth
     app = WebAuth(app, config, prefix="web.auth.")
-    
+
     return app
 
 
@@ -122,13 +121,13 @@ def database(app, config):
     # Determine if a database engine has been requested, and load the appropriate middleware.
     if not config.get('db.connections', None):
         return app
-    
+
     try:
         for connection in array(config.get('db.connections')):
             connection = connection.strip(',')
-            
+
             engine = config.get('db.%s.engine' % (connection,), 'sqlalchemy')
-            
+
             try:
                 if '.' in engine and ':' in engine:
                     engine = load_object(engine)
@@ -140,24 +139,24 @@ def database(app, config):
             except:
                 log.exception("Unable to load engine middleware: %r.", engine)
                 raise
-            
+
             try:
                 model = config.get('db.%s.model' % (connection,))
                 model = load_object(model) if isinstance(model, basestring) else model
             except:
                 log.exception("Unable to load application model: %r.", model)
                 raise
-            
+
             try:
                 session = config.get('db.%s.session' % (connection,), '%s:session' % (config.get('db.%s.model' % (connection,)),))
                 session = load_object(session) if isinstance(session, basestring) else session
             except:
                 log.info("No session defined for the %s database connection.", connection)
-            
+
             app = engine(app, 'db.%s' % (connection,), model, session, **config)
-        
+
         return app
-    
+
     except:
         log.exception("Error initializing database connections.")
         raise
@@ -167,7 +166,7 @@ def database(app, config):
 def configuration(app, config):
     if not defaultbool(config.get('web.config', True), ['paste']):
         return app
-    
+
     from paste.config import ConfigMiddleware
     return ConfigMiddleware(app, config)
 
@@ -176,22 +175,22 @@ def configuration(app, config):
 def sessions(app, config):
     if not defaultbool(config.get('web.sessions', False), ['beaker']):
         return app
-    
+
     try:
         from beaker.middleware import SessionMiddleware
-        
+
         beakerconfig = {
                 'session.type': "file",
                 'session.key': "session"
             }
-        
+
         for i, j in config.iteritems():
             if i.startswith('web.sessions.'):
                 beakerconfig['session.' + i[13:]] = j
-        
+
         if 'session.cookie_expires' in beakerconfig and isinstance(beakerconfig['session.cookie_expires'], basestring):
             value = beakerconfig['session.cookie_expires']
-            
+
             if value.lower() in ['yes', 'on', 'true']:
                 beakerconfig['session.cookie_expires'] = True
             elif value.lower() in ['no', 'off', 'false']:
@@ -200,10 +199,10 @@ def sessions(app, config):
                 # Try to treat it as a number of minutes...
                 from datetime import timedelta
                 beakerconfig['session.cookie_expires'] = timedelta(minutes=int(value))
-        
+
         log.debug("Loading Beaker session and cache middleware.")
         return SessionMiddleware(app, beakerconfig)
-    
+
     except ImportError:  # pragma: no cover
         raise ImportError("You must install Beaker to enable sessions")
 
@@ -212,18 +211,18 @@ def sessions(app, config):
 def caching(app, config):
     if not defaultbool(config.get('web.sessions', False), ['beaker']):
         return app
-    
+
     try:
         from beaker.middleware import CacheMiddleware
-        
+
         beakerconfig = {
                 'cache.type': "file"
             }
-        
+
         for i, j in config.iteritems():
             if i.startswith('web.cache.'):
                 beakerconfig['cache.' + i[10:]] = j
-        
+
         log.debug("Loading Beaker cache middleware.")
         return CacheMiddleware(app, beakerconfig)
     except ImportError:  # pragma: no cover
@@ -234,22 +233,22 @@ def caching(app, config):
 def debugging(app, config):
     if not defaultbool(config.get('web.debug', True), ['weberror']):
         return app
-    
+
     try:
         localconfig = dict(debug=config.get('debug', False))
-        
+
         for i, j in config.iteritems():
             if i.startswith('debug.'):
                 localconfig[i[6:]] = j
-        
+
         if boolean(config.get('debug', False)):
             log.debug("Debugging enabled; exceptions raised will display an interactive traceback.")
-            
+
             from weberror.evalexception import EvalException
             return EvalException(app, config, **localconfig)
         else:
             log.debug("Debugging disabled; exceptions raised will display a 500 error.")
-            
+
             from weberror.errormiddleware import ErrorMiddleware
             return ErrorMiddleware(app, config, **localconfig)
     except ImportError:  # pragma: no cover
@@ -286,7 +285,7 @@ def static(app, config):
         if not parts:
             parts = ['.']
 
-        while parts: # pragma: no cover
+        while parts:  # pragma: no cover
             # Search up the package tree, in case this is an application in a sub-module.
 
             path = os.path.abspath(path)
@@ -330,10 +329,10 @@ def static(app, config):
 def compression(app, config):
     if not defaultbool(config.get('web.compress', False), ['paste']):
         return app
-    
+
     # Enable compression if requested.
     log.debug("Enabling HTTP compression.")
-    
+
     from paste.gzipper import middleware as GzipMiddleware
     return GzipMiddleware(app, compress_level=integer(config.get('web.compress.level', 6)))
 
@@ -342,12 +341,12 @@ def compression(app, config):
 def profiling(app, config):
     if not defaultbool(config.get('web.profile', False), ['repoze']):
         return app
-    
+
     log.debug("Enabling profiling support.")
-    
+
     try:
         from repoze.profile.profiler import AccumulatingProfileMiddleware
-        
+
         return AccumulatingProfileMiddleware(
                 app,
                 log_filename=config.get('web.profile.log', 'profile.prof'),
@@ -363,6 +362,6 @@ def profiling(app, config):
 def locale(app, config):
     if not defaultbool(config.get('web.locale.i18n', False), ['gettext']):
         return app
-    
+
     from web.core.locale import LocaleMiddleware
     return LocaleMiddleware(app, config)
