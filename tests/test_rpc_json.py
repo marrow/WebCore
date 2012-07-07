@@ -25,6 +25,14 @@ class RootController(JSONRPCController):
         return a + b
 
 
+class BadController(JSONRPCController):
+    def test(self):
+        return "ok"
+
+    def __after__(self, result):
+        return self.nonexisting
+
+
 class TestJSONRPC(WebTestCase):
     id_ = 0
     app = Application.factory(root=RootController, **test_config)
@@ -103,3 +111,17 @@ class TestJSONRPC(WebTestCase):
         response = request.get_response(self.app)
         self.assertEqual((response.status, response.content_type), ('400 Bad Request', 'text/plain'))
         assert response.body.rstrip().endswith('Missing required JSON-RPC value: id')
+
+    def test_after_attribute_exception(self):
+        self.app = Application.factory(root=BadController, **test_config)
+        response, data = self.assertRPCResponse('test', status='500 Internal Server Error', content_type='application/json')
+        self.assertEquals(data, dict(
+                id = 1,
+                result = None,
+                error = dict(
+                        message = "'BadController' object has no attribute 'nonexisting'",
+                        code = 100,
+                        name = 'JSONRPCError',
+                        error = 'Not disclosed.'
+                    )
+            ))

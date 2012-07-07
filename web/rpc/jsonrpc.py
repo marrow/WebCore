@@ -48,31 +48,31 @@ class JSONRPCController(Dialect):
         log.debug("Found method: %r", func)
         
         try:
-            args = parent.__before__(*args)
-        except AttributeError:
-            pass
-        
-        try:
+            callback = getattr(parent, '__before__', None)
+            if callback:
+                args = callback(*args)
+
             result = func(*args)
+            error = None
+
+            callback = getattr(parent, '__after__', None)
+            if callback:
+                result = callback(result, *args)
         except:
+            log.exception("Error calling RPC mechanism.")
             exc = exception()
             
             web.core.response.status_int = 500
-            web.core.response.content_type = 'application/json'
             
-            return 'json:', dict(result=None, error=dict(
+            result = None
+            error = dict(
                     name='JSONRPCError',
                     code=100,
                     message=str(exc.exception),
                     error="Not disclosed." if not web.core.config.get('debug', False) else exc.formatted
-                ), id=id_)
-        
-        try:
-            result = parent.__after__(result, *args)
-        except AttributeError:
-            pass
-        
-        log.debug("Got result: %r", result)
+                )
+        else:
+            log.debug("Got result: %r", result)
         
         web.core.response.content_type = 'application/json'
-        return 'json:', dict(result=result, error=None, id=id_)
+        return 'json:', dict(result=result, error=error, id=id_)
