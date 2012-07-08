@@ -277,4 +277,4 @@ To check if you installed WebCore correctly, type:
 .. code-block:: bash
 
    (core)$ python -c 'print __import__("web.release").release.version'
-   1.1.0
+   1.1.1
