@@ -74,5 +74,6 @@ class JSONRPCController(Dialect):
         else:
             log.debug("Got result: %r", result)
 
-        web.core.response.content_type = 'application/json'
-        return 'json:', dict(result=result, error=error, id=id_)
+        if id_ is not None:
+            web.core.response.content_type = 'application/json'
+            return 'json:', dict(result=result, error=error, id=id_)

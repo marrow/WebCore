@@ -116,3 +116,9 @@ class TestJSONRPC(WebTestCase):
                         error='Not disclosed.'
                     )
             ))
+
+    def test_notify(self):
+        request = Request.blank('/', method="POST", body=dumps(dict(method="test", params=[], id=None)))
+        response = request.get_response(self.app)
+        self.assertEqual(response.status, '200 OK', 'application/json')
+        self.assertEqual((response.content_length, response.body), (0, ''))
