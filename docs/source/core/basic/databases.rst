@@ -70,8 +70,8 @@ this to your Paste ini file:
     db.connections = core
     db.core.engine = sqlalchemy
     db.core.model = myapp.model
-    db.core.url = mysql+oursql://alex:12345@localhost/myapp
-    db.core.ready = myapp.model:ready_callback
+    db.core.url = mysql+oursql://username:password@localhost/myapp
+    db.core.ready = myapp.model:ready
 
 ``db.core.autocommit``
    If ``True``, don't start a transaction implicitly. If False, a transaction is
@@ -137,7 +137,7 @@ To get started quickly, create a new module in the ``myapp`` package called
        content = Column(UnicodeText, nullable=False)
 
 
-   def connected():
+   def ready(sessionmaker):
        metadata.create_all()
 
 This example model defines a single table named **articles**. It contains three
@@ -152,8 +152,9 @@ The ``metadata`` variable contains information about the tables in your model.
 The ``session`` variable is a thread-local proxy that is usable while your
 application is processing a request.
 
-The ``connected`` function, when referenced by the ``db.*.ready`` configuration
+The ``ready`` function, when referenced by the ``db.*.ready`` configuration
 value, is executed after the database connection is prepared.
+The ``metadata.create_all()`` call creates any tables missing from the database.
 
 
 An example controller using SQLAlchemy
