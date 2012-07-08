@@ -16,11 +16,7 @@ class TestService(JSONRPCController):
         return "Hello, %(name)s!" % dict(name=name)
 
 
-class RootController(JSONRPCController):
-    test = TestService()
-
-
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    app = Application.factory(root=RootController)
+    app = Application.factory(root=TestService)
     httpserver.serve(app, host='127.0.0.1', port='8080')

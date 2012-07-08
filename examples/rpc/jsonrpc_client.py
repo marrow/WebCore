@@ -7,5 +7,5 @@ except ImportError:
 
 server = jsonrpclib.Server('http://localhost:8080', version='1.0')
 
-print server.test.hello()
-print server.test.hello('JSON-RPC')
+print server.hello()
+print server.hello('JSON-RPC')

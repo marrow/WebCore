@@ -6,7 +6,7 @@ except ImportError:
 
 
 gw = RemotingService('http://127.0.0.1:8080/')
-service = gw.getService('test')
+service = gw.getService('hello')
 
-print service.hello('AMF')
-print service.hello()
+print service('AMF')
+print service()
