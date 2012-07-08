@@ -10,10 +10,8 @@ metadata = Base.metadata
 session = StackedObjectProxy()
 
 
-def prepare():
+def ready(session):
     metadata.create_all()
-
-
-def populate(session, table):
-    if table == 'articles':
+    
+    if not session.query(Article).count():
         session.add(Article(name="WikiHome", content="h1. Define your content."))
