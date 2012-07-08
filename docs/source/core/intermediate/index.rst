@@ -6,5 +6,6 @@ Intermediate WebCore Topics
    :maxdepth: 2
    
    alternate-dispatch
+   rpc-dialects
    authentication
    i18n
