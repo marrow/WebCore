@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# encoding: utf-8
+
 """A basic hello world application.
 
 This can be simplified down to 5 lines in total; two import lines, two

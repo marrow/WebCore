@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# encoding: utf-8
+
 try:
     from pyamf.remoting.client import RemotingService
 except ImportError:
