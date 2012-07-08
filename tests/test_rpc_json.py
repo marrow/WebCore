@@ -97,12 +97,6 @@ class TestJSONRPC(WebTestCase):
         self.assertEqual((response.status, response.content_type), ('400 Bad Request', 'text/plain'))
         assert response.body.rstrip().endswith('Missing required JSON-RPC value: method')
 
-    def test_missing_params(self):
-        request = Request.blank('/', method="POST", body='{"method": "test", "id": null}')
-        response = request.get_response(self.app)
-        self.assertEqual((response.status, response.content_type), ('400 Bad Request', 'text/plain'))
-        assert response.body.rstrip().endswith('Missing required JSON-RPC value: params')
-
     def test_missing_id(self):
         request = Request.blank('/', method="POST", body='{"method": "test", "params": []}')
         response = request.get_response(self.app)

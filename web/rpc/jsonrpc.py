@@ -30,12 +30,12 @@ class JSONRPCController(Dialect):
         except ValueError:
             raise HTTPBadRequest("Unable to parse JSON request.")
 
-        for key in ('method', 'params', 'id'):
+        for key in ('method', 'id'):
             if key not in json:
                 raise HTTPBadRequest("Missing required JSON-RPC value: " + key)
 
         method = json['method']
-        args = json['params']
+        args = json.get('params', [])
         id_ = json['id']
 
         if not isinstance(args, list):
