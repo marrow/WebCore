@@ -6,7 +6,7 @@ from functools import partial
 from marrow.util.bunch import Bunch
 
 from web.core.response import registry
-from web.ext.template.handler import template_handler
+from web.ext.template.handler import template_handler, annotated_template_handler
 
 from web.ext.template import render
 
@@ -33,6 +33,7 @@ class TemplateExtension(object):
     def start(self):
         """Register the template response handler."""
         registry.register(template_handler, tuple)
+        registry.register(annotated_template_handler, dict)
     
     def prepare(self, context):
         context.namespace = Bunch(web=proxy(context))
