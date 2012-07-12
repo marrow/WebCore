@@ -5,6 +5,7 @@ from itertools import chain
 from weakref import WeakKeyDictionary
 
 from marrow.util.bunch import Bunch
+from marrow.util.object import load_object
 from marrow.wsgi.exceptions import HTTPException, HTTPNotFound
 
 from web.core.response import registry
@@ -16,55 +17,59 @@ class Application(object):
     def __init__(self, root, config=None):
         config = Bunch(config) if config else Bunch()
         
-        # TODO: Check root.
+        # TODO: Check root via asserts.
         
         self.root = root
         self.config = config
         
-        # TODO: Graph the dependencies.
-        # TODO: Generate the prepare/before/after sorted lists.
-        
         self.extensions = []
         
-        from web.ext.base import BaseExtension
-        try:
-            if 'base' in config and isinstance(config.base, dict):
-                ec = Bunch(config.base)
-            else:
-                ec = Bunch.partial('base', config)
-        except ValueError:
-            ec = Bunch()
-        self.extensions.append(BaseExtension(ec))
+        # TODO: Self-organizing extension selection.
+        def load_extension(name, reference):
+            ext = load_object(reference)
+            
+            try:
+                if name in config and isinstance(config.base, dict):
+                    ec = Bunch(config[name])
+                else:
+                    ec = Bunch.partial(name, config)
+            except ValueError:
+                ec = Bunch()
+            
+            self.extensions.append(ext(ec))
         
-        from web.ext.template import TemplateExtension
-        try:
-            if 'template' in config and isinstance(config.template, dict):
-                ec = Bunch(config.template)
-            else:
-                ec = Bunch.partial('template', config)
-        except ValueError:
-            ec = Bunch()
-        self.extensions.append(TemplateExtension(ec))
+        load_extension('base', 'web.ext.base:BaseExtension')
+        load_extension('cast', 'web.ext.cast:CastExtension')
+        load_extension('template', 'web.ext.template:TemplateExtension')
+        # ODOT
         
+        # TODO: Make this a little more flexible.
         self._start = []
         self._stop = []
         self._prepare = []
         self._dispatch = []
         self._before = []
         self._after = []
+        self._mutate = []
+        self._transform = []
         
         for ext in self.extensions:
-            for mn in ('start', 'stop', 'prepare', 'dispatch', 'before', 'after'):
+            for mn in ('start', 'stop', 'prepare', 'dispatch', 'before', 'after', 'mutate', 'transform'):
                 m = getattr(ext, mn, None)
                 if not m: continue
                 getattr(self, '_' + mn).append(m)
         
+        self._after.reverse()
+        self._mutate.reverse()
+        self._transform.reverse()
+        # ODOT
+        
         for ext in self._start:
             ext()
         
-        self._cache = dict() # WeakKeyDictionary
+        self._cache = dict() # TODO: WeakKeyDictionary so we don't keep dynamic __lookup__ objects hanging around!
     
-    def __call__(self, environ):
+    def __call__(self, environ, start_response=None):
         context = Bunch()
         
         context.app = self
@@ -95,13 +100,25 @@ class Application(object):
             #  If not call with the context as an argument.
             # Otherwise call.
             
+            request = context.request
+            
             if callable(handler):
+                args = list(request.remainder)
+                if args[0] == '': del args[0]
+                kwargs = request.kwargs
+                
+                for ext in self._mutate:
+                    ext(context, handler, args, kwargs)
+                
                 if ismethod(handler) and getattr(handler, '__self__', None):
-                    result = handler()
+                    result = handler(*args, **kwargs)
                 else:
-                    result = handler(context)
+                    result = handler(context, *args, **kwargs)
             else:
                 result = handler
+            
+            for ext in self._transform:
+                ext(context, result)
             
             try:
                 # We optimize for the general case whereby callables always return the same type of result.
@@ -150,5 +167,9 @@ class Application(object):
                 ext(context, None)
         
         result = context.response(environ)
+        
+        if start_response:
+            start_response(*result[:2])
+            return result[3]
         
         return result

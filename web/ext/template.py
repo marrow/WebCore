@@ -115,3 +115,14 @@ class Extension(object):
         If this method returns any value that evaluates to @True@, the current exception is not propagated.
         """
         pass
+    
+    def mutate(self, context, handler, args, kw):
+        """Inspect and potentially mutate the given handler's arguments.
+        
+        The args list and kw dictionary may be freely modified, though invalid arguments to the handler will fail.
+        """
+        pass
+    
+    def transform(self, context, result):
+        pass
+

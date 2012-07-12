@@ -43,7 +43,7 @@ def annotated_template_handler(context, result):
     """
     
     handler = context.path[-1][0]
-    value = getattr(handler, 'func_annotation', {}).get('return', None)
+    value = getattr(handler.__func__ if hasattr(handler, '__func__') else handler, '__annotations__', {}).get('return', None)
     
     if not value:
         return False
@@ -53,4 +53,6 @@ def annotated_template_handler(context, result):
     if '.' not in value and value[-1] != ':':
         value = value + ':'
     
-    return template_handler(context, (value, result))
+    result = template_handler(context, (value, result))
+    
+    return result
