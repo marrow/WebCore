@@ -28,7 +28,8 @@ class CastExtension(object):
         argspec = getargspec(handler)
         arglist = list(argspec.args)
         
-        if arglist[0] == 'self':
+        # This should handle Python 3's method of binding, and Python 2's.
+        if hasattr(handler.__call__, '__self__') or hasattr(handler, '__self__'):
             del arglist[0]
 
         for i, value in enumerate(list(args)):
