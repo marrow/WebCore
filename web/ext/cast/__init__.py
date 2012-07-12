@@ -11,23 +11,9 @@ except ImportError:
 class CastExtension(object):
     """Typecast the arguments to your controllers using Python 3 function annotations."""
 
-    uses = []
-    needs = []
-    always = False
-    never = False
-    first = False
-    last = False
-    provides = []
-    extensions = ()
+    provides = ['typecast']
 
     def __init__(self, config):
-        """Executed to configure the extension.
-
-        No actions must be performed here, only configuration management.
-
-        You can also update the class attributes here.  It only really makes sense to add dependencies.
-        """
-
         super(CastExtension, self).__init__()
 
     def mutate(self, context, handler, args, kw):
