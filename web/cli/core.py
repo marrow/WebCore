@@ -5,6 +5,8 @@ from __future__ import print_function
 
 import pkg_resources
 
+from marrow.script import describe
+
 from web import release
 
 
