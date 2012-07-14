@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-from inspect import getargspec, ismethod
+from inspect import getargspec
 
 try:
     from inspect import getfullargspec as getargspec
