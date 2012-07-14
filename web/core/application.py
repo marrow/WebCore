@@ -88,8 +88,8 @@ class Application(object):
         router = __import__('web.dialect.dispatch').dialect.dispatch.ObjectDispatchDialect(self.config)
         
         for consumed, handler, is_endpoint in router(context, self.root):
-            for listener in self._dispatch:
-                listener(context, consumed, handler, is_endpoint)
+            for ext in self._dispatch:
+                ext(context, consumed, handler, is_endpoint)
         
         count = 0
         
