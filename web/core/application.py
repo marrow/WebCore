@@ -4,6 +4,8 @@ from inspect import ismethod
 from itertools import chain
 from weakref import WeakKeyDictionary
 
+from marrow.logging import Log, DEBUG
+from marrow.logging.formats import LineFormat
 from marrow.util.bunch import Bunch
 from marrow.util.object import load_object
 from marrow.wsgi.exceptions import HTTPException, HTTPNotFound
@@ -19,11 +21,20 @@ class Application(object):
         
         # TODO: Check root via asserts.
         
-        self.root = root
-        self.config = config
-        
         class Context(object):
-            pass
+            def __contains__(self, name):
+                return hasattr(self, name)
+            
+            def __iter__(self):
+                return ((i, getattr(self, i)) for i in dir(self) if i[0] != '_')
+        
+        Context.app = self
+        Context.root = root
+        Context.config = config
+        
+        Context.log = Log(None, dict(
+                    formatter=LineFormat("{now.ts}  {level.name:<7}  {name:<10}  {data}  {text}", '  ', ' ' * 40)
+                ), level=DEBUG).name('base')
         
         self.Context = Context
         
@@ -68,11 +79,7 @@ class Application(object):
         self._cache = dict() # TODO: WeakKeyDictionary so we don't keep dynamic __lookup__ objects hanging around!
     
     def __call__(self, environ, start_response=None):
-        context = Bunch()
-        
-        context.app = self
-        context.root = self.root
-        context.config = self.config
+        context = self.Context()
         context.environ = environ
         
         for ext in chain(self._prepare, self._before):
@@ -83,11 +90,14 @@ class Application(object):
         context.log.debug("Starting dispatch.")
         
         # Terrible! Temporary! Hack! :D
-        router = __import__('web.dialect.dispatch').dialect.dispatch.ObjectDispatchDialect(self.config)
-        
-        for consumed, handler, is_endpoint in router(context, self.root):
-            for ext in self._dispatch:
-                ext(context, consumed, handler, is_endpoint)
+        try:
+            router = __import__('web.dialect.dispatch').dialect.dispatch.ObjectDispatchDialect(context.config)
+            
+            for consumed, handler, is_endpoint in router(context, context.root):
+                for ext in self._dispatch:
+                    ext(context, consumed, handler, is_endpoint)
+        except HTTPException as e:
+            handler = e(context.request.environ)
         
         count = 0
         

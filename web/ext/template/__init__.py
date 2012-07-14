@@ -80,7 +80,7 @@ class TemplateExtension(object):
         
         render.render.overrides = override
     
-    def start(self):
+    def start(self, context):
         """Register the template response handler."""
         registry.register(template_handler, tuple)
         registry.register(annotated_template_handler, dict)

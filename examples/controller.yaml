@@ -1,0 +1,31 @@
+#!/usr/bin/env web
+
+version: 1
+
+exec:
+    command: serve
+    reload: true
+
+server:
+    use: marrow.server.http:HTTPServer
+    host: # bind to all interfaces
+    port: 8080
+
+_session: &session-defaults
+    auto: true
+    key: session
+    secret: bad secret
+
+    data: var/sessions
+    locks: var/locks
+
+application:
+    root: !obj controller:Root
+    
+    extensions:
+        template:
+            default: mako
+
+logging:
+    format: "{now.ts}  {level.name:>5}  {name:<10}  {data}  {text}"
+    level: info

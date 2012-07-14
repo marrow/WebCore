@@ -1,8 +1,6 @@
 # encoding: utf-8
 
 from marrow.wsgi.objects import Request, Response
-from marrow.logging import Log, DEBUG
-from marrow.logging.formats import LineFormat
 
 from web.core.response import registry
 from web.ext.base import handler

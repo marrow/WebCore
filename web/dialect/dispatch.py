@@ -62,8 +62,11 @@ class ObjectDispatchDialect(object):
             
             last = chunk
         
-        if isclass(current) and hasattr(current, '__call__'):
-            current = current(context).__call__
+        if isclass(current):
+            try:
+                current = current(context).__call__
+            except AttributeError:
+                raise HTTPNotFound()
         
         yield last.split('/'), current, True
 
