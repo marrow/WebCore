@@ -9,3 +9,7 @@ tests/.coverage
 .coverage
 scripts/webcore-bootstrap.py
 *.tmproj
+__pycache__
+.settings
+.project
+.pydevproject
