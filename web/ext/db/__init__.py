@@ -6,21 +6,19 @@ class DatabaseExtension(object):
     needs = []
     provides = ['db', 'database']
     
-    def __init__(self, config):
+    def __init__(self, context):
         """Executed to configure the extension."""
         super(DatabaseExtension, self).__init__()
-        
-        self.config = config
     
-    def __call__(self, app):
+    def __call__(self, context, app):
         """Executed to wrap the application in middleware."""
         return app
     
-    def start(self):
+    def start(self, context):
         """Executed during application startup just after binding the server."""
         pass
     
-    def stop(self):
+    def stop(self, context):
         """Executed during application shutdown after the last request has been served."""
         pass
     

@@ -1,24 +1,24 @@
 # encoding: utf-8
 
 
-class Extension(object):
+class LocaleExtension(object):
     uses = []
     needs = []
-    provides = []
+    provides = ['i18n', 'internationalization', 'translation']
     
-    def __init__(self, config):
+    def __init__(self, context):
         """Executed to configure the extension."""
-        super(Extension, self).__init__()
+        super(LocaleExtension, self).__init__()
     
-    def __call__(self, app):
+    def __call__(self, context, app):
         """Executed to wrap the application in middleware."""
         pass
     
-    def start(self):
+    def start(self, context):
         """Executed during application startup just after binding the server."""
         pass
     
-    def stop(self):
+    def stop(self, context):
         """Executed during application shutdown after the last request has been served."""
         pass
     

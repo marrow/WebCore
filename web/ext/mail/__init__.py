@@ -4,36 +4,18 @@ from marrow.mailer import Mailer
 
 
 class MailExtension(object):
-    uses = []
-    needs = []
     provides = ['mail']
     
-    def __init__(self, config):
+    def __init__(self, context, **config):
         """Executed to configure the extension."""
         super(MailExtension, self).__init__()
         
-        self.mailer = Mailer(config)
+        context.mailer = Mailer(config)
     
-    def start(self):
+    def start(self, context):
         """Executed during application startup just after binding the server."""
-        self.mailer.start()
+        context.mailer.start()
     
-    def stop(self):
+    def stop(self, context):
         """Executed during application shutdown after the last request has been served."""
-        self.mailer.stop()
-    
-    def graceful(self, config):
-        """Reload the configuration on SIGHUP."""
-        
-        self.stop()
-        del self.mailer
-        self.mailer = Mailer(config)
-        self.start()
-    
-    def prepare(self, context):
-        """Executed during request set-up."""
-        context.mail = self.mailer
-    
-    def after(self, context, exc=None):
-        """Executed after dispatch has returned and the response populated, prior to anything being sent to the client."""
-        pass # conditional sending
+        context.mailer.stop()

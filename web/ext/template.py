@@ -29,45 +29,56 @@ class Extension(object):
     provides = []
     extensions = ()
     
-    def __init__(self, config):
+    def __init__(self, context, **config):
         """Executed to configure the extension.
         
         No actions must be performed here, only configuration management.
         
         You can also update the class attributes here.  It only really makes sense to add dependencies.
+        
+        Additionally, you can assign attributes to the global context which will pre-populate the per-request context.
         """
         
         super(Extension, self).__init__()
     
-    def __call__(self, app):
+    def __call__(self, context, app):
         """Executed to wrap the application in middleware.
         
-        Accepts a WSGI application as the first argument and must likewise return a WSGI app.
+        The first argument is the global context class, not request-local context instance.
+        
+        Accepts a WSGI application as the second argument and must likewise return a WSGI app.
         """
         
         return app
     
-    def start(self):
+    def start(self, context):
         """Executed during application startup just after binding the server.
+        
+        The first argument is the global context class, not request-local context instance.
         
         Any of the actions you wanted to perform during @__init__@ you should do here.
         """
         
         pass
     
-    def stop(self):
-        """Executed during application shutdown after the last request has been served."""
+    def stop(self, context):
+        """Executed during application shutdown after the last request has been served.
+        
+        The first argument is the global context class, not request-local context instance.
+        """
         pass
     
-    def graceful(self, config):
+    def graceful(self, context, **config):
         """Called when a SIGHUP is sent to the application.
+        
+        The first argument is the global context class, not request-local context instance.
         
         Allows your code to re-load configuration and your code should close then re-open sockets and files.
         """
         pass
     
     def prepare(self, context):
-        """Executed during request set-up to populate the @context@ attribute-access dictionary.
+        """Executed during request set-up to populate the thread-local @context@ instance.
         
         The purpose of the extension ordering is to ensure that methods like these are executed in the correct order.
         """

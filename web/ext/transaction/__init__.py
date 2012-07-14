@@ -11,15 +11,15 @@ class TransactionExtension(object):
     needs = []
     provides = ['transaction']
 
-    def __init__(self, config):
+    def __init__(self, context):
         """Executed to configure the extension."""
         super(TransactionExtension, self).__init__()
 
-    def start(self):
+    def start(self, context):
         """Executed during application startup just after binding the server."""
         pass
 
-    def stop(self):
+    def stop(self, context):
         """Executed during application shutdown after the last request has been served."""
         pass
 

@@ -14,31 +14,27 @@ class BaseExtension(object):
     always = True
     provides = ["request", "response"]
 
-    def __init__(self, config):
+    def __init__(self, context):
         super(BaseExtension, self).__init__()
-        self.log = Log(None, dict(
-                formatter=LineFormat("{now.ts}  {level.name:>5}  {name:<10}  {data}  {text}", '  ')
-            ), level=DEBUG).name('base')
-        
-        self.log.debug("Configuring the base extension.")
+        context.log.debug("Configuring extensions.")
 
-    def __call__(self, app):
-        self.log.debug("Preparing WSGI middleware stack.")
+    def __call__(self, context, app):
+        context.log.name('middleware').debug("Preparing WSGI middleware stack.")
         return app
 
-    def start(self):
-        self.log.name('start').debug("Starting up.")
+    def start(self, context):
+        context.log.name('start').debug("Starting up.")
 
         # Register the default return handlers.
         for h in handler.__all__:
             h = getattr(handler, h)
             registry.register(h, *h.types)
 
-    def stop(self):
-        self.log.debug("Shutdown complete.")
+    def stop(self, context):
+        context.log.debug("Shutdown complete.")
 
-    def graceful(self):
-        self.log.debug("Performing graceful restart.")
+    def graceful(self, context):
+        context.log.debug("Performing graceful restart.")
 
     def prepare(self, context):
         """Add the usual suspects to the context.
@@ -51,9 +47,7 @@ class BaseExtension(object):
         * environ -- the current request environment
         """
 
-        self.log.name('prepare').debug("Preparing the request context.")
-
-        log = self.log.name('request')  # TODO: Split this into the logging extension.
+        context.log.name('prepare').debug("Preparing the request context.")
 
         context.request = Request(context.environ)
         context.response = Response(request=context.request)
@@ -62,7 +56,7 @@ class BaseExtension(object):
 
         context.url = URLGenerator(context)
         context.path = []
-        context.log = log.data(request=context.request)
+        context.log = context.log.name('request').data(request=context.request)
 
     def dispatch(self, context, consumed, handler, is_endpoint):
         """Called as dispatch descends into a tier.
@@ -70,7 +64,7 @@ class BaseExtension(object):
         The base extension uses this to maintain the "current url".
         """
 
-        self.log.name('dispatch').data(consumed=consumed, handler=handler, is_endpoint=is_endpoint).debug("Dispatch received.")
+        context.log.name('dispatch').data(consumed=consumed, handler=handler, is_endpoint=is_endpoint).debug("Dispatch received.")
 
         request = context.request
 
@@ -86,15 +80,13 @@ class BaseExtension(object):
             context.environ['web.controller'] = str(context.request.path)
 
     def before(self, context):
-        self.log.name('before').debug("Preparing for dispatch.")
+        context.log.name('before').debug("Preparing for dispatch.")
 
     def after(self, context, exc=None):
-        self.log.name('after').data(exc=exc).debug("Registry processed, returning response.")
+        context.log.name('after').data(exc=exc).debug("Registry processed, returning response.")
 
     def mutate(self, context, handler, args, kw):
-        self.log.name('mutate').data(handler=handler, args=args, kw=kw).debug("Controller found, calling.")
+        context.log.name('mutate').data(handler=handler, args=args, kw=kw).debug("Controller found, calling.")
     
     def transform(self, context, result):
-        self.log.name('transform').data(result=result).debug("Controller called, preparing for registry.")
-
-
+        context.log.name('transform').data(result=result).debug("Controller called, preparing for registry.")

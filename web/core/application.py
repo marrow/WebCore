@@ -22,21 +22,19 @@ class Application(object):
         self.root = root
         self.config = config
         
+        class Context(object):
+            pass
+        
+        self.Context = Context
+        
         self.extensions = []
         
         # TODO: Self-organizing extension selection.
         def load_extension(name, reference):
             ext = load_object(reference)
+            extconfig = config.get('extensions', dict()).get(name, dict())
             
-            try:
-                if name in config and isinstance(config.base, dict):
-                    ec = Bunch(config[name])
-                else:
-                    ec = Bunch.partial(name, config)
-            except ValueError:
-                ec = Bunch()
-            
-            self.extensions.append(ext(ec))
+            self.extensions.append(ext(self.Context, **extconfig))
         
         load_extension('base', 'web.ext.base:BaseExtension')
         load_extension('cast', 'web.ext.cast:CastExtension')
@@ -65,7 +63,7 @@ class Application(object):
         # ODOT
         
         for ext in self._start:
-            ext()
+            ext(self.Context)
         
         self._cache = dict() # TODO: WeakKeyDictionary so we don't keep dynamic __lookup__ objects hanging around!
     

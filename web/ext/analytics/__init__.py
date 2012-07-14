@@ -7,7 +7,7 @@ class AnalyticsExtension(object):
     uses = ['db']
     provides = ['analytics']
     
-    def __init__(self, config):
+    def __init__(self, context):
         """Executed to configure the extension."""
         super(AnalyticsExtension, self).__init__()
         # create storage back-end

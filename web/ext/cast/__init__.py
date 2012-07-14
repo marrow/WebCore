@@ -13,7 +13,7 @@ class CastExtension(object):
 
     provides = ['typecast']
 
-    def __init__(self, config):
+    def __init__(self, context):
         super(CastExtension, self).__init__()
 
     def mutate(self, context, handler, args, kw):

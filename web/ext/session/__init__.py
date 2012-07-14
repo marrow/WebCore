@@ -44,7 +44,7 @@ class SessionExtension(object):
             
         )
     
-    def __init__(self, config):
+    def __init__(self, context, **config):
         """Executed to configure the extension."""
         super(SessionExtension, self).__init__()
         
@@ -52,14 +52,14 @@ class SessionExtension(object):
         self.Provider = BeakerSessionProvider
         self.config = config
         
-        self.uses.extend(getattr(self.Provider, 'uses', [])
-        self.needs.extend(getattr(self.Provider, 'needs', [])
+        self.uses.extend(getattr(self.Provider, 'uses', []))
+        self.needs.extend(getattr(self.Provider, 'needs', []))
     
-    def start(self):
+    def start(self, context):
         """Executed during application startup just after binding the server."""
         self.provider = self.Provider(self.config)
     
-    def stop(self):
+    def stop(self, context):
         """Executed during application shutdown after the last request has been served."""
         self.provider.stop()
         self.provider = None
