@@ -1,13 +1,9 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-from __future__ import print_function, absolute_import
+from __future__ import print_function
 
-import os
 import pkg_resources
-
-from marrow.script import script, describe
-from marrow.script.util import wrap, partitionhelp
 
 from web import release
 
