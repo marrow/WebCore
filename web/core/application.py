@@ -6,6 +6,7 @@ from weakref import WeakKeyDictionary
 
 from marrow.logging import Log, DEBUG
 from marrow.logging.formats import LineFormat
+from marrow.util.compat import native
 from marrow.util.bunch import Bunch
 from marrow.util.object import load_object
 from marrow.wsgi.exceptions import HTTPException, HTTPNotFound
@@ -177,7 +178,8 @@ class Application(object):
         result = context.response(environ)
         
         if start_response:
-            start_response(*result[:2])
-            return result[3]
+            status, headers, body = result
+            start_response(native(status), [(native(i), native(j)) for i, j in headers])
+            return body
         
         return result
