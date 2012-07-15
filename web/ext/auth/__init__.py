@@ -87,11 +87,12 @@ class AuthenticationExtension(object):
                 action = options['action']
                 if action is None:
                     raise HTTPForbidden
-                if isinstance(action, basestring):
+                if isinstance(action, bytes):
                     raise HTTPTemporaryRedirect(location=action)
                 action(context)
         elif hasattr(handler, '__auth__'):
             context._authentication_options.update(handler.__auth__)
+            self._validate_options(context._authentication_options)
 
     def authenticate(self, context, username, password=None, scope='session'):
         """Authenticate a user.
