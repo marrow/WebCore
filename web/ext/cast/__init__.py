@@ -1,11 +1,17 @@
 # encoding: utf-8
 
+from __future__ import unicode_literals
+
 from inspect import getargspec
+from functools import partial
 
 try:
     from inspect import getfullargspec as getargspec
 except ImportError:
     pass
+
+from marrow.util.compat import unicode, unicodestr
+
 
 
 class CastExtension(object):
@@ -13,8 +19,9 @@ class CastExtension(object):
 
     provides = ['typecast']
 
-    def __init__(self, context):
+    def __init__(self, context, encoding='utf-8', fallback='iso-8859-1'):
         super(CastExtension, self).__init__()
+        self.handler = partial(unicodestr, encoding=encoding, fallback=fallback)
 
     def mutate(self, context, handler, args, kw):
         """Inspect and potentially mutate the given handler's arguments.
@@ -23,8 +30,12 @@ class CastExtension(object):
         """
         annotations = getattr(handler.__func__ if hasattr(handler, '__func__') else handler, '__annotations__', None)
         if not annotations:
-            return 
-
+            return
+        
+        for k in annotations:
+            if annotations[k] == unicode:
+                annotations[k] = self.handler
+        
         argspec = getargspec(handler)
         arglist = list(argspec.args)
         
