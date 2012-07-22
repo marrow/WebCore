@@ -19,9 +19,10 @@ class AuthenticationExtension(object):
         default_options.setdefault('action', None)
         default_options.setdefault('realm', None)
         default_options.setdefault('sessionkey', '__user_id')
+        self.default_options = default_options
 
         self._validate_options(default_options)
-        if self.default_options['method'] == 'session':
+        if default_options['method'] == 'session':
             self.needs = ['session']
 
     @staticmethod
@@ -29,11 +30,17 @@ class AuthenticationExtension(object):
         if options['method'] not in ('basic', 'session'):
             raise ValueError('Invalid value for option "method": %s' % options['method'])
 
-        if not 'callback' in options:
-            raise ValueError('Missing required option: callback')
-        callback = options['callback']
-        if not callable(callback):
-            raise ValueError('Option "callback" must be a callable, got %r instead' % type(callback))
+        if not 'auth_callback' in options:
+            raise ValueError('Missing required option: auth_callback')
+        auth_callback = options['auth_callback']
+        if not callable(auth_callback):
+            raise ValueError('Option "auth_callback" must be a callable, got %r instead' % type(auth_callback))
+
+        if not 'lookup_callback' in options:
+            raise ValueError('Missing required option: lookup_callback')
+        lookup_callback = options['lookup_callback']
+        if not callable(lookup_callback):
+            raise ValueError('Option "lookup_callback" must be a callable, got %r instead' % type(lookup_callback))
 
         action = options.get('action')
         if isinstance(action, unicode):
@@ -54,47 +61,45 @@ class AuthenticationExtension(object):
     def start(self, context):
         context.user = None
         context.log = context.log.data(user=None)
-        if 'namespace' in context:
+        if hasattr(context, 'namespace'):
             context.namespace.user = None
 
     def prepare(self, context):
         context.authenticate = partial(self.authenticate, context)
         context.deauthenticate = partial(self.deauthenticate, context)
+        context._authentication_options = self.default_options.copy()
 
     def dispatch(self, context, consumed, handler, is_endpoint):
         if is_endpoint:
             # Determine the credentials to authenticate with, based on the configured method
             options = context._authentication_options
-            method = context.get('_authentication_method', self.default_method)
-            if method == 'basic':
-                if not 'authorization' in context.request:
+            if options['method'] == 'basic':
+                # If no Authorization header is present, the authentication fails
+                if not 'HTTP_AUTHORIZATION' in context.request.environ:
                     context.response.headers['WWW-authenticate'] = 'Basic realm="%s"' % options['realm']
                     raise HTTPUnauthorized
 
+                # Check that the basic scheme was requested
                 scheme, credentials = context.request.get('HTTP_AUTHORIZATION').split(' ', 1)
                 if scheme.lower() != 'basic':
                     raise HTTPBadRequest('Authentication scheme not supported')
 
+                # Base64 decode the contents of the Authorization header
                 username, password = b64decode(credentials).split(':', 1)
-                session, scope = False, 'request'
-            elif method == 'session':
-                username = context.session.get(options['sessionkey'])
-                password = None
-                session, scope = True, 'session'
 
-            # Attempt to authenticate the user, and execute the configured action if that fails
-            if not username or not self.authenticate(context, username, password, session, scope):
-                action = options['action']
-                if action is None:
-                    raise HTTPForbidden
-                if isinstance(action, bytes):
-                    raise HTTPTemporaryRedirect(location=action)
-                action(context)
+                # Attempt to authenticate the user, and execute the configured action if that fails
+                if not username or not self.authenticate(context, username, password, 'request'):
+                    context.response.headers['WWW-authenticate'] = 'Basic realm="%s"' % options['realm']
+                    raise HTTPUnauthorized
+            elif options['method'] == 'session':
+                uid = context.session.get(options['sessionkey'])
+                context.user = options['lookup_callback'](context, uid)
         elif hasattr(handler, '__auth__'):
             context._authentication_options.update(handler.__auth__)
             self._validate_options(context._authentication_options)
 
-    def authenticate(self, context, username, password=None, scope='session'):
+    @staticmethod
+    def authenticate(context, username, password=None, scope='session'):
         """Authenticate a user.
 
         Sets the current user in the session. You can optionally omit the password
@@ -106,21 +111,23 @@ class AuthenticationExtension(object):
         """
 
         options = context._authentication_options
-        result = options['callback'](context, username, password)
+        result = options['auth_callback'](context, username, password)
         if result is None or result[1] is None:
             return False
 
         if scope == 'session':
-            context.session[self.sessionkey] = result[0]
+            context.session[options['sessionkey']] = result[0]
             context.session.save()
 
+        # Add the "user" variable to the template namespace
         context.user = result[1]
-        if 'namespace' in context:
+        if hasattr(context, 'namespace'):
             context.namespace.user = result[1]
 
         return True
 
-    def deauthenticate(self, context, nuke=False):
+    @staticmethod
+    def deauthenticate(context, nuke=False):
         """Force logout.
 
         The context.user variable and the session variable are immediately cleared.
@@ -129,7 +136,7 @@ class AuthenticationExtension(object):
         """
 
         options = context._authentication_options
-        session = getattr(context, 'session')
+        session = getattr(context, 'session', None)
         if session:
             if nuke:
                 session.invalidate()
