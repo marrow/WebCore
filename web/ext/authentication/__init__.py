@@ -16,8 +16,7 @@ class AuthenticationExtension(object):
         super(AuthenticationExtension, self).__init__()
 
         default_options.setdefault('method', 'session')
-        default_options.setdefault('action', None)
-        default_options.setdefault('realm', None)
+        default_options.setdefault('realm', 'WebCore application')
         default_options.setdefault('sessionkey', '__user_id')
         self.default_options = default_options
 
@@ -41,12 +40,6 @@ class AuthenticationExtension(object):
         lookup_callback = options['lookup_callback']
         if not callable(lookup_callback):
             raise ValueError('Option "lookup_callback" must be a callable, got %r instead' % type(lookup_callback))
-
-        action = options.get('action')
-        if isinstance(action, unicode):
-            action = action.encode('iso-8859-1')
-        elif action is not None and not isinstance(action, bytes) and not callable(action):
-            raise ValueError('Option "action" must be None, a string or a callable -- got %r instead' % type(action))
 
         realm = options.get('realm')
         if isinstance(realm, unicode):
@@ -74,7 +67,7 @@ class AuthenticationExtension(object):
             # Determine the credentials to authenticate with, based on the configured method
             options = context._authentication_options
             if options['method'] == 'basic':
-                # If no Authorization header is present, the authentication fails
+                # If no Authorization header is present, the authentication fails, so send a 401 response
                 if not 'HTTP_AUTHORIZATION' in context.request.environ:
                     context.response.headers['WWW-authenticate'] = 'Basic realm="%s"' % options['realm']
                     raise HTTPUnauthorized
@@ -87,7 +80,7 @@ class AuthenticationExtension(object):
                 # Base64 decode the contents of the Authorization header
                 username, password = b64decode(credentials).split(':', 1)
 
-                # Attempt to authenticate the user, and execute the configured action if that fails
+                # Attempt to authenticate the user, send a 401 response if it fails
                 if not username or not self.authenticate(context, username, password, 'request'):
                     context.response.headers['WWW-authenticate'] = 'Basic realm="%s"' % options['realm']
                     raise HTTPUnauthorized
