@@ -9,6 +9,7 @@ from marrow.wsgi.objects.response import Response
 from marrow import logging
 
 from web.ext.authentication import AuthenticationExtension
+from web.core.application import Application
 
 
 class MockSession(object):
@@ -24,6 +25,9 @@ class MockSession(object):
 
     def __contains__(self, key):
         return key in self.current
+
+    def get(self, key):
+        return self.current.get(key)
 
     def save(self):
         self.persistent = deepcopy(self.current)
@@ -43,7 +47,14 @@ class TestAuthenticationExtension(object):
             if username == 'foo' and password == 'bar' else (None, None)
     dummy_lookup = lambda context, uid: TestAuthenticationExtension.dummy_user if uid == 1 else None
     default_basic_config = {'method': 'basic', 'auth_callback': dummy_authenticate, 'lookup_callback': dummy_lookup}
-    default_session_config = {'auth_callback': dummy_authenticate, 'lookup_callback': dummy_lookup}
+    default_session_config = {
+            'extensions': {
+                    'authentication': {
+                            'auth_callback': dummy_authenticate,
+                            'lookup_callback': dummy_lookup
+                            }
+                    }
+    }
 
     def _init_ext(self, config):
         self.ctx_class = type(b'Context', (object,), {'log': logging.log})
@@ -64,15 +75,11 @@ class TestAuthenticationExtension(object):
         eq_(context.user, self.dummy_user)
 
     def test_session_auth(self):
-        self._init_ext(self.default_session_config)
-        context = self.ctx_class()
-        context.request = LocalRequest(POST={'username': 'foo', 'password': 'bar'})
-        context.response = Response(context.request)
-        controller = DummyController()
+        app = Application(DummyController(), self.default_session_config)
+        app.Context.session = MockSession()
+        request = LocalRequest(path=b'/login', POST={'username': 'foo', 'password': 'bar'})
+        status = app(request.environ)[0]
 
-        self.ext.prepare(context)
-        self.ext.dispatch(context, '', controller, False)
-        self.ext.dispatch(context, 'login', controller.login, True)
-
-        eq_(context.user, self.dummy_user)
-        eq_(context.session.persistent['__user_id'], 1)
+        eq_(status, '200 OK')
+        eq_(request.context.user, self.dummy_user)
+        eq_(request.context.session.persistent['__user_id'], 1)
