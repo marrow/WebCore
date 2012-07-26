@@ -71,10 +71,8 @@ class AuthenticationExtension(object):
             # Determine the credentials to authenticate with, based on the configured method
             options = context._authentication_options
             if options['method'] == 'basic':
-                # If no Authorization header is present, the authentication fails, so send a 401 response
                 if not 'HTTP_AUTHORIZATION' in context.request.environ:
-                    context.response.headers['WWW-authenticate'] = 'Basic realm="%s"' % options['realm']
-                    raise HTTPUnauthorized
+                    return
 
                 # Check that the basic scheme was requested
                 scheme, credentials = context.request.get('HTTP_AUTHORIZATION').split(' ', 1)
@@ -86,11 +84,12 @@ class AuthenticationExtension(object):
 
                 # Attempt to authenticate the user, send a 401 response if it fails
                 if not username or not self.authenticate(context, username, password, 'request'):
-                    context.response.headers['WWW-authenticate'] = 'Basic realm="%s"' % options['realm']
+                    context.response.headers['WWW-Authenticate'] = 'Basic realm="%s"' % options['realm']
                     raise HTTPUnauthorized
             elif options['method'] == 'session':
                 uid = context.session.get(options['sessionkey'])
-                context.user = options['lookup_callback'](context, uid)
+                if uid is not None:
+                    context.user = options['lookup_callback'](context, uid)
 
     def after(self, context, exc=None):
         # An HTTPForbidden exception when authentication has not happened means that the application wants
