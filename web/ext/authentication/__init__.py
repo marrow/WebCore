@@ -99,11 +99,14 @@ class AuthenticationExtension(object):
             raise HTTPUnauthorized
 
     @staticmethod
-    def authenticate(context, username, password=None, scope='session'):
+    def authenticate(context, username, password=None, save_session=None):
         """Authenticate a user.
 
-        Sets the current user in the session. You can optionally omit the password
-        and force the authentication to authenticate as any user.
+        Sets the current user in the context and template namespace if successful.
+        You can optionally omit the password and force the authentication to authenticate as any user.
+        If @save_session@ is @True@, save the authentication information in the session.
+        If @save_session@ is omitted, authentication information is saved in the session if the authentication
+        method has been set to @session@.
 
         If successful, the context.user variable is immediately available.
 
@@ -115,7 +118,10 @@ class AuthenticationExtension(object):
         if result is None or result[1] is None:
             return False
 
-        if scope == 'session':
+        # Save the user ID to the session if configured or explicitly requested to do so
+        if save_session or (save_session is None and options['method'] == 'session'):
+            if not hasattr(context, 'session'):
+                raise Exception('Cannot save authentication information to session -- the session extension has not been configured')  # TODO: refine exception
             context.session[options['sessionkey']] = result[0]
             context.session.save()
 
