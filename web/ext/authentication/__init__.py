@@ -91,6 +91,13 @@ class AuthenticationExtension(object):
             context._authentication_options.update(handler.__auth__)
             self._validate_options(context._authentication_options)
 
+    def after(self, context, exc=None):
+        # An HTTPForbidden exception when authentication has not happened means that the application wants
+        # HTTP authentication, so a challenge should be sent to the client
+        if isinstance(exc, HTTPForbidden) and context._authentication_options['method'] == 'basic' and not context.user:
+            context.response.headers['WWW-authenticate'] = 'Basic realm="%s"' % context._authentication_options['realm']
+            raise HTTPUnauthorized
+
     @staticmethod
     def authenticate(context, username, password=None, scope='session'):
         """Authenticate a user.
