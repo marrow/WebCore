@@ -63,6 +63,10 @@ class AuthenticationExtension(object):
         context._authentication_options = self.default_options.copy()
 
     def dispatch(self, context, consumed, handler, is_endpoint):
+        if hasattr(handler, '__auth__'):
+            context._authentication_options.update(handler.__auth__)
+            self._validate_options(context._authentication_options)
+
         if is_endpoint:
             # Determine the credentials to authenticate with, based on the configured method
             options = context._authentication_options
@@ -87,9 +91,6 @@ class AuthenticationExtension(object):
             elif options['method'] == 'session':
                 uid = context.session.get(options['sessionkey'])
                 context.user = options['lookup_callback'](context, uid)
-        elif hasattr(handler, '__auth__'):
-            context._authentication_options.update(handler.__auth__)
-            self._validate_options(context._authentication_options)
 
     def after(self, context, exc=None):
         # An HTTPForbidden exception when authentication has not happened means that the application wants
