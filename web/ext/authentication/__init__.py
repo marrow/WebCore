@@ -35,11 +35,12 @@ class AuthenticationExtension(object):
         if not callable(auth_callback):
             raise ValueError('Option "auth_callback" must be a callable, got %r instead' % type(auth_callback))
 
-        if not 'lookup_callback' in options:
-            raise ValueError('Missing required option: lookup_callback')
-        lookup_callback = options['lookup_callback']
-        if not callable(lookup_callback):
-            raise ValueError('Option "lookup_callback" must be a callable, got %r instead' % type(lookup_callback))
+        if options['method'] == 'session':
+            if 'lookup_callback' not in options:
+                raise ValueError('Missing required option: lookup_callback')
+            lookup_callback = options['lookup_callback']
+            if not callable(lookup_callback):
+                raise ValueError('Option "lookup_callback" must be a callable, got %r instead' % type(lookup_callback))
 
         realm = options.get('realm')
         if isinstance(realm, unicode):
