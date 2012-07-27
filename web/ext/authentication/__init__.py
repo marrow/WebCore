@@ -84,7 +84,7 @@ class AuthenticationExtension(object):
                 username, password = b64decode(credentials).split(':', 1)
 
                 # Attempt to authenticate the user, send a 401 response if it fails
-                if not username or not self.authenticate(context, username, password, 'request'):
+                if not username or not self.authenticate(context, username, password):
                     context.response.headers['WWW-Authenticate'] = 'Basic realm="%s"' % options['realm']
                     raise HTTPUnauthorized
             elif options['method'] == 'session':
