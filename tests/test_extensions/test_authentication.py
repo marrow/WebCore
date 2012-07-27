@@ -1,6 +1,8 @@
 # coding: utf-8
+
 from __future__ import unicode_literals, division, print_function, absolute_import
 
+from json import dumps, loads
 from copy import deepcopy
 
 from nose.tools import eq_
@@ -34,11 +36,17 @@ class MockSession(object):
 
 
 class DummyController(object):
+    def __init__(self, context):
+        self._ctx = context
+    
     def dummymethod(self):
         pass
 
-    def login(self, username, password):
-        self._ctx.authenticate(username, password)
+
+def login(context, username, password):
+    context.authenticate(username, password)
+    context.response.charset = 'utf8'
+    return dumps([context.user, context.session.persistent])
 
 
 class TestAuthenticationExtension(object):
@@ -56,30 +64,34 @@ class TestAuthenticationExtension(object):
                     }
     }
 
+    class Context(object):
+        log = logging.log
+    
     def _init_ext(self, config):
-        self.ctx_class = type(b'Context', (object,), {'log': logging.log})
-        self.ext = AuthenticationExtension(self.ctx_class, **config)
-        self.ext.start(self.ctx_class)
+        self.ext = AuthenticationExtension(self.Context, **config)
+        self.ext.start(self.Context)
 
     def test_basic_auth(self):
         self._init_ext(self.default_basic_config)
-        context = self.ctx_class()
+        context = self.Context()
         context.request = LocalRequest({b'HTTP_AUTHORIZATION': b'basic Zm9vOmJhcg=='})
         context.response = Response(context.request)
-        controller = DummyController()
-
+        controller = DummyController(context)
+    
         self.ext.prepare(context)
         self.ext.dispatch(context, '', controller, False)
         self.ext.dispatch(context, 'dummymethod', controller.dummymethod, True)
-
+    
         eq_(context.user, self.dummy_user)
 
     def test_session_auth(self):
-        app = Application(DummyController(), self.default_session_config)
+        app = Application(login, self.default_session_config)
         app.Context.session = MockSession()
-        request = LocalRequest(path=b'/login', POST={'username': 'foo', 'password': 'bar'})
-        status = app(request.environ)[0]
+        request = LocalRequest(path='/?username=foo&password=bar')
+        status, headers, body = app(request.environ)
 
-        eq_(status, '200 OK')
-        eq_(request.context.user, self.dummy_user)
-        eq_(request.context.session.persistent['__user_id'], 1)
+        user, session = loads(b''.join(body).decode('utf8'))
+
+        eq_(status, b'200 OK')
+        eq_(user, self.dummy_user)
+        eq_(session['__user_id'], 1)

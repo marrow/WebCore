@@ -81,7 +81,7 @@ class Application(object):
     
     def __call__(self, environ, start_response=None):
         context = self.Context()
-        context.environ = environ
+        context.environ = environ if isinstance(environ, dict) else environ.environ
         
         for ext in chain(self._prepare, self._before):
             ext(context)
