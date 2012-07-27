@@ -9,6 +9,7 @@ from nose.tools import eq_
 from marrow.wsgi.objects.request import LocalRequest
 
 from web.core.application import Application
+from web.ext.authentication.authorization import authorize, authenticated
 
 
 class MockSession(object):
@@ -34,6 +35,11 @@ class MockSession(object):
 
 def basic_auth_method(context):
     return dumps(context.user)
+
+
+@authorize(authenticated)
+def basic_auth_challenge(context):
+    return dumps(context.user is None)
 
 
 def login(context, username, password):
@@ -73,6 +79,14 @@ class TestAuthenticationExtension(object):
 
         eq_(status, b'200 OK')
         eq_(user, self.dummy_user)
+
+    def test_basic_auth_challenge(self):
+        app = Application(basic_auth_challenge, self.default_basic_config)
+        request = LocalRequest()
+        status, headers, body = app(request.environ)
+
+        eq_(status, b'401 Unauthorized')
+        eq_(dict(headers).get('WWW-Authenticate'), 'Basic realm="WebCore application"')
 
     def test_session_auth(self):
         app = Application(login, self.default_session_config)

@@ -4,7 +4,7 @@ from __future__ import division, print_function, absolute_import
 from functools import partial, wraps
 from base64 import b64decode
 
-from marrow.util.compat import basestring, unicode, bytes
+from marrow.util.compat import basestring, unicode, bytes, bytestring
 from marrow.wsgi.exceptions import HTTPUnauthorized, HTTPBadRequest, HTTPForbidden, HTTPTemporaryRedirect
 
 
@@ -72,6 +72,8 @@ class AuthenticationExtension(object):
             # Determine the credentials to authenticate with, based on the configured method
             options = context._authentication_options
             if options['method'] == 'basic':
+                options['challenge'] = bytestring('Basic realm="%s"' % options['realm'], 'iso-8859-1')
+
                 if not 'HTTP_AUTHORIZATION' in context.request.environ:
                     return
 
@@ -85,19 +87,11 @@ class AuthenticationExtension(object):
 
                 # Attempt to authenticate the user, send a 401 response if it fails
                 if not username or not self.authenticate(context, username, password):
-                    context.response.headers['WWW-Authenticate'] = 'Basic realm="%s"' % options['realm']
-                    raise HTTPUnauthorized
+                    self.challenge(context)
             elif options['method'] == 'session':
                 uid = context.session.get(options['sessionkey'])
                 if uid is not None:
                     context.user = options['lookup_callback'](context, uid)
-
-    def after(self, context, exc=None):
-        # An HTTPForbidden exception when authentication has not happened means that the application wants
-        # HTTP authentication, so a challenge should be sent to the client
-        if isinstance(exc, HTTPForbidden) and context._authentication_options['method'] == 'basic' and not context.user:
-            context.response.headers['WWW-authenticate'] = 'Basic realm="%s"' % context._authentication_options['realm']
-            raise HTTPUnauthorized
 
     @staticmethod
     def authenticate(context, username, password=None, save_session=None):
