@@ -4,6 +4,12 @@ python:
   - "2.7"
   - "3.2"
 install:
+  - pip install git+https://github.com/marrow/marrow.util.git
+  - pip install git+https://github.com/marrow/marrow.templating.git
+  - pip install git+https://github.com/marrow/marrow.wsgi.objects.git
+  - pip install git+https://github.com/marrow/marrow.interface.git
+  - pip install git+https://github.com/marrow/marrow.config.git
+  - pip install nose coverage
   - pip install -e . --use-mirrors
 script: ./setup.py test
 notifications:
