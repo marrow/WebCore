@@ -1,0 +1,13 @@
+language: python
+python:
+  - "2.6"
+  - "2.7"
+  - "3.2"
+install:
+  - pip install -e . --use-mirrors
+script: ./setup.py test
+notifications:
+  irc:
+    channels: "irc.freenode.org#webcore"
+    on_success: change
+    on_failure: change
