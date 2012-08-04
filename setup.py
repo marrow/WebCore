@@ -72,7 +72,6 @@ setup(
                 'web.app',
                 'web.blueprint',
                 'web.cli',
-                'web.db',
                 'web.ext',
                 'web.rpc',
             ],
@@ -81,11 +80,6 @@ setup(
                 'console_scripts': ['web = web.cli.core:main'],
                 'web.command': [
                         'versions = web.cli.versions:versions'
-                    ],
-                'web.db.engines': [
-                        'sqlalchemy = web.db.sa:SQLAlchemyMiddleware',
-                        'mongo = web.db.mongo:MongoMiddleware',
-                        'mongoengine = web.db.me:MongoEngineMiddleware'
                     ],
                 'web.dispatch': [
                         'object = web.dialect.dispatch:ObjectDispatchDialect',
