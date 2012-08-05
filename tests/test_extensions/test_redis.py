@@ -2,7 +2,9 @@
 from __future__ import unicode_literals, division, print_function, absolute_import
 
 from nose.tools import eq_
+from nose.plugins.skip import SkipTest
 from marrow.wsgi.objects.request import LocalRequest
+from redis.exceptions import ConnectionError
 from redis import StrictRedis
 
 from web.core.application import Application
@@ -12,9 +14,14 @@ def insert_data_controller(context):
     context.redis.set('bar', 'baz')
 
 
-class TestMongoDBExtension(object):
+class TestRedisExtension(object):
     def setup(self):
         self.connection = StrictRedis(db='testdb')
+        try:
+            self.connection.ping()
+        except ConnectionError:
+            raise SkipTest('No Redis server available')
+
         self.config = {
                 'extensions': {
                         'redis': {
