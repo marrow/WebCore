@@ -2,8 +2,10 @@
 from __future__ import unicode_literals, division, print_function, absolute_import
 
 from nose.tools import eq_
+from nose.plugins.skip import SkipTest
 from marrow.wsgi.objects.request import LocalRequest
 from pymongo import Connection
+from pymongo.errors import AutoReconnect
 
 from web.core.application import Application
 
@@ -15,7 +17,11 @@ def insert_data_controller(context):
 
 class TestMongoDBExtension(object):
     def setup(self):
-        self.connection = Connection()
+        try:
+            self.connection = Connection()
+        except AutoReconnect:
+            raise SkipTest('No MongoDB server available')
+
         self.config = {
                 'extensions': {
                         'mongodb': {
