@@ -2,7 +2,11 @@
 from __future__ import unicode_literals, division, print_function, absolute_import
 
 from marrow.util.compat import basestring
-from redis import StrictRedis
+
+try:
+    from redis import StrictRedis
+except ImportError:
+    raise ImportError('You need to install redis to use this extension')
 
 
 class RedisExtension(object):
