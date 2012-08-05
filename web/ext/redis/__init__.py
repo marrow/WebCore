@@ -25,9 +25,12 @@ class RedisExtension(object):
         self._connection = connection
 
     def start(self, context):
-        # Attempt to connect to the server
+        # Create a new connection if none was supplied (this does not yet actually connect to the server)
         if self._connection is not None:
             self._connection = StrictRedis(**self._conn_params)
+
+        # Check that the connection is valid
+        self._connection.ping()
 
         # Add the connection to the context
         if hasattr(context, self._contextvar):
