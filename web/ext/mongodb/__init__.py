@@ -2,16 +2,26 @@ from pymongo import Connection
 
 
 class MongoDBExtension(object):
-    def __init__(self, context, connection, **conn_params):
+    provides = ['mongodb', 'database']
+
+    def __init__(self, context, contextvar='mongodb', connection=None, **conn_params):
         super(MongoDBExtension, self).__init__()
-        self._connection_ref = connection
+
+        if not isinstance(contextvar, basestring):
+            raise TypeError('The "contextvar" option needs to be a string')
+        if connection is not None and not isinstance(connection, Connection):
+            raise TypeError('The "connection" option needs to be a Connection')
+
+        self._contextvar = contextvar
         self._conn_params = conn_params
+        self._connection = connection
 
     def start(self, context):
         # Attempt to connect to the server
-        self._connection = Connection(**self._conn_params)
+        if self._connection is not None:
+            self._connection = Connection(**self._conn_params)
 
-        # Set the "connection" attribute in the given module
-        module_ref, _, variable_ref = self._connection.split(':')
-        module = __import__(module_ref)
-        setattr(module, variable_ref, self._connection)
+        # Add the connection to the context
+        if hasattr(context, self._contextvar):
+            raise Exception('The context already has a variable named "%s"' % self._contextvar)
+        setattr(context, self._contextvar, self._connection)
