@@ -51,6 +51,7 @@ class Application(object):
         load_extension('base', 'web.ext.base:BaseExtension')
         load_extension('cast', 'web.ext.cast:CastExtension')
         load_extension('template', 'web.ext.template:TemplateExtension')
+        load_extension('redis', 'web.ext.redis:RedisExtension')
         # ODOT
         
         # TODO: Make this a little more flexible.
