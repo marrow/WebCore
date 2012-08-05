@@ -2,7 +2,11 @@
 from __future__ import unicode_literals, division, print_function, absolute_import
 
 from marrow.util.compat import basestring
-from pymongo import Connection
+
+try:
+    from pymongo import Connection
+except ImportError:
+    raise ImportError('You need to install pymongo to use this extension')
 
 
 class MongoDBExtension(object):
