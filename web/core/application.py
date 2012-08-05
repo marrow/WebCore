@@ -161,15 +161,17 @@ class Application(object):
                 except TypeError:
                     pass
         
-        except HTTPException as exc:
-            context.response = exc
-        
         except Exception as exc:
+            safe = isinstance(exc, HTTPException)
+            
+            if safe:
+                context.response = exc
+            
             for ext in self._after:
                 if ext(context, exc):
                     exc = None
             
-            if exc:
+            if exc and not safe:
                 raise
         
         else:
