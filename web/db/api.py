@@ -60,26 +60,24 @@ class TransactionalMiddlewareInterface(object):
 
         self.begin(environ)
 
-        result = None
-        status = []
-        exc = []
+        status = [None]
+        exc = [None]
 
         def local_start(stat_str, headers=[], exc_info=None):
-            status.append(int(stat_str.split(' ')[0]))
-            if exc_info:
-                exc.append(exc_info)
+            status[0] = int(stat_str.split(' ')[0])
+            exc[0] = exc_info
             return start_response(stat_str, headers, exc_info)
 
         try:
-            result = self.application(environ, local_start)
-        except HTTPException:
-            pass
+            return self.application(environ, local_start)
+        except HTTPException as e:
+            status[0] = getattr(e, 'code', None)
+            return e(environ, start_response)
         except Exception as e:
-            exc.append(e)
-
-        if self.vote(environ, status[0] if status else None, exc[0] if exc else None):
-            self.finish(environ)
-        else:
-            self.abort(environ)
-
-        return result
+            exc[0] = e
+            raise
+        finally:
+            if self.vote(environ, status[0], exc[0]):
+                self.finish(environ)
+            else:
+                self.abort(environ)
