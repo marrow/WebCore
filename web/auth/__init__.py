@@ -72,14 +72,14 @@ def authorize(predicate):
     """Decorator to enforce predicates.
     
     Evaluate predicates directly (using the bool callable) and raise a
-    401 Not Authorized error if you want to do this by hand.
+    403 Forbidden error if you want to do this by hand.
     """
     
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kw):
             if not bool(predicate):
-                raise web.core.http.HTTPUnauthorized()
+                raise web.core.http.HTTPForbidden()
             
             return func(*args, **kw)
         
