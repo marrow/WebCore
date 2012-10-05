@@ -98,7 +98,7 @@ class URLGenerator(object):
         if port:
             url.port = port
         
-        url.params = params
+        url.query = params
         url.fragment = anchor
         
         return str(url)
