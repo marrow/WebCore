@@ -1,25 +1,17 @@
 # encoding: utf-8
+import pymongo
+from pymongo.errors import AutoReconnect
+from nose import SkipTest
+from nose.tools import eq_, assert_raises
 
-try:
-    # This to handle Python 2.6 which is missing skip.
-    from unittest2 import TestCase, skip
-except ImportError:
-    from unittest import TestCase, skip
-
-try:
-    import pymongo
-    from pymongo.errors import ConnectionFailure
-
-except ImportError:
-    skip("PyMongo not available; skipping tests which rely on it.")
+from web.db.mongo import MongoMiddleware
+from web.db.me import MongoEngineMiddleware
 
 
 try:
-    connection = pymongo.Connection()
-
-except ConnectionFailure:
-    skip("Could not connect to local MongoDB server; skipping tests which rely on it.")
-
+    connection = pymongo.Connection('localhost', 27017)
+except AutoReconnect:
+    connection = None
 else:
     connection.disconnect()
 
@@ -33,22 +25,13 @@ def ready(db=None):
 
 
 config = {'db.url': 'mongo://localhost/test', 'db.ready': ready}
-connection = None
 db = None
 
 
-class TestMongo(TestCase):
-    middleware = None
-
-    @classmethod
-    def setUpClass(cls):
-        try:
-            from web.db.mongo import MongoMiddleware
-
-        except ImportError:
-            skip("PyMongo not available; skipping MongoDB tests.")
-
-        cls.middleware = MongoMiddleware
+class TestMongo(object):
+    def setUp(self):
+        if connection is None:
+            raise SkipTest("Could not connect to local MongoDB server; skipping tests which rely on it.")
 
     def tearDown(self):
         global connection
@@ -56,41 +39,32 @@ class TestMongo(TestCase):
 
         if connection:
             connection.disconnect()
-            connection = None
 
         db = None
 
     def test_basic(self):
-        self.middleware('db', __import__('test_db_mongo'), **config)
+        MongoMiddleware(self, 'db', __import__('test_db_mongo'), **config)
 
-        self.assertEqual(connection.host, 'localhost')
-        self.assertEqual(connection.port, 27017)
+        eq_(connection.host, 'localhost')
+        eq_(connection.port, 27017)
 
     def test_bad_scheme(self):
         lconfig = config.copy()
         lconfig['db.url'] = "foo://localhost/test"
 
-        self.assertRaises(Exception, self.middleware, 'db', __import__('test_db_mongo'), **lconfig)
+        assert_raises(Exception, MongoMiddleware, self, 'db', __import__('test_db_mongo'), **lconfig)
 
 
-class TestMongoEngine(TestCase):
-    middleware = None
-
-    @classmethod
-    def setUpClass(cls):
-        try:
-            from web.db.me import MongoEngineMiddleware
-
-        except ImportError:
-            skip("MongoEngine not available; skipping MongoEngine tests.")
-
-        cls.middleware = MongoEngineMiddleware
+class TestMongoEngine(object):
+    def setUp(self):
+        if connection is None:
+            raise SkipTest("Could not connect to local MongoDB server; skipping tests which rely on it.")
 
     def test_basic(self):
-        self.middleware('db', __import__('test_db_mongo'), **config)
+        MongoEngineMiddleware(self, 'db', __import__('test_db_mongo'), **config)
 
     def test_bad_scheme(self):
         lconfig = config.copy()
         lconfig['db.url'] = "foo://localhost/test"
 
-        self.assertRaises(Exception, self.middleware, 'db', __import__('test_db_mongo'), **lconfig)
+        assert_raises(Exception, MongoEngineMiddleware, self, 'db', __import__('test_db_mongo'), **lconfig)
