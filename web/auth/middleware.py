@@ -13,7 +13,7 @@ log = __import__('logging').getLogger(__name__)
 
 default_config = Bunch(
         name='uid',
-        intercept='401',
+        intercept='403',
         handler='/login',
         internal=False,
         lookup=None,
