@@ -62,7 +62,12 @@ class Controller(Dialect):
 
             log.debug("Looking for %r attribute of %r.", part, last)
             part, request.format = part.rsplit('.', 1) if '.' in part else (part, None)
-            protected, part = part.startswith('_'), getattr(last, part, None)
+            protected = part.startswith('_')
+            try:
+                part = getattr(last, part, None)
+            except UnicodeEncodeError:
+                part = None
+
             request.charset = 'utf8'
             data = request.params.mixed()
             remaining = request.path_info.strip('/')
