@@ -3,10 +3,9 @@ python:
   - "2.6"
   - "2.7"
 install:
-  - pip install coverage Genshi SQLAlchemy Beaker ToscaWidgets Routes repoze.profile PyAMF mongoengine Mako
   - "if [[ $TRAVIS_PYTHON_VERSION == '2.6' ]]; then pip install unittest2; fi"
-  - pip install -e . --use-mirrors
-script: ./setup.py test
+  - pip install . --use-mirrors
+script: python setup.py test
 notifications:
   irc:
     channels: "irc.freenode.org#webcore"

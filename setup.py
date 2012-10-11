@@ -52,10 +52,8 @@ setup(
                 'pymongo',
                 'MongoEngine',
                 'Beaker',
-                'ToscaWidgets',
                 'Routes',
-                'repoze.profile',
-                'pyamf'
+                'PyAMF'
             ],
 
         classifiers=[
