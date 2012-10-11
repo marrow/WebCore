@@ -8,6 +8,7 @@ import web
 
 from marrow.util.bunch import Bunch
 from marrow.util.object import getargspec
+from webob.exc import HTTPException
 
 from web.core.http import HTTPLengthRequired, HTTPRequestEntityTooLarge
 from web.rpc import route, RoutingError
@@ -110,6 +111,8 @@ class XMLRPCController(web.core.Dialect):
             callback = getattr(parent, '__after__', None)
             if callback:
                 result = parent.__after__(result, *args)
+        except HTTPException:
+            raise
         except:
             log.error("Error calling RPC mechanism.", exc_info=True)
             return self._fault(fault.other.application)
