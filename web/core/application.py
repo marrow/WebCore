@@ -6,7 +6,7 @@ from weakref import WeakKeyDictionary
 
 from marrow.logging import Log, DEBUG
 from marrow.logging.formats import LineFormat
-from marrow.util.compat import native
+from marrow.util.compat import native, basestring
 from marrow.util.bunch import Bunch
 from marrow.util.object import load_object
 from marrow.wsgi.exceptions import HTTPException, HTTPNotFound
@@ -78,6 +78,17 @@ class Application(object):
             ext(self.Context)
         
         self._cache = dict() # TODO: WeakKeyDictionary so we don't keep dynamic __lookup__ objects hanging around!
+    
+    def load_extension(self, name):
+        if not isinstance(name, basestring):
+            # It's already an extension (we hope), so just use it.
+            return name
+        
+        if ':' in name:
+            # We need to load up a dot-colon object.
+            
+            pass
+        
     
     def __call__(self, environ, start_response=None):
         context = self.Context()
