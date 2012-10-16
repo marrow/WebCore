@@ -59,9 +59,13 @@ class TemplateExtension(object):
     provides = ['template']
     
     class Namespace(object):
-        pass
+        def __contains__(self, name):
+            return hasattr(self, name)
+        
+        def __iter__(self):
+            return ((i, getattr(self, i)) for i in dir(self) if i[0] != '_')
     
-    def __init__(self, context, default=None, path=None, override=None):
+    def __init__(self, default=None, path=None, override=None):
         """Executed to configure the extension."""
         super(TemplateExtension, self).__init__()
         
@@ -82,12 +86,12 @@ class TemplateExtension(object):
                     override[key] = [value]
         
         render.render.overrides = override
-        context.namespace = self.Namespace
     
     def start(self, context):
         """Register the template response handler."""
         registry.register(template_handler, tuple)
         registry.register(annotated_template_handler, dict)
+        context.namespace = self.Namespace
     
     def prepare(self, context):
         context.namespace = context.namespace()

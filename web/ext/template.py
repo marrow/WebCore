@@ -8,8 +8,8 @@ class Extension(object):
     
     The class attributes listed below control ordering and activation of other extensions.
     
-    * @uses@ -- Used for extension sorting and dependency graphing.
-    * @needs@ -- As per @uses@, but additionally activates those extensions.
+    * @uses@ -- Used for extension sorting and dependency graphing; if these features are present we can use them.
+    * @needs@ -- As per @uses@, but requires the named features be present.
     * @always@ -- If @True@ always load this extension.  Useful for applicaiton-provided extensions.
     * @never@ -- The opposite of @always@.
     * @first@ -- Always try to be first in the extension stack.

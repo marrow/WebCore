@@ -12,7 +12,11 @@ def template(context):
 
 
 if __name__ == '__main__':
-    from web.core.application import Application
     from marrow.server.http import HTTPServer
     
-    HTTPServer('127.0.0.1', 8080, application=Application(template)).start()
+    from web.core.application import Application
+    from web.ext.template import TemplateExtension
+    
+    HTTPServer('127.0.0.1', 8080, application=Application(template, dict(extensions=dict(
+            template = TemplateExtension()
+        )))).start()

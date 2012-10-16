@@ -16,9 +16,16 @@
 
         <h1>Context</h1>
         <p>
-            In no particular order, here is the contents of the request-local context object:
+            In no particular order, here is the public contents of the request-local context object:
         </p>
 
-        <pre>${__import__('pprint').pformat(dict(web))}</pre>
+        <pre>${__import__('pprint').pformat(dict(web)) |h}</pre>
+        
+        <h1>Private Context</h1>
+        <p>
+            The following is generally private:
+        </p>
+        
+        <pre>${__import__('pprint').pformat(dict(web._core)) |h}</pre>
     </body>
 </html>

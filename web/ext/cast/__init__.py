@@ -19,7 +19,7 @@ class CastExtension(object):
 
     provides = ['typecast']
 
-    def __init__(self, context, encoding='utf-8', fallback='iso-8859-1'):
+    def __init__(self, encoding='utf-8', fallback='iso-8859-1'):
         super(CastExtension, self).__init__()
         self.handler = partial(unicodestr, encoding=encoding, fallback=fallback)
 

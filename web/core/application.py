@@ -1,27 +1,62 @@
 # encoding: utf-8
 
-from inspect import ismethod
+from inspect import ismethod #, isclass
 from itertools import chain
-from weakref import WeakKeyDictionary
+#from weakref import WeakKeyDictionary
 
 from marrow.logging import Log, DEBUG
 from marrow.logging.formats import LineFormat
 from marrow.util.compat import native, basestring
 from marrow.util.bunch import Bunch
 from marrow.util.object import load_object
-from marrow.wsgi.exceptions import HTTPException, HTTPNotFound
+from marrow.wsgi.exceptions import HTTPException
 
 from web.core.response import registry
+from web.ext.base import BaseExtension
+
+
+class ConfigurationException(Exception):
+    pass
+
+
+class MissingRequirement(ConfigurationException):
+    pass
 
 
 class Application(object):
     """A WSGI2-compliant application base."""
     
+    SIGNALS = ('start', 'stop', 'prepare', 'dispatch', 'before', 'after', 'mutate', 'transform')
+    
     def __init__(self, root, config=None):
-        config = Bunch(config) if config else Bunch()
-        
         # TODO: Check root via asserts.
         
+        self._cache = dict()  # TODO: WeakKeyDictionary so we don't keep dynamic __lookup__ objects hanging around!
+        
+        config = self.prepare_configuration(config)
+        self.Context = self.context_factory(root, config)
+        
+        core = self.Context._core = Bunch()
+        self.log = self.Context.log.name('web.app')
+        
+        self.log.debug("Preparing extensions.")
+        
+        extensions = core.extensions = self.load_extensions(config)
+        signals = core.signals = self.bind_signals(config, extensions)
+        
+        for ext in signals.start:
+            ext(self.Context)
+    
+    def prepare_configuration(self, config):
+        config = Bunch(config) if config else Bunch()
+        
+        # We really need this to be there later.
+        if 'extensions' not in config:
+            config.extensions = Bunch()
+        
+        return config
+    
+    def context_factory(self, root, config):
         class Context(object):
             def __contains__(self, name):
                 return hasattr(self, name)
@@ -33,80 +68,118 @@ class Application(object):
         Context.root = root
         Context.config = config
         
+        sep = '\n' + ' ' * 37
+        
         Context.log = Log(None, dict(
-                    formatter=LineFormat("{now.ts}  {level.name:<7}  {name:<10}  {data}  {text}", '  ', ' ' * 40)
+                    formatter=LineFormat("{now.ts}  {level.name:<7}  {name:<10}  {text}{data}", sep, sep)
                 ), level=DEBUG).name('base')
         
-        self.Context = Context
+        return Context
+    
+    def load_extensions(self, config):
+        mapping = config.extensions
+        extensions = list(mapping.values())  # we iterate this fairly frequently
         
-        self.extensions = []
+        # If the base extension isn't present yet, add it.
+        # TODO: Find all who are marked as always=True!
+        if BaseExtension not in extensions:
+            extensions.append(BaseExtension())
         
-        # TODO: Self-organizing extension selection.
-        def load_extension(name, reference):
-            ext = load_object(reference)
-            extconfig = config.get('extensions', dict()).get(name, dict())
+        # First let's check if everything needed has been provided.
+        # We deal with 'uses' feature requirements later.
+        
+        provided = set().union(*(getattr(ext, 'provides', ()) for ext in extensions))
+        needed = set().union(*(getattr(ext, 'needs', ()) for ext in extensions))
+        
+        if not provided.issuperset(needed):
+            raise MissingRequirement("Extensions providing the following features must be configured:\n" +
+                    ', '.join(needed.difference(provided)))
+        
+        # Now we spider the configured extensions and graph. This is a multi-step process.
+        
+        # Create a mapping of feature names to extensions. We only want extension objects in our initial graph.
+        
+        universal = list()  # these always go first (in any order)
+        provides = dict()
+        
+        for ext in extensions:
+            for feature in getattr(ext, 'provides', ()):
+                provides[feature] = ext
             
-            self.extensions.append(ext(self.Context, **extconfig))
+            if getattr(ext, 'first', False):
+                universal.append(ext)
         
-        load_extension('base', 'web.ext.base:BaseExtension')
-        load_extension('cast', 'web.ext.cast:CastExtension')
-        load_extension('template', 'web.ext.template:TemplateExtension')
-        # ODOT
+        # Now we build the initial graph.
         
-        # TODO: Make this a little more flexible.
-        self._start = []
-        self._stop = []
-        self._prepare = []
-        self._dispatch = []
-        self._before = []
-        self._after = []
-        self._mutate = []
-        self._transform = []
+        dependencies = dict()
         
-        for ext in self.extensions:
-            for mn in ('start', 'stop', 'prepare', 'dispatch', 'before', 'after', 'mutate', 'transform'):
+        for ext in extensions:
+            # We build a set of requirements from needs + uses that just happen to have been fulfilled.
+            requirements = set(getattr(ext, 'needs', ()))
+            requirements = requirements.union(
+                    set(getattr(ext, 'uses', ())).intersection(provided)
+                )
+            
+            dependencies[ext] = set(provides[req] for req in requirements)
+            
+            if universal and ext not in universal:
+                dependencies[ext].update(universal)
+        
+        # Build the final "unidirected acyclic graph"; a list of extensions in dependency-resolved order.
+        
+        extensions = []  # don't need this any more so let's re-use it
+        
+        while dependencies:
+            # items whose dependencies have been resolved
+            t = set(i for v in dependencies.values() for i in v) - set(dependencies.keys())
+            
+            # and those who simply have no dependencies
+            t.update(k for k, v in dependencies.items() if not v)
+            
+            if not t and dependencies:
+                raise Exception("SOMETHING TERRIBLE HAPPENED!\nGet in #webcore on irc.freenode.net and share your pathology!")
+            
+            # we add to the extension list
+            extensions.extend(t)
+            
+            # and remove from our initial graph
+            dependencies = dict(((k ,v-t) for k, v in dependencies.items() if v))
+        
+        return extensions
+    
+    def bind_signals(self, config, extensions):
+        signals = Bunch((signal, []) for signal in self.SIGNALS)
+        
+        for ext in extensions:
+            for mn in self.SIGNALS:
                 m = getattr(ext, mn, None)
                 if not m: continue
-                getattr(self, '_' + mn).append(m)
+                signals[mn].append(m)
         
-        self._after.reverse()
-        self._mutate.reverse()
-        self._transform.reverse()
-        # ODOT
+        signals.after.reverse()
+        signals.mutate.reverse()
+        signals.transform.reverse()
         
-        for ext in self._start:
-            ext(self.Context)
-        
-        self._cache = dict() # TODO: WeakKeyDictionary so we don't keep dynamic __lookup__ objects hanging around!
-    
-    def load_extension(self, name):
-        if not isinstance(name, basestring):
-            # It's already an extension (we hope), so just use it.
-            return name
-        
-        if ':' in name:
-            # We need to load up a dot-colon object.
-            
-            pass
-        
+        return signals
     
     def __call__(self, environ, start_response=None):
         context = self.Context()
         context.environ = environ
+        signals = context._core.signals
         
-        for ext in chain(self._prepare, self._before):
+        for ext in chain(signals.prepare, signals.before):
             ext(context)
         
         exc = None
         
-        context.log.debug("Starting dispatch.")
+        self.log.debug("Starting dispatch.")
         
         # Terrible! Temporary! Hack! :D
         try:
             router = __import__('web.dialect.dispatch').dialect.dispatch.ObjectDispatchDialect(context.config)
             
             for consumed, handler, is_endpoint in router(context, context.root):
-                for ext in self._dispatch:
+                for ext in signals.dispatch:
                     ext(context, consumed, handler, is_endpoint)
         except HTTPException as e:
             handler = e(context.request.environ)
@@ -124,10 +197,10 @@ class Application(object):
             
             if callable(handler):
                 args = list(request.remainder)
-                if args[0] == '': del args[0]
-                kwargs = request.kwargs
+                if args and args[0] == '': del args[0]
+                kwargs = dict() # request.kwargs
                 
-                for ext in self._mutate:
+                for ext in signals.mutate:
                     ext(context, handler, args, kwargs)
                 
                 if ismethod(handler) and getattr(handler, '__self__', None):
@@ -137,7 +210,7 @@ class Application(object):
             else:
                 result = handler
             
-            for ext in self._transform:
+            for ext in signals.transform:
                 ext(context, result)
             
             try:
@@ -153,7 +226,7 @@ class Application(object):
                 if count > 1:
                     self._cache[handler] = (kind, renderer, 1)
             
-            except (TypeError, KeyError):
+            except (TypeError, KeyError) as e:
                 # Perform the expensive deep-search for a valid handler.
                 renderer = registry(context, result)
                 
@@ -165,11 +238,9 @@ class Application(object):
                 if count > 5:
                     renderer = registry
                 
-                # Update the cache.
-                try:
+                # Update the cache if this isn't a TypeError.
+                if not isinstance(e, TypeError):
                     self._cache[handler] = (type(result), renderer, count + 1)
-                except TypeError:
-                    pass
         
         except Exception as exc:
             safe = isinstance(exc, HTTPException)
@@ -177,7 +248,7 @@ class Application(object):
             if safe:
                 context.response = exc
             
-            for ext in self._after:
+            for ext in signals.after:
                 if ext(context, exc):
                     exc = None
             
@@ -185,7 +256,7 @@ class Application(object):
                 raise
         
         else:
-            for ext in self._after:
+            for ext in signals.after:
                 ext(context, None)
         
         result = context.response(environ)

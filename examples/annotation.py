@@ -18,7 +18,13 @@ class Root(object):
 
 
 if __name__ == '__main__':
-    from web.core.application import Application
     from marrow.server.http import HTTPServer
+    
+    from web.core.application import Application
+    from web.ext.template import TemplateExtension
+    from web.ext.cast import CastExtension
 
-    HTTPServer('127.0.0.1', 8080, application=Application(Root)).start()
+    HTTPServer('127.0.0.1', 8080, application=Application(Root, dict(extensions=dict(
+            template = TemplateExtension(),
+            typecast = CastExtension()
+        )))).start()
