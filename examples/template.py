@@ -17,6 +17,14 @@ if __name__ == '__main__':
     from web.core.application import Application
     from web.ext.template import TemplateExtension
     
-    HTTPServer('127.0.0.1', 8080, application=Application(template, dict(extensions=dict(
-            template = TemplateExtension()
-        )))).start()
+    # Configure the extensions needed for this example:
+    config = dict(
+            extensions = dict(
+                    template = TemplateExtension()
+                ))
+
+    # Create the underlying WSGI application, passing the extensions to it.
+    app = Application(Root, config)
+
+    # Start the development HTTP server.
+    HTTPServer('127.0.0.1', 8080, application=app).start()
