@@ -10,7 +10,7 @@ class Extension(object):
     
     * @uses@ -- Used for extension sorting and dependency graphing; if these features are present we can use them.
     * @needs@ -- As per @uses@, but requires the named features be present.
-    * @always@ -- If @True@ always load this extension.  Useful for applicaiton-provided extensions.
+    * @always@ -- If @True@ always load this extension.  Useful for application-provided extensions.
     * @never@ -- The opposite of @always@.
     * @first@ -- Always try to be first in the extension stack.
     * @last@ -- Always try to be last in the extension stack.
