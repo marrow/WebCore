@@ -24,7 +24,7 @@ class MissingRequirement(ConfigurationException):
 
 
 class Application(object):
-    """A WSGI2-compliant application base."""
+    """The WebCore WSGI application."""
     
     SIGNALS = ('start', 'stop', 'prepare', 'dispatch', 'before', 'after', 'mutate', 'transform')
     
@@ -143,7 +143,7 @@ class Application(object):
             extensions.extend(t)
             
             # and remove from our initial graph
-            dependencies = dict(((k ,v-t) for k, v in dependencies.items() if v))
+            dependencies = dict(((k, v-t) for k, v in dependencies.items() if v))
         
         return extensions
     
@@ -153,8 +153,8 @@ class Application(object):
         for ext in extensions:
             for mn in self.SIGNALS:
                 m = getattr(ext, mn, None)
-                if not m: continue
-                signals[mn].append(m)
+                if m:
+                    signals[mn].append(m)
         
         signals.after.reverse()
         signals.mutate.reverse()
