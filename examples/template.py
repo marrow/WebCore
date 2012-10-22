@@ -7,7 +7,7 @@ This renders the test.html file contained in the current working directory.
 
 
 def template(context):
-    context.log.warning("Returning template result.")
+    context.log.info("Returning template result.")
     return 'mako:./template.html', dict()
 
 
@@ -24,7 +24,7 @@ if __name__ == '__main__':
                 ))
 
     # Create the underlying WSGI application, passing the extensions to it.
-    app = Application(Root, config)
+    app = Application(template, config)
 
     # Start the development HTTP server.
     HTTPServer('127.0.0.1', 8080, application=app).start()

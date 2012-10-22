@@ -6,11 +6,11 @@ from itertools import chain
 
 from marrow.logging import Log, DEBUG
 from marrow.logging.formats import LineFormat
-from marrow.util.compat import native, basestring
+from marrow.util.compat import native
 from marrow.util.bunch import Bunch
-from marrow.util.object import load_object
 from marrow.wsgi.exceptions import HTTPException
 
+from web.core.tarjan import robust_topological_sort
 from web.core.response import registry
 from web.ext.base import BaseExtension
 
@@ -36,13 +36,12 @@ class Application(object):
         config = self.prepare_configuration(config)
         self.Context = self.context_factory(root, config)
         
-        core = self.Context._core = Bunch()
         self.log = self.Context.log.name('web.app')
         
         self.log.debug("Preparing extensions.")
         
-        extensions = core.extensions = self.load_extensions(config)
-        signals = core.signals = self.bind_signals(config, extensions)
+        extensions = self.extensions = self.load_extensions(config)
+        signals = self.signals = self.bind_signals(config, extensions)
         
         for ext in signals.start:
             ext(self.Context)
@@ -100,6 +99,7 @@ class Application(object):
         # Create a mapping of feature names to extensions. We only want extension objects in our initial graph.
         
         universal = list()  # these always go first (in any order)
+        inverse = list()  # these always go last (in any order)
         provides = dict()
         
         for ext in extensions:
@@ -108,6 +108,8 @@ class Application(object):
             
             if getattr(ext, 'first', False):
                 universal.append(ext)
+            elif getattr(ext, 'last', False):
+                inverse.append(ext)
         
         # Now we build the initial graph.
         
@@ -116,34 +118,26 @@ class Application(object):
         for ext in extensions:
             # We build a set of requirements from needs + uses that just happen to have been fulfilled.
             requirements = set(getattr(ext, 'needs', ()))
-            requirements = requirements.union(
-                    set(getattr(ext, 'uses', ())).intersection(provided)
-                )
+            requirements.update(set(getattr(ext, 'uses', ())).intersection(provided))
             
             dependencies[ext] = set(provides[req] for req in requirements)
             
             if universal and ext not in universal:
                 dependencies[ext].update(universal)
+            
+            if inverse and ext in inverse:
+                dependencies[ext].update(set(extensions).difference(inverse))
         
         # Build the final "unidirected acyclic graph"; a list of extensions in dependency-resolved order.
+        dependencies = robust_topological_sort(dependencies)
         
-        extensions = []  # don't need this any more so let's re-use it
-        
-        while dependencies:
-            # items whose dependencies have been resolved
-            t = set(i for v in dependencies.values() for i in v) - set(dependencies.keys())
+        # If there are any tuple elements, we've got a circular reference!
+        extensions = []
+        for ext in dependencies:
+            if len(ext) > 1:
+                raise ConfigurationException("Circular dependency found: " + repr(ext))
             
-            # and those who simply have no dependencies
-            t.update(k for k, v in dependencies.items() if not v)
-            
-            if not t and dependencies:
-                raise Exception("SOMETHING TERRIBLE HAPPENED!\nGet in #webcore on irc.freenode.net and share your pathology!")
-            
-            # we add to the extension list
-            extensions.extend(t)
-            
-            # and remove from our initial graph
-            dependencies = dict(((k, v-t) for k, v in dependencies.items() if v))
+            extensions.append(ext[0])
         
         return extensions
     
@@ -165,7 +159,7 @@ class Application(object):
     def __call__(self, environ, start_response=None):
         context = self.Context()
         context.environ = environ
-        signals = context._core.signals
+        signals = self.signals
         
         for ext in chain(signals.prepare, signals.before):
             ext(context)
