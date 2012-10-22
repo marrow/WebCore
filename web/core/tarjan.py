@@ -39,8 +39,8 @@ def strongly_connected_components(graph):
             component = tuple(stack[stack_pos:])
             del stack[stack_pos:]
             result.append(component)
-        for item in component:
-            low[item] = len(graph)
+            for item in component:
+                low[item] = len(graph)
     
     for node in graph:
         visit(node)
