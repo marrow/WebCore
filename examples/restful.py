@@ -6,33 +6,33 @@ from web.dialect.helper import Resource, Collection
 
 
 class Person(Resource):
-    def _get(self):
+    def get(self):
         return "Person details."
     
-    def _post(self):
+    def post(self):
         # Often not supported!
         return "Create a child object."
     
-    def _put(self):
+    def put(self):
         return "Replace or create this person."
     
-    def _delete(self):
+    def delete(self):
         return "Delete this person."
 
 
 class Root(Collection):
     __resource__ = Person
     
-    def _get(self):
+    def get(self):
         return "List of people."
     
-    def _post(self):
+    def post(self):
         return "Create new person."
     
-    def _put(self):
+    def put(self):
         return "Replace all people."
     
-    def _delete(self):
+    def delete(self):
         return "Delete all people."
 
 
