@@ -4,6 +4,8 @@ log = __import__('logging').getLogger(__name__)
 
 
 class ResponseRegistry(object):
+    __slots__ = ('registry', )
+    
     def __init__(self):
         self.registry = list()
     
