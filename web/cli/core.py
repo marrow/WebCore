@@ -30,7 +30,11 @@ class ScriptCore(object):
             log_level="The default logging level.\nSee marrow.logging documentation for valid values."
         )
     def __init__(self, verbose=False, quiet=False, config="local.yaml", log="STDERR", log_level="info"):
-        pass
+        self.verbose = verbose
+        self.quiet = quiet
+        self.config = config
+        self.log = log
+        self.log_level = log_level
     
     # Load plugins.
     locals().update({

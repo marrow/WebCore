@@ -79,7 +79,9 @@ setup(
         entry_points = {
                 'console_scripts': ['web = web.cli.core:main'],
                 'web.command': [
-                        'versions = web.cli.versions:versions'
+                        'versions = web.cli.versions:versions',
+                        'clean = web.cli.clean:clean',
+                        'compile = web.cli.compile:compile'
                     ],
                 'web.dispatch': [
                         'object = web.dialect.dispatch:ObjectDispatchDialect',

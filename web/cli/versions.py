@@ -8,11 +8,14 @@ from marrow.script import Parser
 from marrow.script.util import wrap
 
 
-def versions(self, namespace=None):
+def versions(self, package='WebCore', namespace=None):
     """Display versions of installed packages.
     
     Use the namespace argument to enumerate all plugins for the given namespace.  Examples include: console_scripts, web.command, web.db.engines, web.dispatch, marrow.templating, ...
     """
+    
+    # TODO: Determine if versions are latest, and if safe upgrading is possible.
+    # TODO: Default to the entire working set, not a specific package.
     
     def explore(namespace):
         for i in pkg_resources.iter_entry_points(namespace):
@@ -23,10 +26,10 @@ def versions(self, namespace=None):
         print("Plugins within the \"{0}\" namespace:\n".format(namespace))
         return explore(namespace)
     
-    print("WebCore and dependencies:\n")
+    print(package, "and dependencies:\n")
     
     seen = dict()
-    for i in pkg_resources.require('WebCore'):
+    for i in pkg_resources.require(package):
         if i in seen: continue
         seen[i] = None
         
