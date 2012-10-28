@@ -22,6 +22,10 @@ class Root(object):
     @foo.require(True)
     def foo(self):
         return "We matched a different predicate."
+    
+    @foo.otherwise
+    def foo(self):
+        return "uh, wut?"
 
 
 

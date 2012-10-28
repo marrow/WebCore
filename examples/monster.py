@@ -9,7 +9,7 @@ from marrow.util.object import load_object as load
 
 
 class Person(Resource):
-    def _get(self):
+    def get(self):
         return "Person details."
 
     def _post(self):
@@ -106,6 +106,9 @@ class Root(object):
             return lambda: "Numerical lookup!"
         
         raise AttributeError()
+    
+    def __lookup__(self, *parts, **data):
+        return Controller(), ()
 
 
 

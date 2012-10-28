@@ -4,7 +4,13 @@ class Root(object):
     def __init__(self, context):
         self._ctx = context
     
-    def hello(self, name):
+    def __call__(self, name):
+        """
+        /hello -- 500
+        /hello?name=Bob
+        /hello POST name=bob
+        /hello/Bob
+        """
         return "Hello " + name
 
 
