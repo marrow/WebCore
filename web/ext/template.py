@@ -29,7 +29,7 @@ class Extension(object):
     provides = []
     extensions = ()
     
-    def __init__(self, context, **config):
+    def __init__(self, **config):
         """Executed to configure the extension.
         
         No actions must be performed here, only configuration management.
