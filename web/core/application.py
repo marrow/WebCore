@@ -26,6 +26,8 @@ class MissingRequirement(ConfigurationException):
 class Application(object):
     """The WebCore WSGI application."""
     
+    __slots__ = ('_cache', 'Context', 'log', 'extensions', 'signals')
+    
     SIGNALS = ('start', 'stop', 'prepare', 'dispatch', 'before', 'after', 'mutate', 'transform')
     
     def __init__(self, root, config=None):
@@ -180,6 +182,8 @@ class Application(object):
         
         count = 0
         
+        cache = self._cache
+        
         try:
             # We need to determine if the returned object is callable.
             #  If not, continue.
@@ -209,7 +213,7 @@ class Application(object):
             
             try:
                 # We optimize for the general case whereby callables always return the same type of result.
-                kind, renderer, count = self._cache[handler]
+                kind, renderer, count = cache[handler]
                 
                 # If the current return value isn't of the expceted type, invalidate the cache.
                 # or, if the previous handler can't process the current result, invalidate the cache.
@@ -218,7 +222,7 @@ class Application(object):
                 
                 # Reset the cache miss counter.
                 if count > 1:
-                    self._cache[handler] = (kind, renderer, 1)
+                    cache[handler] = (kind, renderer, 1)
             
             except (TypeError, KeyError) as e:
                 # Perform the expensive deep-search for a valid handler.
@@ -234,7 +238,7 @@ class Application(object):
                 
                 # Update the cache if this isn't a TypeError.
                 if not isinstance(e, TypeError):
-                    self._cache[handler] = (type(result), renderer, count + 1)
+                    cache[handler] = (type(result), renderer, count + 1)
         
         except Exception as exc:
             safe = isinstance(exc, HTTPException)
