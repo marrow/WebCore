@@ -137,3 +137,6 @@ class Extension(object):
     def transform(self, context, result):
         pass
 
+    def interactive(self):
+        """Prepopulate an interactive shell."""
+        return dict()

@@ -35,6 +35,8 @@ class ScriptCore(object):
         self.config = config
         self.log = log
         self.log_level = log_level
+        import logging
+        logging.basicConfig(level=logging.DEBUG)
     
     # Load plugins.
     locals().update({
