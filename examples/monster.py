@@ -8,36 +8,40 @@ from web.dialect.helper import Resource, Collection, method, render, require
 from marrow.util.object import load_object as load
 
 
+# REST Resources
+
 class Person(Resource):
     def get(self):
         return "Person details."
 
-    def _post(self):
+    def post(self):
         # Often not supported!
         return "Create a child object."
 
-    def _put(self):
+    def put(self):
         return "Replace or create this person."
 
-    def _delete(self):
+    def delete(self):
         return "Delete this person."
 
 
 class People(Collection):
     __resource__ = Person
 
-    def _get(self):
+    def get(self):
         return "List of people."
 
-    def _post(self):
+    def post(self):
         return "Create new person."
 
-    def _put(self):
+    def put(self):
         return "Replace all people."
 
-    def _delete(self):
+    def delete(self):
         return "Delete all people."
 
+
+# Efficient URL Routing
 
 class Routed(object):
     __dispatch__ = 'route'
@@ -51,10 +55,14 @@ class Routed(object):
         return "Page handler for: " + name
 
 
+# Object Dispatch (and root)
+
 class Root(object):
+    # Attach the REST resource collection and routed "sub-directories".
     people = People
     diz = Routed
     
+    # We can easily load from another module without cluttering globals.
     foo = load('myapp.controllers.foo:FooController')
     
     # The following is a static page definition.
@@ -63,6 +71,9 @@ class Root(object):
     # This works, too!  In fact, you can use any registry-handleable value!
     readme = open('../README.textile', 'r')
     
+    def __init__(self, context):
+        self._ctx = context
+
     def __call__(self):
         """Handle "index" lookups."""
         return "Path: /"
@@ -72,8 +83,10 @@ class Root(object):
         return "Path: /index"
     
     def template(self):
-        context.log.warning("Returning template result.")
+        self._ctx.context.log.warning("Returning template result.")
         return 'mako:./test.html', dict()
+    
+    # If HTTP verbs are your thing...
     
     @method.get
     def login(self):
@@ -84,10 +97,14 @@ class Root(object):
         # can call login.get() to explicitly call that handler.
         return "Actually log in."
     
+    # Or conditional template / serializer usage based on filename extension:
+
     @render('mako:myapp.templates.details')
     @render('json:')  # used if request.format == 'json'
     def details(self):
         return dict(name="Bob", age=27)
+
+    # Or straight-up if/elif/else:
 
     @require(predicate)
     def foo(self):
@@ -101,12 +118,16 @@ class Root(object):
     def foo(self):
         return "We didn't match anything.  :("
     
+    # If you need to be able to dynamically load the next path element...
+
     def __getattr__(self, name):
         if name.isdigit():
             return lambda: "Numerical lookup!"
         
         raise AttributeError()
     
+    # Or dynamically redirect object dispatch, possibly consuming *multiple* path elements...
+
     def __lookup__(self, *parts, **data):
         return Controller(), ()
 
