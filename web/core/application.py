@@ -30,7 +30,7 @@ class Application(object):
     
     SIGNALS = ('start', 'stop', 'prepare', 'dispatch', 'before', 'after', 'mutate', 'transform')
     
-    def __init__(self, root, config=None):
+    def __init__(self, root, **config):
         # TODO: Check root via asserts.
         
         self._cache = dict()  # TODO: WeakKeyDictionary so we don't keep dynamic __lookup__ objects hanging around!
@@ -78,8 +78,7 @@ class Application(object):
         return Context
     
     def load_extensions(self, config):
-        mapping = config.extensions
-        extensions = list(mapping.values())  # we iterate this fairly frequently
+        extensions = config.extensions  # we iterate this fairly frequently
         
         # If the base extension isn't present yet, add it.
         # TODO: Find all who are marked as always=True!
