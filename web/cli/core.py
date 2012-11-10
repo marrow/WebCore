@@ -3,9 +3,11 @@
 
 from __future__ import print_function
 
+import codecs
 import pkg_resources
 
 from marrow.script import describe
+from marrow.config import Configuration
 
 from web import release
 
@@ -32,11 +34,19 @@ class ScriptCore(object):
     def __init__(self, verbose=False, quiet=False, config="local.yaml", log="STDERR", log_level="info"):
         self.verbose = verbose
         self.quiet = quiet
-        self.config = config
+        self._config = config
+        self._config_cache = None
         self.log = log
         self.log_level = log_level
         import logging
         logging.basicConfig(level=logging.DEBUG)
+    
+    @property
+    def config(self):
+        if not self._config_cache:
+            self._config_cache = Configuration.load(codecs.open(self._config, 'r', 'utf8'))
+        
+        return self._config_cache
     
     # Load plugins.
     locals().update({
