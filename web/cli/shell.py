@@ -15,12 +15,24 @@ def run_python(env):
 
 
 def run_ipython(env):
-    import IPython.frontend
-    IPython.embed_kernel('__main__', env)
+    try:
+        from IPython import embed
+        embed()
+    except ImportError:
+        try:
+            from IPython.Shell import IPShell
+            shell = IPShell(argv=[])
+            shell.mainloop()
+        except ImportError:
+            raise ValueError('The IPython is not installed in the webcore environment.')
 
 
 def run_bpython(env):
-    pass
+    try:
+        import bpython
+        bpython.embed()
+    except ImportError:
+        raise ValueError('The BPython is not installed in your webcore environment.')
 
 
 def shell(self, interactive=True, run='auto'):
@@ -43,4 +55,3 @@ def shell(self, interactive=True, run='auto'):
         else:
             interpreter(env)
             break
-
