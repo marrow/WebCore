@@ -53,7 +53,7 @@ class Application(object):
         
         # We really need this to be there later.
         if 'extensions' not in config:
-            config.extensions = Bunch()
+            config.extensions = list()
         
         return config
     

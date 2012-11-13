@@ -14,7 +14,8 @@ class TestApplicationParts(TestCase):
     
     def test_application_attributes(self):
         self.assertTrue(isclass(self.app.Context), "Non-class context.")
-        self.assertEquals(self.app.Context.config, Bunch(extensions=Bunch()))
+        self.assertIsInstance(self.app.Context.config, Bunch)
+        self.assertIsInstance(self.app.Context.config.extensions, list)
     
     def test_prepare_configuration(self):
         configuration = dict()
@@ -56,4 +57,4 @@ class TestApplicationExtensions(TestCase):
     
     def test_missing_requirement(self):
         with self.assertRaises(MissingRequirement):
-            Application('Hi.', dict(extensions=dict(foo=self.FaultyException())))
+            Application('Hi.', extensions=[self.FaultyException()])
