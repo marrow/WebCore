@@ -24,7 +24,7 @@ def run_ipython(env):
             shell = IPShell(argv=[])
             shell.mainloop()
         except ImportError:
-            raise ValueError('The IPython is not installed in the webcore environment.')
+            raise ValueError('Unable to find ipython. To install, run: pip install ipython')
 
 
 def run_bpython(env):
@@ -32,7 +32,7 @@ def run_bpython(env):
         import bpython
         bpython.embed()
     except ImportError:
-        raise ValueError('The BPython is not installed in your webcore environment.')
+        raise ValueError('Unable to find bpython. To install, run: pip install bpython')
 
 
 def shell(self, interactive=True, run='auto'):
@@ -53,5 +53,7 @@ def shell(self, interactive=True, run='auto'):
         except KeyError:
             pass
         else:
+            # An interpreter not being found isn't an error when scanning.
+            # But is an error if explicitly asking for that shell.
             interpreter(env)
             break
