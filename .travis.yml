@@ -4,6 +4,7 @@ python:
   - "2.7"
   - "3.2"
 install:
+  - "if [[ $TRAVIS_PYTHON_VERSION == '2.6' ]]; then pip install unittest2; fi"
   - pip install git+https://github.com/marrow/marrow.util.git
   - pip install git+https://github.com/marrow/marrow.logging.git
   - pip install git+https://github.com/marrow/marrow.templating.git

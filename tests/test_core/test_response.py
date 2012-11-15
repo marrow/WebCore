@@ -1,6 +1,9 @@
 # encoding: utf-8
 
-from unittest import TestCase
+try:
+    from unittest2 import TestCase
+except ImportError:
+    from unittest import TestCase
 
 from web.core.response import ResponseRegistry
 
