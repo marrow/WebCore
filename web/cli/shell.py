@@ -15,22 +15,24 @@ def run_python(env):
 
 
 def run_ipython(env):
+    """Runs the shell environment through ipython using `env` as local variables"""
     try:
         from IPython import embed
         embed()
     except ImportError:
         try:
-            from IPython.Shell import IPShell
-            shell = IPShell(argv=[])
-            shell.mainloop()
+            from IPython.Shell import IPShellEmbed
+            shell = IPShellEmbed()
+            shell(local_ns=env)
         except ImportError:
             raise ValueError('Unable to find ipython. To install, run: pip install ipython')
 
 
 def run_bpython(env):
+    """Runs the shell environment through bpython using `env` as local variables"""
     try:
         import bpython
-        bpython.embed()
+        bpython.embed(locals_=env)
     except ImportError:
         raise ValueError('Unable to find bpython. To install, run: pip install bpython')
 
