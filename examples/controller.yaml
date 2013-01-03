@@ -13,7 +13,7 @@ server:
 
 application:
     use: web.core.application:Application
-    root: controller:Root
+    root: !obj controller:Root
     
     extensions:
         - use: web.ext.template:TemplateExtension
