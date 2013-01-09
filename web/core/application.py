@@ -200,7 +200,7 @@ class Application(object):
                 if args and args[0] == '': del args[0]
                 kwargs = dict() # request.kwargs
                 
-                log.data(handler=handler, args=args, kw=kw).debug("Endpoint found.")
+                log.data(handler=handler, args=args, kw=kwargs).debug("Endpoint found.")
                 
                 for ext in signals.mutate:
                     ext(context, handler, args, kwargs)
