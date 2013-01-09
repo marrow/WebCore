@@ -28,7 +28,7 @@ class Application(object):
     
     __slots__ = ('_cache', 'Context', 'log', 'extensions', 'signals')
     
-    SIGNALS = ('start', 'stop', 'prepare', 'dispatch', 'before', 'after', 'mutate', 'transform')
+    SIGNALS = ('start', 'stop', 'graceful', 'prepare', 'dispatch', 'before', 'after', 'mutate', 'transform')
     
     def __init__(self, root, **config):
         # TODO: Check root via asserts.
@@ -161,6 +161,9 @@ class Application(object):
         context = self.Context()
         context.environ = environ
         signals = self.signals
+        log = context.log.name('web.app')
+        
+        log.debug("Preparing for dispatch.")
         
         for ext in chain(signals.prepare, signals.before):
             ext(context)
@@ -197,6 +200,8 @@ class Application(object):
                 if args and args[0] == '': del args[0]
                 kwargs = dict() # request.kwargs
                 
+                log.data(handler=handler, args=args, kw=kw).debug("Endpoint found.")
+                
                 for ext in signals.mutate:
                     ext(context, handler, args, kwargs)
                 
@@ -206,6 +211,8 @@ class Application(object):
                     result = handler(context, *args, **kwargs)
             else:
                 result = handler
+            
+            log.data(result=result).debug("Endpoint returned, preparing for registry.")
             
             for ext in signals.transform:
                 ext(context, result)
@@ -253,8 +260,12 @@ class Application(object):
                 raise
         
         else:
+            exc = None
             for ext in signals.after:
                 ext(context, None)
+        
+        finally:
+            log.data(exc=exc, response=context.response).debug("Registry processed, returning response.")
         
         result = context.response(environ)
         

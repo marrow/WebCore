@@ -63,23 +63,3 @@ class BaseExtension(object):
 
         if not is_endpoint:
             context.environ['web.controller'] = str(context.request.path)
-    
-    # TODO: Move these logging messages to web.core.application and remove these superfluous callbacks.
-    
-    def stop(self, context):
-        context.log.name('web.app').debug("Shutdown complete.")
-    
-    def graceful(self, context):
-        context.log.name('web.app').debug("Performing graceful restart.")
-    
-    def before(self, context):
-        context.log.name('web.app').debug("Preparing for dispatch.")
-
-    def after(self, context, exc=None):
-        context.log.name('web.app').data(exc=exc, response=context.response).debug("Registry processed, returning response.")
-
-    def mutate(self, context, handler, args, kw):
-        context.log.name('web.app').data(handler=handler, args=args, kw=kw).debug("Controller found, calling.")
-    
-    def transform(self, context, result):
-        context.log.name('web.app').data(result=result).debug("Controller called, preparing for registry.")

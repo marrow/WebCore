@@ -81,7 +81,8 @@ setup(
                 'web.command': [
                         'versions = web.cli.versions:versions',
                         'clean = web.cli.clean:clean',
-                        'compile = web.cli.compile:compile'
+                        'compile = web.cli.compile:compile',
+                        'serve = web.cli.serve:serve',
                     ],
                 'web.dispatch': [
                         'object = web.dialect.dispatch:ObjectDispatchDialect',
