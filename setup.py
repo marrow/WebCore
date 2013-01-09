@@ -83,6 +83,7 @@ setup(
                         'clean = web.cli.clean:clean',
                         'compile = web.cli.compile:compile',
                         'serve = web.cli.serve:serve',
+                        'shell = web.cli.shell:shell',
                     ],
                 'web.dispatch': [
                         'object = web.dialect.dispatch:ObjectDispatchDialect',

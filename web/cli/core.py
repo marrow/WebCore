@@ -41,6 +41,8 @@ class ScriptCore(object):
         self._config_cache = None
         self.log = log
         self.log_level = log_level
+        import logging
+        logging.basicConfig(level=logging.DEBUG)
     
     @property
     def config(self):
