@@ -9,6 +9,7 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
 from web.core.application import Application
+from web.ext.sqlalchemy import SQLAlchemyExtension
 
 
 Base = declarative_base()
@@ -42,13 +43,9 @@ class TestSQLAlchemyExtension(object):
     def setup(self):
         self.Session = scoped_session(sessionmaker())
         self.config = {
-                'extensions': {
-                        'sqlalchemy': {
-                                'url': 'sqlite:///',
-                                'session': self.Session,
-                                'metadata': Base.metadata
-                            }
-                    }
+                'extensions': [
+                        SQLAlchemyExtension(url='sqlite:///', session=self.Session, metadata=Base.metadata)
+                    ]
             }
 
     def teardown(self):
@@ -57,7 +54,7 @@ class TestSQLAlchemyExtension(object):
         Base.metadata.bind = None
 
     def test_automatic_commit(self):
-        app = Application(commit_controller, self.config)
+        app = Application(commit_controller, **self.config)
         Base.metadata.create_all()
         request = LocalRequest()
         status, headers, body = app(request.environ)
@@ -69,7 +66,7 @@ class TestSQLAlchemyExtension(object):
         assert obj.id > 0
 
     def test_rollback_on_exception(self):
-        app = Application(rollback_controller, self.config)
+        app = Application(rollback_controller, **self.config)
         Base.metadata.create_all()
         request = LocalRequest()
 
@@ -77,7 +74,7 @@ class TestSQLAlchemyExtension(object):
         eq_(self.Session.query(DummyModel).first(), None)
 
     def test_commit_on_httpexception(self):
-        app = Application(httpexception_controller, self.config)
+        app = Application(httpexception_controller, **self.config)
         Base.metadata.create_all()
         request = LocalRequest()
         status, headers, body = app(request.environ)

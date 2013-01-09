@@ -2,11 +2,13 @@
 from __future__ import unicode_literals, division, print_function, absolute_import
 
 from marrow.wsgi.exceptions import HTTPException
+from marrow.util.compat import basestring
 
 try:
     from sqlalchemy import MetaData, create_engine
-    from sqlalchemy.orm import ScopedSession, scoped_session
+    from sqlalchemy.orm import scoped_session
     from sqlalchemy.orm.session import sessionmaker
+    from sqlalchemy.orm.scoping import ScopedSession
 except ImportError:
     raise ImportError('You need to install SQLAlchemy to use this extension')
 
@@ -15,7 +17,7 @@ class SQLAlchemyExtension(object):
     uses = ['transaction']
     provides = ['sqlalchemy', 'database']
 
-    def __init__(self, context, url, contextvar='dbsession', session=None, metadata=None, session_opts={}, **kwargs):
+    def __init__(self, url, contextvar='dbsession', session=None, metadata=None, session_opts={}, **kwargs):
         super(SQLAlchemyExtension, self).__init__()
 
         if not isinstance(contextvar, basestring):
