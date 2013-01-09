@@ -229,7 +229,6 @@ class Application(object):
                 # Reset the cache miss counter.
                 if count > 1:
                     cache[handler] = (kind, renderer, 1)
-            
             except (TypeError, KeyError) as e:
                 # Perform the expensive deep-search for a valid handler.
                 renderer = registry(context, result)
@@ -245,7 +244,6 @@ class Application(object):
                 # Update the cache if this isn't a TypeError.
                 if not isinstance(e, TypeError):
                     cache[handler] = (type(result), renderer, count + 1)
-        
         except Exception as exc:
             safe = isinstance(exc, HTTPException)
             
@@ -260,7 +258,6 @@ class Application(object):
             
             if exc and not safe:
                 raise
-        
         else:
             log.data(response=context.response).debug("Registry processed, returning response.")
             
