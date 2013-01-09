@@ -252,6 +252,8 @@ class Application(object):
             if safe:
                 context.response = exc
             
+            log.data(exc=exc, response=context.response).debug("Registry processed, returning response.")
+            
             for ext in signals.after:
                 if ext(context, exc):
                     exc = None
@@ -260,12 +262,10 @@ class Application(object):
                 raise
         
         else:
-            exc = None
+            log.data(response=context.response).debug("Registry processed, returning response.")
+            
             for ext in signals.after:
                 ext(context, None)
-        
-        finally:
-            log.data(exc=exc, response=context.response).debug("Registry processed, returning response.")
         
         result = context.response(environ)
         
