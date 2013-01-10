@@ -88,13 +88,6 @@ def render(template, format=None):
     return decorator
 
 
-class Condition(object):
-    def __init__(self, real=True)
-        self._real = real
-
-
-
-
 def condition(*predicates):
     def decorator(fn):
         if hasattr(fn, '_conditions'):
