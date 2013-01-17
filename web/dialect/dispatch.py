@@ -18,18 +18,26 @@ class ObjectDispatchDialect(object):
     
     def __call__(self, context, root):
         log = context.log
-        path = str(context.request.remainder)
-        trailing = path and path[-1] == '/'
-        chunks = [i for i in path.strip('/').split('/') if i]
+        path = context.request.remainder
+        trailing = False
+        
+        # Capture and eliminate the final, empty path element.
+        # If present there was a trailing slash in the original path.
+        if path[-1:] == ['']:
+            trailing = True
+            path.pop()
+        
+        # We don't care about leading slashes.
+        if path[:1] == ['/']:
+            path.consume()
         
         last = ''
         parent = None
         current = root
         
         # Iterate through and consume the path element (chunk) list.
-        for chunk in ipeek(chunks):
-            log.debug(chunk=chunk, chunks=chunks)
-            
+        for chunk in ipeek(path):
+            log.debug(chunk=chunk, chunks=path)
             parent = current
             
             # Security: prevent access to real private attributes.
@@ -37,7 +45,7 @@ class ObjectDispatchDialect(object):
             if chunk[0] == '_' and (hasattr(current.__class__, chunk) or chunk in current.__dict__):
                 raise HTTPNotFound()
             
-            current = getattr(parent, chunk, None)
+            current = getattr(parent, str(chunk), None)
             log.data(attr=current).debug("Found attribute.")
             
             # If there is no attribute (real or via __getattr__) try the __lookup__ method to re-route.
@@ -48,9 +56,9 @@ class ObjectDispatchDialect(object):
                     except AttributeError:
                         raise HTTPNotFound()
                     else:
-                        current, consumed = fallback(*chunks)
+                        current, consumed = fallback(*path)
                         chunk = '/'.join(consumed)
-                        del chunks[1:len(consumed)]
+                        del path[:len(consumed)]
                 else:
                     yield last.split('/'), parent, True
                     return
@@ -60,7 +68,7 @@ class ObjectDispatchDialect(object):
             
             yield last.split('/'), parent, False
             
-            last = chunk
+            last = str(chunk)
         
         if isclass(current):
             try:
