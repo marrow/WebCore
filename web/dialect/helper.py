@@ -1,6 +1,9 @@
 # encoding: utf-8
 
-"""Helpers for advanced controller behaviour."""
+"""Helpers for advanced controller behaviour.
+
+Much work needs to be done.
+"""
 
 from functools import partial, wraps
 

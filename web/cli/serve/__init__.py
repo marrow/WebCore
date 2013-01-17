@@ -11,8 +11,6 @@ def serve(cli, reload=False):
     
     config = cli.config
     
-    __import__('pprint').pprint(config)
-    
     application = config.application
     service = config.server(application)
     service.start()

@@ -3,6 +3,7 @@
 
 from __future__ import print_function
 
+import os
 import sys
 import select
 import codecs
@@ -50,6 +51,14 @@ class ScriptCore(object):
             if not sys.stdin.isatty() and select.select([sys.stdin],[],[],0.0)[0]:
                 # We have configuration coming in over STDIN.
                 self._config_cache = Configuration.load(sys.stdin)
+            elif '_' in os.environ:
+                try:
+                    self._config_cache = Configuration.load(codecs.open(os.path.abspath(os.environ['_']), 'r', 'utf8'))
+                except FileNotFoundError:
+                    raise ExitException(
+                        "Configuration file not found: " + self._config +
+                        "\n\nSpecify one using the --config (-c) global command-line argument."
+                    )
             else:
                 try:
                     self._config_cache = Configuration.load(codecs.open(self._config, 'r', 'utf8'))
@@ -66,6 +75,12 @@ class ScriptCore(object):
             i.name: i.load()
             for i in pkg_resources.iter_entry_points('web.command')
         })
+    
+    def __getattr__(self, name):
+        if not name.endswith('.yaml'):
+            raise AttributeError("'ScriptCore' object has no attribute '"+name+"'")
+        
+        return getattr(self, self.config['exec'].command)
 
 
 def main():
