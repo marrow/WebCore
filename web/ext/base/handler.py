@@ -27,7 +27,7 @@ def response(context, result):
 
 @kinds(binary, unicode, types.GeneratorType, collections.Iterable)
 def primary(context, result):
-    if isinstance(result, tuple):
+    if isinstance(result, (tuple, dict)):
         return False
     
     context.response.body = result
