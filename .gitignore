@@ -2,6 +2,7 @@
 *.pyo
 *.egg-info
 *.DS_Store
+*.egg
 *~
 build/
 dist/

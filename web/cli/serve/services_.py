@@ -3,7 +3,8 @@
     flaskext.actions.server_actions
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
-import sys,os
+import sys
+
 from werkzeug import script
 
 def runfcgi(application, before_daemon=None):
@@ -16,14 +17,14 @@ def runfcgi(application, before_daemon=None):
             daemonize           =   False,
             workdir             =   '.',
             pidfile             =   '',
-            maxspare            =    5,
-            minspare            =    2,
-            maxchildren          =    50,
-            maxrequests         =    0,
-            debug               =    False,
+            maxspare            =   5,
+            minspare            =   2,
+            maxchildren         =   50,
+            maxrequests         =   0,
+            debug               =   False,
             outlog              =   '/dev/null',
             errlog              =   '/dev/null',
-            umask               =   022,
+            umask               =   0o22,
         ):
         """run application use flup
         you can choose these arguments:
