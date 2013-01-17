@@ -40,6 +40,9 @@ class ObjectDispatchDialect(object):
             log.debug(chunk=chunk, chunks=path)
             parent = current
             
+            if isclass(parent):
+                parent = parent(context)
+            
             # Security: prevent access to real private attributes.
             # This is tricky as we need to avoid __getattr__ behaviour.
             if chunk[0] == '_' and (hasattr(current.__class__, chunk) or chunk in current.__dict__):
