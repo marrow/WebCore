@@ -13,5 +13,4 @@ server:
 
 application:
     use: web.core.application:Application
-    root:
-        index: "Hello world."
+    root: "Hello world."

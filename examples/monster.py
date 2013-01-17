@@ -1,6 +1,9 @@
 # encoding: utf-8
 
-"""Everything all in one convienent file."""
+"""Everything all in one convienent file.
+
+Non-functional until the helpers get worked on a bit more.
+"""
 
 from web.dialect.route import route
 from web.dialect.helper import Resource, Collection, method, render, require

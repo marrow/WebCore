@@ -1,6 +1,9 @@
 # encoding: utf-8
 
-"""Allow a single method to return different data formats."""
+"""Allow a single method to return different data formats.
+
+Non-functional until the helpers get worked on a bit.
+"""
 
 from web.dialect.helper import render, require
 

@@ -1,6 +1,9 @@
 # encoding: utf-8
 
-"""Slightly more advanced example application."""
+"""Slightly more advanced example application.
+
+Non-functional until the helpers are worked on a bit more.
+"""
 
 from web.dialect.helper import method
 
