@@ -4,16 +4,15 @@ version: 1
 
 exec:
     command: serve
-    reload: true
 
 server:
-    use: marrow.server.http:HTTPServer
+    use: web.cli.serve.service:Marrow
     host: # bind to all interfaces
     port: 8080
 
 application:
     use: web.core.application:Application
-    root: !obj controller:Root
+    root: !!python/name:examples.controller.Root
     
     extensions:
         - use: web.ext.template:TemplateExtension
