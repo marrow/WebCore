@@ -6,10 +6,10 @@ class Root(object):
     
     def __call__(self, name):
         """
-        /hello -- 500
-        /hello?name=Bob
-        /hello POST name=bob
-        /hello/Bob
+        / -- 500
+        /?name=Bob
+        / POST name=bob
+        /Bob
         """
         return "Hello " + name
 
