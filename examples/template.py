@@ -19,12 +19,12 @@ if __name__ == '__main__':
     
     # Configure the extensions needed for this example:
     config = dict(
-            extensions = dict(
-                    template = TemplateExtension()
-                ))
+            extensions = [
+                    TemplateExtension()
+                ])
 
     # Create the underlying WSGI application, passing the extensions to it.
-    app = Application(template, config)
+    app = Application(template, **config)
 
     # Start the development HTTP server.
     HTTPServer('127.0.0.1', 8080, application=app).start()
