@@ -19,7 +19,7 @@ class Root(object):
         return "Path: /index"
     
     foo = "Static string!"
-    bar = "mako:./examples/template.html", dict()
+    bar = "mako:./template.html", dict()
 
 
 if __name__ == '__main__':
