@@ -46,7 +46,7 @@ def runfastcgi(application,**kwargs):
     options.update(kwargs)
     try:
         import flup
-    except ImportError, e:
+    except ImportError as e:
         print("ERROR: %s" % e, file=sys.stderr)
         print("  Unable to load the flup package.  In order to run django", file=sys.stderr)
         print("  as a FastCGI application, you will need to get flup from", file=sys.stderr)
