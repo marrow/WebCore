@@ -1,5 +1,5 @@
 # encoding: utf-8
 
 
-class Dialect(object):
+class TraversalDialect(object):
     pass
