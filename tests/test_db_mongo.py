@@ -1,8 +1,8 @@
 # encoding: utf-8
 import pymongo
-from pymongo.errors import AutoReconnect
 from nose import SkipTest
 from nose.tools import eq_, assert_raises
+from pymongo.errors import ConnectionFailure
 
 from web.db.mongo import MongoMiddleware
 from web.db.me import MongoEngineMiddleware
@@ -10,7 +10,7 @@ from web.db.me import MongoEngineMiddleware
 
 try:
     connection = pymongo.Connection('localhost', 27017)
-except AutoReconnect:
+except ConnectionFailure:
     connection = None
 else:
     connection.disconnect()
