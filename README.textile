@@ -2,7 +2,7 @@ h1. WebCore
 
 bq. A lightweight and extremely fast Python web framework.
 
-!https://secure.travis-ci.org/bravecollective/core.png?branch=master!
+!https://secure.travis-ci.org/marrow/WebCore.png?branch=master!
 
 h2. Core Features
 
