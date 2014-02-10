@@ -34,6 +34,12 @@ def MongoEngineMiddleware(application, prefix, model, session=None, **config):
 
     if auth:  # pragma: no cover
         connection['username'], _, connection['password'] = auth.partition(':')
+    
+    # Accept additional keyword arguments to mongoengine.connect() from the INI.
+    for k, v in config.iteritems():
+        pfx, _, k = k.rpartition('.')
+        if pfx != prefix or k in ('engine', 'model', 'url', 'ready'): continue
+        connection[k] = int(v) if v.isdigit() else v
 
     log.debug("Connecting to %s database with connection information: %r", db, connection)
     model.__dict__['connection'] = mongoengine.connect(db, **connection)
