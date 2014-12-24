@@ -1,21 +1,29 @@
 language: python
-python:
-  - "2.6"
-  - "2.7"
-  - "3.2"
-install:
-  - "if [[ $TRAVIS_PYTHON_VERSION == '2.6' ]]; then pip install unittest2; fi"
-  - pip install git+https://github.com/marrow/marrow.util.git
-  - pip install git+https://github.com/marrow/marrow.logging.git
-  - pip install git+https://github.com/marrow/marrow.templating.git
-  - pip install git+https://github.com/marrow/marrow.wsgi.objects.git
-  - pip install git+https://github.com/marrow/marrow.interface.git
-  - pip install git+https://github.com/marrow/marrow.config.git
-  - pip install nose coverage
-  - pip install -e . --use-mirrors
-script: ./setup.py test
+
+env:
+  - TOXENV=pypy
+  - TOXENV=pypy3
+  - TOXENV=py26
+  - TOXENV=py27
+  - TOXENV=py32
+  - TOXENV=py33
+  - TOXENV=py34
+
+install: travis_retry .travis/install.sh
+
+script: .travis/run.sh
+
 notifications:
   irc:
-    channels: "irc.freenode.org#webcore"
+    channels:
+      - 'irc.freenode.org#webcore'
+    use_notice: true
+    skip_join: true
     on_success: change
-    on_failure: change
+    on_failure: always
+    template:
+      - "%{repository_slug}:%{branch}@%{commit} %{message}"
+      - "Duration: %{duration} - Details: %{build_url}"
+
+after_success:
+  - coveralls

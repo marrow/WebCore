@@ -2,8 +2,10 @@
 
 from inspect import isclass, isroutine
 
-from marrow.wsgi.exceptions import HTTPNotFound
-from marrow.util.object import load_object as load
+#from marrow.wsgi.exceptions import HTTPNotFound
+from webob.exc import HTTPNotFound
+
+from marrow.package.loader import load
 
 
 def ipeek(d):
@@ -42,7 +44,7 @@ class ObjectDispatchDialect(object):
 
         # Iterate through and consume the path element (chunk) list.
         for chunk in ipeek(path):
-            log.debug(chunk=chunk, chunks=path)
+            log.debug(repr(dict(chunk=chunk, chunks=path)))
             parent = current
 
             # Security: prevent access to real private attributes.

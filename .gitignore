@@ -1,16 +1,33 @@
-*.pyc
-*.pyo
-*.egg-info
-*.DS_Store
+*.py[co]
+
+# Packages
 *.egg
-*~
-build/
-dist/
-tests/.coverage
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+
+# Installer logs
+pip-log.txt
+
+# Unit test / coverage reports
 .coverage
-scripts/webcore-bootstrap.py
-*.tmproj
-__pycache__
-.settings
-.project
-.pydevproject
+.tox
+.cagoule.db
+.cache/
+
+# Translations
+*.mo
+
+# Mac
+.DS_Store
+
+# Extras
+thirdparty/
+htmlcov/
