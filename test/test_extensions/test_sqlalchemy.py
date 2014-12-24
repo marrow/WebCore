@@ -79,7 +79,7 @@ class TestSQLAlchemyExtension(object):
 		Base.metadata.create_all()
 		request = Request()
 		
-		with raises(DummyException):
+		with pytest.raises(DummyException):
 			app(request.environ)
 		
 		assert self.Session.query(DummyModel).first() is None

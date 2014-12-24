@@ -19,16 +19,11 @@ from marrow.package.host import ExtensionManager
 from webob.exc import HTTPException
 #from marrow.wsgi.exceptions import HTTPException
 
-from web.core.tarjan import robust_topological_sort
 from web.core.response import registry
 from web.ext.base import BaseExtension
 
 
 class ConfigurationException(Exception):
-	pass
-
-
-class MissingRequirement(ConfigurationException):
 	pass
 
 
@@ -71,28 +66,28 @@ class Application(object):
 		return config
 
 	def context_factory(self, root, config):
-		class Context(dict):
+		class Context(object):
 			def __iter__(self):
-				return ((i, self[i]) for i in self.keys() if i[0] != '_')
+				return ((i, self[i]) for i in dir(self) if i[0] != '_')
 			
-			def __getattr__(self, name):
+			def __getitem__(self, name):
 				try:
-					return self[name]
-				except KeyError:
+					return getattr(self, name)
+				except AttributeError:
 					pass
 				
-				raise AttributeError("Unknown attribute: " + name)
+				raise KeyError("Unknown attribute: " + name)
 			
-			def __setattr__(self, name, value):
-				self[name] = value
+			def __setitem__(self, name, value):
+				setattr(self, name, value)
 			
-			def __delattr__(self, name):
+			def __delitem__(self, name):
 				try:
-					del self[name]
-				except KeyError:
+					delattr(self, name)
+				except AttributeError:
 					pass
 				
-				raise AttributeError("Unknown attribute: " + name)
+				raise KeyError("Unknown attribute: " + name)
 		
 		Context.app = self
 		Context.root = root

@@ -1,12 +1,11 @@
 # encoding: utf-8
 
-try:
-    from unittest2 import TestCase
-except ImportError:
-    from unittest import TestCase
+import pytest
+
+from unittest import TestCase
 from inspect import isclass
 
-from web.core.application import Application, MissingRequirement
+from web.core.application import Application
 
 from marrow.util.bunch import Bunch
 
@@ -47,7 +46,7 @@ class TestApplicationParts(TestCase):
         context.foo = 27
         self.assertEquals(context.foo, 27)
         
-        self.assertIn('foo', context)
+        self.assertIn('foo', list(i for i, j in context))
         
         parts = [i for i, j in context]
         for i in ['app', 'config', 'foo', 'log', 'root']:
@@ -59,5 +58,5 @@ class TestApplicationExtensions(TestCase):
         needs = ('impossible', )
     
     def test_missing_requirement(self):
-        with self.assertRaises(MissingRequirement):
+        with pytest.raises(LookupError):
             Application('Hi.', extensions=[self.FaultyException()])
