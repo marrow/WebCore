@@ -22,7 +22,7 @@ class ObjectDispatchDialect(object):
 
     def __call__(self, context, root):
         log = context.log
-        path = context.request.remainder
+        path = context.request.path_info.split('/')
         trailing = False
 
         # Capture and eliminate the final, empty path element.
@@ -32,8 +32,8 @@ class ObjectDispatchDialect(object):
             path.pop()
 
         # We don't care about leading slashes.
-        if path[:1] == ['/']:
-            path.consume()
+        if path[:1] == ['']:
+            path.pop(0)
 
         if isclass(root):
             root = root(context)
@@ -53,7 +53,7 @@ class ObjectDispatchDialect(object):
                 raise HTTPNotFound()
 
             current = getattr(parent, str(chunk), None)
-            if current: log.data(attr=current).debug("Found attribute.")
+            if current: log.debug("Found attribute.") # .data(attr=current)
 
             # If there is no attribute (real or via __getattr__) try the __lookup__ method to re-route.
             if not current:
