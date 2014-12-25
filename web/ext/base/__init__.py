@@ -45,9 +45,9 @@ class BaseExtension(object):
 		context.request = Request(context.environ)
 		context.response = Response(request=context.request)
 
-		context.environ['web.base'] = context.request.path
+		context.environ['web.base'] = context.request.script_name
 		
-		context.request.remainder = context.request.path_info
+		context.request.remainder = context.request.path_info.split('/')
 
 		context.url = URLGenerator(context)
 		context.path = []
@@ -62,12 +62,13 @@ class BaseExtension(object):
 		request = context.request
 		#context.log.name('ext.base').data(consumed=consumed, handler=handler, endpoint=is_endpoint).debug("Handling dispatch.")
 		context.log.debug("Handling dispatch.")
-
-		if len(consumed) != 1 or consumed[0]:
-			request.path += consumed
-
-		context.path.append((handler, request.path))
+		
+		for element in consumed:
+			if element == context.request.path_info_peek():
+				context.request.path_info_pop()
+		
+		context.path.append((handler, request.script_name))
 		request.remainder = request.remainder[len(consumed):]
 
 		if not is_endpoint:
-			context.environ['web.controller'] = str(context.request.path)
+			context.environ['web.controller'] = str(context.request.script_name)
