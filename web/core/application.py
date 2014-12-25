@@ -187,7 +187,17 @@ class Application(object):
 			if callable(handler):
 				args = list(request.remainder)
 				if args and args[0] == '': del args[0]
-				kwargs = getattr(request, 'kwargs', dict())
+				
+				kwargs = dict()
+				for name, value in request.params.items():
+					if name.endswith('[]'):
+						name = name[:-2]
+					if name in kwargs and not isinstance(kwargs[name], list):
+						kwargs[name] = [kwargs[name], value]
+					elif name in kwargs:
+						kwargs[name].append(value)
+					else:
+						kwargs[name] = value
 				
 				#log.data(handler=handler, args=args, kw=kwargs).debug("Endpoint found.")
 				log.debug("Endpoint found.")
