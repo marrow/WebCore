@@ -129,7 +129,8 @@ setup(
 	
 	install_requires = [
 			'marrow.templating',
-			'WebOb'
+			'WebOb',
+			'marrow.util<2.0',
 		],
 	
 	extras_require = dict(
