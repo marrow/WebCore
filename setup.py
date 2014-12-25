@@ -129,6 +129,7 @@ setup(
 	
 	install_requires = [
 			'marrow.templating',
+			'marrow.package',
 			'WebOb',
 			'marrow.util<2.0',
 		],
