@@ -23,7 +23,7 @@ from web.ext.base import BaseExtension
 class Application(object):
 	"""The WebCore WSGI application."""
 	
-	__slots__ = ('_cache', 'Context', 'log', 'extensions', 'signals', 'dialect_cache', 'extension_manager')
+	__slots__ = ('_cache', 'Context', 'log', 'extensions', 'features', 'signals', 'dialect_cache', 'extension_manager')
 	
 	SIGNALS = ('start', 'stop', 'graceful', 'prepare', 'dispatch', 'before', 'after', 'mutate', 'transform')
 	
@@ -41,6 +41,7 @@ class Application(object):
 		
 		self.log.debug("Preparing extensions.")
 		
+		self.features = []
 		self.extension_manager = ExtensionManager('web.extension')
 		extensions = self.extensions = self.extension_manager.order(config, 'extensions')
 		signals = self.signals = self.bind_signals(config, extensions)
@@ -118,6 +119,8 @@ class Application(object):
 		signals = dict((signal, []) for signal in self.SIGNALS)
 		
 		for ext in extensions:
+			self.features.extend(getattr(ext, 'provides', [])) 
+			
 			for mn in self.SIGNALS:
 				m = getattr(ext, mn, None)
 				if m:

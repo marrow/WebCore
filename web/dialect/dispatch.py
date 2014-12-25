@@ -89,7 +89,7 @@ class ObjectDispatchDialect(object):
 		yield last.split('/'), current, True
 
 
-def main():
+if __debug__ and __name__ == '__main__':  # pragma: no cover
 	from marrow.util.bunch import Bunch
 	from marrow.logging import Log, DEBUG
 	
@@ -128,6 +128,3 @@ def main():
 	print()
 	for i,j,k in router(context, index):
 		context.log.info(path=i,obj=j,final=k)
-
-if __name__ == '__main__':
-	main()

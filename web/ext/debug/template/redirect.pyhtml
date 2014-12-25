@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>${{_('redirect.title')}}</title>
+	</head>
+	<body>
+		<h1>#{capture.status}</h1>
+		<h2>${{_('redirect.location')}} <a id="location" href="#{capture.location}">#{capture.location}</a></h2>
+		
+		<p class="notice">${{_('redirect.notice')}}</p>
+		
+		<script type="text/javascript">
+			document.getElementById('location').focus();
+		</script>
+	</body>
+</html>

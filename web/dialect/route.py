@@ -147,7 +147,7 @@ class RoutingDialect(object):
         yield path[:len(path)-len(remainder)].split('/'), target, not hasattr(target, '__dialect__')
 
 
-if __name__ == '__main__':
+if __debug__ and __name__ == '__main__':  # pragma: no cover
     router = Router()
 
     @route('/', router)

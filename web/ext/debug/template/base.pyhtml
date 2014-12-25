@@ -1,0 +1,34 @@
+<style type="text/css">
+	:: ## Prevent the WebCore Debug Toolbar from spoiling your dead trees.
+	@media print { #wcdt { display:none; } }
+	
+	:: include("default.pycss")
+</style>
+
+<script>
+	:: include("scripts.pyjs")
+</script>
+
+<div id="wcdt-show">#{{_('panel.show')}}</div>
+
+<div id="wcdt" class="wcdt-hidden" dir="ltr" data-panel-url="${web.url('/_wcdt/render')}">
+	<dl class="wcdt-tabs">
+		<dt id="wcdt-hide" class="wcdt-action">Close</dt>
+		
+		<dt class="wcdt-active">#{{_('panel.welcome.title')}}</dt>
+		<dd class="wcdt-active">
+			:: include("panel-welcome.pyhtml")
+		</dd>
+		
+		:: for panel in toolbar.panels:
+			:: if not panel.enabled:
+				<dt data-panel="${panel.name}" class="wcdt-disabled">${panel.title}</dt>
+			:: else:
+				<dt>${panel.title}</dt>
+				<dd data-panel="${panel.name}" class="wcdt-pending">
+					:: include('loading.pyhtml')
+				</dd>
+			:: # endif
+		:: #endfor
+	</dl>
+</div>
