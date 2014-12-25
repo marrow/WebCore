@@ -1,30 +1,23 @@
 # encoding: utf-8
 
-from inspect import ismethod #, isclass
+from __future__ import unicode_literals
+
+import logging
+
+from inspect import ismethod
 from itertools import chain
-#from weakref import WeakKeyDictionary
+from weakref import WeakKeyDictionary
 
-try:
-	from collections import UserDict
-except ImportError:  # pragma: no cover
-	from userdict import UserDict
+from webob.exc import HTTPException
 
-#from marrow.logging import Log, DEBUG
-#from marrow.logging.formats import LineFormat
 from marrow.util.compat import native
 from marrow.util.bunch import Bunch
 from marrow.package.cache import PluginCache
 from marrow.package.loader import load
 from marrow.package.host import ExtensionManager
-from webob.exc import HTTPException
-#from marrow.wsgi.exceptions import HTTPException
 
 from web.core.response import registry
 from web.ext.base import BaseExtension
-
-
-class ConfigurationException(Exception):
-	pass
 
 
 class Application(object):
@@ -35,14 +28,16 @@ class Application(object):
 	SIGNALS = ('start', 'stop', 'graceful', 'prepare', 'dispatch', 'before', 'after', 'mutate', 'transform')
 	
 	def __init__(self, root, **config):
-		# TODO: Check root via asserts.
-		
-		self._cache = dict()  # TODO: WeakKeyDictionary so we don't keep dynamic __lookup__ objects hanging around!
+		self._cache = WeakKeyDictionary()
 		
 		config = self.prepare_configuration(config)
 		self.Context = self.context_factory(root, config)
 		
 		self.log = self.Context.log #.name('web.app')
+		
+		level = config.get('logging', {}).get('level', None)
+		if level:
+			logging.basicConfig(level=getattr(logging, level.upper()))
 		
 		self.log.debug("Preparing extensions.")
 		
@@ -55,17 +50,32 @@ class Application(object):
 			ext(self.Context)
 	
 	def prepare_configuration(self, config):
+		"""Prepare the incoming configuration and ensure certain expected values are present.
+		
+		For example, this ensures BaseExtension is included in the extension list.
+		"""
+		
 		config = Bunch(config) if config else Bunch()
 		
-		# We really need this to be there later.
+		# We really need this to be there.
 		if 'extensions' not in config:
 			config.extensions = list()
 		
+		# Always make sure the BaseExtension is present since request/response objects are handy.
 		config.extensions.insert(0, BaseExtension())
 		
 		return config
 	
 	def context_factory(self, root, config):
+		"""Construct a new base Context class for this application.
+		
+		The Context is a object cooperatively populated with dynamic attributes that also allows dictionary access.
+		
+		By preparing a base Context ahead of time (and dynamically) we can save some time during each request.
+		
+		Extensions can add attributes to this class within a `start` callback.
+		"""
+		
 		class Context(object):
 			def __iter__(self):
 				return ((i, self[i]) for i in dir(self) if i[0] != '_')
@@ -92,10 +102,10 @@ class Application(object):
 		Context.app = self
 		Context.root = root
 		Context.config = config
+		Context.log = logging.getLogger('web.app')
 		
-		sep = '\n' + ' ' * 37
-		
-		Context.log = __import__('logging').getLogger('web.app')
+		# TODO: marrow.logging
+		# sep = '\n' + ' ' * 37
 		#Context.log = Log(None, dict(
 		#			formatter=LineFormat("{now.ts}  {level.name:<7}  {name:<10}  {text}{data}", sep, sep)
 		#		), level=DEBUG).name('base')
@@ -121,6 +131,16 @@ class Application(object):
 		return Bunch((signal, tuple(signals[signal])) for signal in self.SIGNALS)
 	
 	def serve(self, service='auto', **options):
+		"""Initiate a web server service to serve this application.
+		
+		You can always use the Application instance as a bare WSGI application, of course.  This method is provided as
+		a convienence.
+		
+		Pass in the name of the service you wish to use, and any additional configuration options appropriate for that
+		service.  Almost all services accept `host` and `port` options, some also allow you to specify an on-disk
+		`socket`.  By default all web servers will listen to `127.0.0.1` (loopback only) on port 8080.
+		"""
+		
 		service = load(service, 'web.server')
 		service(self, **options)
 	
@@ -147,8 +167,9 @@ class Application(object):
 			for consumed, handler, is_endpoint in router(context, context.root):
 				for ext in signals.dispatch:
 					ext(context, consumed, handler, is_endpoint)
+		
 		except HTTPException as e:
-			handler = e(context.request.environ)  # TODO: Update for WebOb.
+			return e(context.request.environ, start_response)
 		
 		count = 0
 		
@@ -238,12 +259,4 @@ class Application(object):
 			for ext in signals.after:
 				ext(context, None)
 		
-		if start_response:  # webob
-			return context.response(environ, start_response)
-		
-		elif False:  # marrow.wsgi.objects
-			status, headers, body = result
-			start_response(native(status), [(native(i), native(j)) for i, j in headers])
-			return body
-		
-		return result
+		return context.response(environ, start_response)
