@@ -10,16 +10,27 @@ a WebKit developer toolbar-like view on your application's operation.
 
 ### HTTP Headers
 ### Object Explorer
+### Authentication
+### Session
 
 ## Response
 
 ### HTTP Headers
 ### Object Explorer
+### HTML/CSS/JS Lint
 
 ## Template
 
 ### Context
 ### Source
+### Profile
+
+## Database
+
+#### Explain
+#### Profile
+#### Inspect
+#### Suggest Indexes
 
 ## Static
 
@@ -30,6 +41,8 @@ a WebKit developer toolbar-like view on your application's operation.
 
 Capture logging output (from Python's standard logging mechanism or marrow.logging).  Can capture logs from XHR
 requests.
+
+## Cache
 
 ## Exception
 
