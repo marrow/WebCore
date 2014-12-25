@@ -29,23 +29,23 @@ class ConfigurationException(Exception):
 
 class Application(object):
 	"""The WebCore WSGI application."""
-
+	
 	__slots__ = ('_cache', 'Context', 'log', 'extensions', 'signals', 'dialect_cache', 'extension_manager')
-
+	
 	SIGNALS = ('start', 'stop', 'graceful', 'prepare', 'dispatch', 'before', 'after', 'mutate', 'transform')
-
+	
 	def __init__(self, root, **config):
 		# TODO: Check root via asserts.
-
+		
 		self._cache = dict()  # TODO: WeakKeyDictionary so we don't keep dynamic __lookup__ objects hanging around!
-
+		
 		config = self.prepare_configuration(config)
 		self.Context = self.context_factory(root, config)
-
+		
 		self.log = self.Context.log #.name('web.app')
-
+		
 		self.log.debug("Preparing extensions.")
-
+		
 		self.extension_manager = ExtensionManager('web.extension')
 		extensions = self.extensions = self.extension_manager.order(config, 'extensions')
 		signals = self.signals = self.bind_signals(config, extensions)
@@ -53,7 +53,7 @@ class Application(object):
 		
 		for ext in signals.start:
 			ext(self.Context)
-
+	
 	def prepare_configuration(self, config):
 		config = Bunch(config) if config else Bunch()
 		
@@ -64,7 +64,7 @@ class Application(object):
 		config.extensions.insert(0, BaseExtension())
 		
 		return config
-
+	
 	def context_factory(self, root, config):
 		class Context(object):
 			def __iter__(self):
@@ -103,33 +103,42 @@ class Application(object):
 		return Context
 	
 	def bind_signals(self, config, extensions):
-		signals = Bunch((signal, []) for signal in self.SIGNALS)
-
+		"""Enumerate active extensions and aggregate callbacks."""
+		
+		signals = dict((signal, []) for signal in self.SIGNALS)
+		
 		for ext in extensions:
 			for mn in self.SIGNALS:
 				m = getattr(ext, mn, None)
 				if m:
 					signals[mn].append(m)
 		
-		signals.after.reverse()
-		signals.mutate.reverse()
-		signals.transform.reverse()
+		# Certain operations act as a stack, i.e. "before" are executed in dependency order, but "after" are executed
+		# in reverse dependency order.  This is also the case with "mutate" (incoming) and "transform" (outgoing).
+		signals['after'].reverse()
+		signals['transform'].reverse()
 		
-		return signals
+		return Bunch((signal, tuple(signals[signal])) for signal in self.SIGNALS)
+	
+	def serve(self, service='auto', **options):
+		service = load(service, 'web.server')
+		service(self, **options)
 	
 	def __call__(self, environ, start_response=None):
+		"""Process a single WSGI request/response cycle."""
+		
 		context = self.Context()
 		context.environ = environ
 		signals = self.signals
 		log = context.log #.name('web.app')
-
+		
 		log.debug("Preparing for dispatch.")
-
+		
 		for ext in chain(signals.prepare, signals.before):
 			ext(context)
-
+		
 		exc = None
-
+		
 		try:
 			router = self.dialect_cache[getattr(context.root, '__dispatch__', 'object')](context.config)
 			#self.log.data(router=router).debug("Starting dispatch.")
@@ -139,32 +148,32 @@ class Application(object):
 				for ext in signals.dispatch:
 					ext(context, consumed, handler, is_endpoint)
 		except HTTPException as e:
-			handler = e(context.request.environ)
-
+			handler = e(context.request.environ)  # TODO: Update for WebOb.
+		
 		count = 0
-
+		
 		cache = self._cache
-
+		
 		try:
 			# We need to determine if the returned object is callable.
 			#  If not, continue.
 			# Then if the callable is a bound instance method.
 			#  If not call with the context as an argument.
 			# Otherwise call.
-
+			
 			request = context.request
-
+			
 			if callable(handler):
 				args = list(request.remainder)
 				if args and args[0] == '': del args[0]
 				kwargs = getattr(request, 'kwargs', dict())
-
+				
 				#log.data(handler=handler, args=args, kw=kwargs).debug("Endpoint found.")
 				log.debug("Endpoint found.")
-
+				
 				for ext in signals.mutate:
 					ext(context, handler, args, kwargs)
-
+				
 				if ismethod(handler) and getattr(handler, '__self__', None):
 					#__import__('pudb').set_trace()
 					result = handler(*args, **kwargs)
@@ -172,53 +181,54 @@ class Application(object):
 					result = handler(context, *args, **kwargs)
 			else:
 				result = handler
-
+			
 			#log.data(result=result).debug("Endpoint returned, preparing for registry.")
 			log.debug("Endpoint returned, preparing for registry.")
-
+			
 			for ext in signals.transform:
 				ext(context, result)
-
+			
 			try:
 				# We optimize for the general case whereby callables always return the same type of result.
 				kind, renderer, count = cache[handler]
-
+				
 				# If the current return value isn't of the expceted type, invalidate the cache.
 				# or, if the previous handler can't process the current result, invalidate the cache.
 				if not isinstance(result, kind) or not renderer(context, result):
 					raise KeyError('Invalidating.')
-
+				
 				# Reset the cache miss counter.
 				if count > 1:
 					cache[handler] = (kind, renderer, 1)
 			except (TypeError, KeyError) as e:
 				# Perform the expensive deep-search for a valid handler.
 				renderer = registry(context, result)
-
+				
 				if not renderer:
 					raise Exception("Inappropriate return value or return value does not match response registry:\n\t" +
 							__import__('pprint').pformat(result))
-
+				
 				# If we're updating the cache excessively the optimization is worse than the problem.
 				if count > 5:
 					renderer = registry
-
+				
 				# Update the cache if this isn't a TypeError.
 				if not isinstance(e, TypeError):
 					cache[handler] = (type(result), renderer, count + 1)
+		
 		except Exception as exc:
 			safe = isinstance(exc, HTTPException)
-
+			
 			if safe:
 				context.response = exc
-
+			
 			#log.data(exc=exc, response=context.response).debug("Registry processed, returning response.")
 			log.debug("Registry processed, returning response.")
-
+			
 			for ext in signals.after:
 				if ext(context, exc):
 					exc = None
-
+			
 			if exc and not safe:
 				raise
 		else:

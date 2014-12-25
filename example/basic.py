@@ -7,16 +7,15 @@ Applications can be as simple or as complex and layered as your needs dictate.
 
 
 def basic(context):
-	context.log.info("Returning plain text content.")
-	context.response.mime = b'text/plain'
+	#context.log.info("Returning plain text content.")
+	#context.response.mime = b'text/plain'
 	return "Hello world."
 
 
 if __name__ == '__main__':
 	from web.core.application import Application
-	from wsgiref.simple_server import make_server
 	import logging
 	
-	logging.basicConfig(level=logging.DEBUG)
+	logging.basicConfig(level=logging.WARN)
 	
-	make_server('127.0.0.1', 8080, Application(basic)).serve_forever()
+	Application(basic).serve('wsgiref')

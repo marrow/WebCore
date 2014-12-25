@@ -85,6 +85,7 @@ setup(
 			'web.cli',
 			'web.ext',
 			'web.rpc',
+			'web.server',
 		],
 	
 	entry_points = {
@@ -100,6 +101,29 @@ setup(
 					'object = web.dialect.dispatch:ObjectDispatchDialect',
 					'route = web.dialect.route:RoutingDialect',
 					'traversal = web.dialect.traversal:TraversalDialect'
+				],
+			'web.server': [
+					'auto = web.server.automatic:serve',  # detect available server
+					
+					'wsgiref = web.server.wsgiref_:serve',
+					'waitress = web.server.waitress_:serve',  # http://readthedocs.org/docs/waitress/en/latest/
+					'tornado = web.server.tornado_:serve',  # http://www.tornadoweb.org/
+					'fcgi = web.server.fcgi:serve',
+					
+					# cgi
+					# http://wsgi.readthedocs.org/en/latest/servers.html
+					# gae http://code.google.com/appengine/docs/python/overview.html
+					# cherrypy http://www.cherrypy.org/
+					# paste http://pythonpaste.org/
+					# rocket http://pypi.python.org/pypi/rocket
+					# gunicorn http://pypi.python.org/pypi/gunicorn
+					# eventlet http://eventlet.net/
+					# gevent http://www.gevent.org/
+					# diesel http://dieselweb.org/
+					# fapws3 http://www.fapws.org/
+					# twisted http://twistedmatrix.com/
+					# meinheld http://pypi.python.org/pypi/meinheld
+					# bjoern http://pypi.python.org/pypi/bjoern
 				]
 		},
 	
