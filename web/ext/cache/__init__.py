@@ -1,20 +1,18 @@
-#.encoding: utf-8
+# encoding: utf-8
+
+from __future__ import unicode_literals, print_function
+
+try:
+	from marrow.cache import Cache
+except ImportError:
+	print("Unable to find the marrow.cache package. To correct this, run: pip install marrow.cache")
+	raise
 
 
 class CacheExtension(object):
-    provides = ["cache"]
-    
-    def __init__(self, context):
-        super(CacheExtension, self).__init__()
-    
-    def start(self, context):
-        """Executed during application startup just after binding the server."""
-        pass # prepare the cache implementation (e.g. create folders, table, etc.)
-    
-    def stop(self, context):
-        """Executed during web server shutdown, after unbinding."""
-        pass # optionally clear the caches on shutdown
-    
-    def prepare(self, context):
-        # context.cache = CacheImplementation()
-        pass
+	provides = ["cache"]
+	
+	def start(self, context):
+		"""Executed during application startup just after binding the server."""
+		
+		context.cache = Cache
