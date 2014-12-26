@@ -25,6 +25,23 @@ class AuthenticationExtension(object):
 	  as dispatch descends from object to object via the `__acl__` attribute or dictionary value, and evaluated prior
 	  to execution of the end-point.  Inheritance of rules is controllable using the value of `__acl_inherit__`.
 	
+	The authentication system uses callback functions to implement behaviour, giving you very flexible control over
+	exactly how authentication is performed.  WebCore avoids making decisions for you in this way.  Pass the following
+	arguments to the constructor:
+	
+	* `lookup` - A function to call when restoring the current user object during requests after authentication.
+	
+	* `authenticate` - A function to call when initially validating authentication.
+	
+	* `key` (optional) - The session key to store the user's identifier against.
+	
+	The `lookup` callback is passed the identifier stored in the session.  The `authenticate` callback is passed an
+	`identity` and `password` values and can be bypassed by explicitly forcing authentication.
+	
+	The `authenticate` callback should either return a falsy value (authentication failed) or a 2-tuple of
+	`(identifier, user_object)`.  Ensure calls to `lookup` with the identifier returned by `authenticate` produce
+	the same `user_object`.
+	
 	The following values are added to the context, and thus `web` template namespace:
 	
 	* `user` - An object representing the current user.
@@ -48,7 +65,6 @@ class AuthenticationExtension(object):
 		self._lookup = load(lookup, 'web.auth.lookup')
 		self._authenticate = load(authenticate, 'web.auth.authenticate')
 		self.key = key
-		
 		
 		super(AuthenticationExtension, self).__init__()
 	
@@ -101,12 +117,12 @@ class AuthenticationExtension(object):
 	def authenticate(self, context, identifier, password=None, force=False):
 		"""Authenticate a user.
 		
-		Sets the current user in the session.  You can optionally omit a password
-		and force the authentication to authenticate as any user.
+		Sets the current user in the session.  You can optionally omit a password and force the authentication to
+		authenticate as any user.
 		
-		If successful, the web.auth.user variable is immediately available.
+		If successful, the `context.user` variable is immediately available.
 		
-		Returns True on success, False otherwise.
+		Returns `True` on success, `False` otherwise.
 		"""
 		
 		if force:
@@ -127,9 +143,9 @@ class AuthenticationExtension(object):
 	def deauthenticate(self, context, nuke=False):
 		"""Force logout.
 		
-		The web.auth.user variable is immediately deleted and session variable cleared.
+		The `context.user` variable is immediately reset to `None` and session variable cleared.
 		
-		Additionally, this function can also completely erase the Beaker session.
+		Additionally, this function can also completely erase the session.
 		"""
 		
 		context.user = None
