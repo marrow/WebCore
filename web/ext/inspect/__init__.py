@@ -1,11 +1,11 @@
 # encoding: utf-8
 
-"""A port of the excellent Django Debug Toolbar to WebCore."""
+"""A pseudo-port of the excellent Django Debug Toolbar to WebCore."""
 
 
 
-class DebuggingExtension(object):
-	provides = ['debug']
+class InspectExtension(object):
+	provides = ['panel']
 	last = True
 	
 	def __init__(self, context):
