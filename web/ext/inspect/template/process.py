@@ -59,7 +59,7 @@ if __name__ == '__main__':
 		context['capture'] = Capture()
 		
 		for template in ('redirect', 'base'):
-			html = engine.render(template + '.pyhtml', context)
+			html = engine.render(template + '.pyhtml', **context)
 			print("-" * 72)
 			print("Language:", lang)
 			print("Template:", template, end="\n\n")

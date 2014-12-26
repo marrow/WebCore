@@ -21,7 +21,7 @@ def template_handler(context, result):
 		return False
 	
 	response = context.response
-	mime, response.text = context.render(template, data, **extras)
+	mime, response.text = context.render(template, extras, **data)
 	
 	if response.content_type == TH:
 		response.content_type = native(mime)
