@@ -263,7 +263,7 @@ class Application(object):
 			log.debug("Registry processed, returning response.")
 			
 			for ext in signals.after:
-				if ext(context, exc):
+				if ext(context, exc):  # Returning a truthy value eats the exception.
 					exc = None
 			
 			if exc and not safe:
