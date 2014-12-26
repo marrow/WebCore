@@ -208,8 +208,11 @@ class Application(object):
 				for ext in signals.mutate:
 					ext(context, handler, args, kwargs)
 				
-				if ismethod(handler) and getattr(handler, '__self__', None):
-					#__import__('pudb').set_trace()
+				# Handle index method calls.
+				#__import__('pudb').set_trace()
+				if hasattr(handler, '__call__') and ismethod(handler.__call__):
+					result = handler(*args, **kwargs)
+				elif ismethod(handler) and getattr(handler, '__self__', None):
 					result = handler(*args, **kwargs)
 				else:
 					result = handler(context, *args, **kwargs)

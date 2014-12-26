@@ -45,6 +45,10 @@ class ObjectDispatchDialect(object):
 		# Iterate through and consume the path element (chunk) list.
 		for chunk in ipeek(path):
 			log.debug(repr(dict(chunk=chunk, chunks=path)))
+			
+			if isclass(current):
+				current = current(context)
+			
 			parent = current
 			
 			# Security: prevent access to real private attributes.
@@ -70,20 +74,15 @@ class ObjectDispatchDialect(object):
 					if isroutine(parent):
 						yield last.split('/'), parent, True
 					else:
-						yield last.split('/'), parent.__call__, True
+						yield last.split('/'), parent, True
 					return
-			
-			if isclass(current):
-				current = current(context)
 			
 			yield last.split('/'), parent, False
 			
 			last = str(chunk)
 		
 		if isclass(current):
-			try:
-				current = current(context).__call__
-			except AttributeError:
+			if not callable(current):
 				raise HTTPNotFound()
 		
 		yield last.split('/'), current, True
