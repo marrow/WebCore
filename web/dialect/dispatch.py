@@ -82,8 +82,10 @@ class ObjectDispatchDialect(object):
 			last = str(chunk)
 		
 		if isclass(current):
-			if not callable(current):
-				raise HTTPNotFound()
+			current = current(context)
+		
+		if not callable(current):
+			raise HTTPNotFound()
 		
 		yield last.split('/'), current, True
 
