@@ -16,11 +16,10 @@ class ThreadLocalExtension(object):
 	
 	While the context itself is cleaned up after each call, any data you add won't be.  These are not request-locals.
 	"""
-
+	
 	first = True
-	uses = []
 	provides = ['threadlocal']
-
+	
 	def __init__(self, where='web.core:local'):
 		super(ThreadLocalExtension, self).__init__()
 		
