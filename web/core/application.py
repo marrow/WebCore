@@ -147,7 +147,7 @@ class Application(object):
 		service = load(service, 'web.server')
 		service(self, **options)
 		
-		for ext in signals.stop:
+		for ext in self.signals.stop:
 			ext(self.Context)
 	
 	def __call__(self, environ, start_response=None):
