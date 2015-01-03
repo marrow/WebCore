@@ -10,6 +10,9 @@ class Root(object):
 	def __init__(self, context):
 		self._ctx = context
 	
+	def tmpl(self) -> './template.html':
+		return dict()
+	
 	def mul(self, a: int = None, b: int = None) -> 'json':
 		"""Multiply two values together and return the result via JSON.
 		
@@ -47,4 +50,4 @@ if __name__ == '__main__':
 	from web.ext.template import TemplateExtension
 	from web.ext.cast import CastExtension
 	
-	Application(Root, extensions=[TemplateExtension(), CastExtension()]).serve('waitress')
+	Application(Root, extensions=[TemplateExtension(default='mako'), CastExtension()]).serve('waitress')
