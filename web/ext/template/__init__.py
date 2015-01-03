@@ -222,7 +222,7 @@ class TemplateExtension(object):
         if default and not hasattr(render._render, default):
             raise ValueError('"{0}" is not a valid engine, perhaps you need to install an adapter?'.format(default))
         
-        render._render.default = default
+        render._render.resolve.default = default
         render.render.path = path
         
         if override:
