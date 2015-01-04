@@ -10,7 +10,7 @@ try:
 	from sqlalchemy.orm.session import sessionmaker
 	from sqlalchemy.orm.scoping import ScopedSession
 except ImportError:
-	raise ImportError('You need to install SQLAlchemy to use this extension')
+	raise ImportError('Unable to import sqlalchemy; pip install sqlalchemy to fix this.')
 
 
 class SQLAlchemyExtension(object):
