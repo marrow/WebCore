@@ -5,7 +5,7 @@
 Applications can be as simple or as complex and layered as your needs dictate.
 """
 
-from web.app.static import Static
+from web.app.static import static
 
 
 class Root(object):
@@ -25,7 +25,7 @@ class Root(object):
 	
 	config = open('controller.yaml', 'rb')
 	
-	static = Static('./', dict(html='mako'))
+	static = static('./', dict(html='mako'))
 
 
 if __name__ == '__main__':
