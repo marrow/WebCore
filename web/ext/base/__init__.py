@@ -1,12 +1,11 @@
 # encoding: utf-8
 
-# from marrow.wsgi.objects import Request, Response
-
+from mimetypes import init, add_type
 from webob import Request, Response
 
-from web.core.response import registry
+from ...core.response import registry
+from .helpers import URLGenerator
 from web.ext.base import handler
-from web.ext.base.helpers import URLGenerator
 
 
 class BaseExtension(object):
@@ -22,7 +21,11 @@ class BaseExtension(object):
 	def start(self, context):
 		#context.log.name('web.app').debug("Registering core return value handlers.")
 		context.log.debug("Registering core return value handlers.")
-
+		
+		init()
+		add_type('text/x-yaml', 'yml')
+		add_type('text/x-yaml', 'yaml')
+		
 		# Register the default return handlers.
 		for h in handler.__all__:
 			h = getattr(handler, h)
