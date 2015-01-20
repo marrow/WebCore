@@ -8,16 +8,19 @@ from inspect import ismethod
 from itertools import chain
 from weakref import WeakKeyDictionary
 
-from webob.exc import HTTPException
+from webob.exc import HTTPException, HTTPNotFound
 
-from marrow.util.compat import native
 from marrow.util.bunch import Bunch
 from marrow.package.cache import PluginCache
 from marrow.package.loader import load
 from marrow.package.host import ExtensionManager
 
-from web.core.response import registry
 from web.ext.base import BaseExtension
+from .compat import native, ldump
+from .response import registry
+
+
+log = __import__('logging').getLogger(__name__)
 
 
 class Application(object):
@@ -33,13 +36,11 @@ class Application(object):
 		config = self.prepare_configuration(config)
 		self.Context = self.context_factory(root, config)
 		
-		self.log = self.Context.log #.name('web.app')
-		
 		level = config.get('logging', {}).get('level', None)
 		if level:
 			logging.basicConfig(level=getattr(logging, level.upper()))
 		
-		self.log.debug("Preparing extensions.")
+		log.debug("Preparing extensions.")
 		
 		self.features = []
 		self.extension_manager = ExtensionManager('web.extension')
@@ -103,13 +104,7 @@ class Application(object):
 		Context.app = self
 		Context.root = root
 		Context.config = config
-		Context.log = logging.getLogger('web.app')
-		
-		# TODO: marrow.logging
-		# sep = '\n' + ' ' * 37
-		#Context.log = Log(None, dict(
-		#			formatter=LineFormat("{now.ts}  {level.name:<7}  {name:<10}  {text}{data}", sep, sep)
-		#		), level=DEBUG).name('base')
+		Context.log = log
 		
 		return Context
 	
@@ -156,19 +151,18 @@ class Application(object):
 		context = self.Context()
 		context.environ = environ
 		signals = self.signals
-		log = context.log #.name('web.app')
-		
-		log.debug("Preparing for dispatch.")
+		log = context.log
 		
 		for ext in chain(signals.prepare, signals.before):
 			ext(context)
+		
+		log.debug("%d:Preparing for dispatch.", id(context.request))
 		
 		exc = None
 		
 		try:
 			router = self.dialect_cache[getattr(context.root, '__dispatch__', 'object')](context.config)
-			#self.log.data(router=router).debug("Starting dispatch.")
-			self.log.debug("Starting dispatch.")
+			log.debug("%d:Starting dispatch.%s", id(context.request), ldump(router=repr(router)))
 			
 			for consumed, handler, is_endpoint in router(context, context.root):
 				for ext in signals.dispatch:
@@ -205,25 +199,27 @@ class Application(object):
 					else:
 						kwargs[name] = value
 				
-				#log.data(handler=handler, args=args, kw=kwargs).debug("Endpoint found.")
-				log.debug("Endpoint found.")
+				log.debug("%d:Endpoint found.%s", id(context.request), ldump(handler=repr(handler), args=args, kw=kwargs))
 				
 				for ext in signals.mutate:
 					ext(context, handler, args, kwargs)
 				
 				# Handle index method calls.
 				#__import__('pudb').set_trace()
-				if hasattr(handler, '__call__') and ismethod(handler.__call__):
-					result = handler(*args, **kwargs)
-				elif ismethod(handler) and getattr(handler, '__self__', None):
-					result = handler(*args, **kwargs)
-				else:
-					result = handler(context, *args, **kwargs)
+				try:
+					if hasattr(handler, '__call__') and ismethod(handler.__call__):
+						result = handler(*args, **kwargs)
+					elif ismethod(handler) and getattr(handler, '__self__', None):
+						result = handler(*args, **kwargs)
+					else:
+						result = handler(context, *args, **kwargs)
+				except TypeError:
+					log.warn("%d:TypeError captured during request processing.", id(context.request), exc_info=True)
+					result = HTTPNotFound()
 			else:
 				result = handler
 			
-			#log.data(result=result).debug("Endpoint returned, preparing for registry.")
-			log.debug("Endpoint returned, preparing for registry.")
+			log.debug("%d:Endpoint returned, preparing for registry.%s", id(context.request), ldump(result=repr(result)))
 			
 			for ext in signals.transform:
 				ext(context, result)
@@ -262,8 +258,10 @@ class Application(object):
 			if safe:
 				context.response = exc
 			
-			#log.data(exc=exc, response=context.response).debug("Registry processed, returning response.")
-			log.debug("Registry processed, returning response.")
+				log.debug("%d:Registry processed, returning response.%s", id(context.request), ldump(
+						exc = repr(exc),
+						response = repr(context.response)
+					))
 			
 			for ext in signals.after:
 				if ext(context, exc):  # Returning a truthy value eats the exception.
