@@ -5,6 +5,8 @@
 Applications can be as simple or as complex and layered as your needs dictate.
 """
 
+from web.app.static import Static
+
 
 class Root(object):
 	def __init__(self, context):
@@ -20,6 +22,10 @@ class Root(object):
 	
 	foo = "Static string!"
 	bar = "mako:./template.html", dict()
+	
+	config = open('controller.yaml', 'rb')
+	
+	static = Static('./', dict(html='mako'))
 
 
 if __name__ == '__main__':
