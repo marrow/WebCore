@@ -1,11 +1,14 @@
 # encoding: utf-8
 
+from json import dumps
 from inspect import isclass, isroutine
 
-#from marrow.wsgi.exceptions import HTTPNotFound
 from webob.exc import HTTPNotFound
-
 from marrow.package.loader import load
+from ..core.compat import ldump
+
+
+log = __import__('logging').getLogger(__name__)
 
 
 def ipeek(d):
@@ -21,7 +24,12 @@ class ObjectDispatchDialect(object):
 		super(ObjectDispatchDialect, self).__init__()
 	
 	def __call__(self, context, root):
-		log = context.log
+		log.debug("%d:Starting dispatch.%s", id(context.request), ldump(
+				script_name = context.request.script_name,
+				path_info = context.request.path_info,
+				root = repr(root)
+			))
+		
 		path = context.request.path_info.split('/')
 		trailing = False
 		
@@ -29,14 +37,15 @@ class ObjectDispatchDialect(object):
 		# If present there was a trailing slash in the original path.
 		if path[-1:] == ['']:
 			trailing = True
+			log.debug("%d:Tracked trailing slash.", id(context.request))
 			path.pop()
 		
 		# We don't care about leading slashes.
 		if path[:1] == ['']:
+			log.debug("%d:Eliminated leading slash.", id(context.request))
 			path.pop(0)
 		
-		if isclass(root):
-			root = root(context)
+		log.debug("%d:Search path identified.%s", id(context.request), ldump(path=path))
 		
 		last = ''
 		parent = None
@@ -44,9 +53,14 @@ class ObjectDispatchDialect(object):
 		
 		# Iterate through and consume the path element (chunk) list.
 		for chunk in ipeek(path):
-			log.debug(repr(dict(chunk=chunk, chunks=path)))
-			
+			log.debug("%d:Begin dispatch step.%s", id(context.request), ldump(
+					chunk = chunk,
+					path = path,
+					current = repr(current)
+				))
+				
 			if isclass(current):
+				log.debug("%d:Instantiating class.", id(context.request))
 				current = current(context)
 			
 			parent = current
@@ -54,10 +68,12 @@ class ObjectDispatchDialect(object):
 			# Security: prevent access to real private attributes.
 			# This is tricky as we need to avoid __getattr__ behaviour.
 			if chunk[0] == '_' and (hasattr(current.__class__, chunk) or chunk in current.__dict__):
+				log.warn("%d:Blocked access to private attribute.")
 				raise HTTPNotFound()
 			
 			current = getattr(parent, str(chunk), None)
-			if current: log.debug("Found attribute.") # .data(attr=current)
+			if current:
+				log.debug("%d:Found attribute.%s", id(context.request), ldump(current=repr(current)))
 			
 			# If there is no attribute (real or via __getattr__) try the __lookup__ method to re-route.
 			if not current:
@@ -83,9 +99,6 @@ class ObjectDispatchDialect(object):
 		
 		if isclass(current):
 			current = current(context)
-		
-		if not callable(current):
-			raise HTTPNotFound()
 		
 		yield last.split('/'), current, True
 
