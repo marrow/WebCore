@@ -8,6 +8,7 @@ Similar in purpose to [`six`](https://warehouse.python.org/project/six/).
 # ## Imports
 
 import sys
+import json
 
 
 # ## Version Detection
@@ -53,3 +54,7 @@ try:  # pragma: no cover
 		from StringIO import StringIO
 except ImportError:  # pragma: no cover
 	from io import StringIO
+
+
+def ldump(**value):
+	return "\n\t" + "\n\t".join(json.dumps(value, sort_keys=True, indent=4, separators=(',', ': ')).split('\n'))
