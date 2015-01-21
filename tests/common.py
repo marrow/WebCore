@@ -59,6 +59,7 @@ class WebTestCase(TestCase):
         _environ.setdefault('REMOTE_ADDR', '127.0.0.1')
         request = Request.blank(path, environ=_environ)
         request.method = "POST"
+        request.headers.setdefault('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8')
         for key in self._cookies:
             request.cookies[key] = self._cookies[key]
         request.POST.update(data)
