@@ -57,5 +57,9 @@ def shell(self, interactive=True, run='auto'):
         else:
             # An interpreter not being found isn't an error when scanning.
             # But is an error if explicitly asking for that shell.
-            interpreter(env)
-            break
+            try:
+                interpreter(env)
+            except ValueError:
+                pass
+            else:
+                break
