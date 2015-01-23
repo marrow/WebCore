@@ -6,7 +6,7 @@ from marrow.mailer import Mailer
 class MailExtension(object):
     provides = ['mail']
     
-    def __init__(self, context, **config):
+    def __init__(self, **config):
         """Executed to configure the extension."""
         super(MailExtension, self).__init__()
         
