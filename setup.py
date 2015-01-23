@@ -102,6 +102,13 @@ setup(
 					'route = web.dialect.route:RoutingDialect',
 					'traversal = web.dialect.traversal:TraversalDialect'
 				],
+			'web.extension': [
+					'base = web.ext.base:BaseExtension',  # by name
+					'request = web.ext.base:BaseExtension',  # by `provides`
+					'response = web.ext.base:BaseExtension',  # by `provides`
+					'template = web.ext.template:Extension',
+					# ' = web.ext.:Extension',
+				],
 			'web.server': [
 					'auto = web.server.automatic:serve',  # detect available server
 					
