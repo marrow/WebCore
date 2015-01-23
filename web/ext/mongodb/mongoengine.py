@@ -4,7 +4,7 @@ import re
 from mongoengine import connect
 
 from marrow.package.loader import load
-from web.core.compat import native, iteritems
+from web.core.compat import native, items
 
 
 log = __import__('logging').getLogger(__name__)
@@ -38,7 +38,7 @@ class MongoEngineExtension:
 			connection['username'], _, connection['password'] = auth.partition(':')
 		
 		# Accept additional keyword arguments to mongoengine.connect() from the INI.
-		for k, v in iteritems(config):
+		for k, v in items(config):
 			pfx, _, k = k.rpartition('.')
 			if pfx != prefix or k in ('alias', 'engine', 'model', 'ready'): continue
 			connection[k] = int(v) if v.isdigit() else v

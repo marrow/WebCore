@@ -24,17 +24,19 @@ if py3:  # pragma: no cover
 	native = str
 	unicode = str
 	str = bytes
-	iterkeys = dict.keys
-	itervalues = dict.values
-	iteritems = dict.items
+	basestring = unicode
+	keys = dict.keys
+	values = dict.values
+	items = dict.items
 else:  # pragma: no cover
 	native = str
 	unicode = unicode
 	str = str
+	basestring = (str, unicode)
 	range = xrange
-	iterkeys = dict.iterkeys
-	itervalues = dict.itervalues
-	iteritems = dict.iteritems
+	keys = dict.iterkeys
+	values = dict.itervalues
+	items = dict.iteritems
 
 
 # ## Ordered Dictionaries

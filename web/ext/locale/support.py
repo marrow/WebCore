@@ -14,7 +14,7 @@ except ImportError:
 	raise
 
 from web.core import local
-from web.core.compat import unicode, iterkeys
+from web.core.compat import unicode, keys
 
 
 class L_(object):
@@ -69,7 +69,7 @@ class Locale(object):
 	
 	@property
 	def languages(self):
-		return iterkeys(self.catalogs[None])
+		return keys(self.catalogs[None])
 	
 	def extend(self, paths):
 		for path in paths:
