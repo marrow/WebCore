@@ -84,4 +84,4 @@ class AnalyticsExtension(object):
 	def inspect(self, context):
 		"""Return an object conforming to the inspector panel API."""
 		
-		pass
+		pass  # TODO: Not implemented yet, reference #141.
