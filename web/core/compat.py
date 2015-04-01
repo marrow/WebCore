@@ -28,6 +28,7 @@ if py3:  # pragma: no cover
 	keys = dict.keys
 	values = dict.values
 	items = dict.items
+	zip = zip
 else:  # pragma: no cover
 	native = str
 	unicode = unicode
@@ -37,7 +38,7 @@ else:  # pragma: no cover
 	keys = dict.iterkeys
 	values = dict.itervalues
 	items = dict.iteritems
-
+	from itertools import izip as zip
 
 # ## Ordered Dictionaries
 

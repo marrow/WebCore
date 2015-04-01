@@ -16,10 +16,10 @@ except ImportError:
 from setuptools.command.test import test as TestCommand
 
 
-if sys.version_info < (2, 6):
-	raise SystemExit("Python 2.6 or later is required.")
-elif sys.version_info > (3, 0) and sys.version_info < (3, 2):
-	raise SystemExit("Python 3.2 or later is required.")
+if sys.version_info < (2, 7):
+	raise SystemExit("Python 2.7 or later is required.")
+elif sys.version_info > (3, 0) and sys.version_info < (3, 3):
+	raise SystemExit("Python 3.3 or later is required.")
 
 exec(open(os.path.join("web", "release.py")).read())
 
@@ -38,7 +38,26 @@ class PyTest(TestCommand):
 
 here = os.path.abspath(os.path.dirname(__file__))
 
-tests_require = ['pytest', 'pytest-cov', 'pytest-flakes', 'pytest-cagoule', 'pytest-spec<=0.2.22']
+contentment_require = [
+		'mongoengine==0.9',  # database layer
+		'pytz',  # timzone support
+		'blinker',  # signals
+		'markupsafe',  # injection protection
+		'tenjin',  # high-performance template engine
+		'babel',  # internationalization and localization
+		'scrypt',  # difficult to verify hashes
+		'webassets',  # static asset management
+		'tablib',  # data interchange
+		'xlwt',  # Microsoft Excel data interchange
+	]
+
+tests_require = contentment_require + [
+		'pytest',  # test collector and extensible runner
+		'pytest-cov',  # coverage reporting
+		'pytest-flakes',  # syntax validation
+		'pytest-cagoule',  # intelligent test execution
+		'pytest-spec<=0.2.22',  # output formatting
+	]
 
 
 setup(
@@ -48,7 +67,7 @@ setup(
 	description = description,
 	long_description = codecs.open(os.path.join(here, 'README.rst'), 'r', 'utf8').read(),
 	url = url,
-	download_url = 'https://warehouse.python.org/project/WebCore/',
+	download_url = 'http://s.webcore.io/aIly',
 	
 	author = author.name,
 	author_email = author.email,
@@ -64,10 +83,8 @@ setup(
 			"Operating System :: OS Independent",
 			"Programming Language :: Python",
 			"Programming Language :: Python :: 2",
-			"Programming Language :: Python :: 2.6",
 			"Programming Language :: Python :: 2.7",
 			"Programming Language :: Python :: 3",
-			"Programming Language :: Python :: 3.2",
 			"Programming Language :: Python :: 3.3",
 			"Programming Language :: Python :: 3.4",
 			"Programming Language :: Python :: Implementation :: CPython",
@@ -76,79 +93,86 @@ setup(
 			"Topic :: Software Development :: Libraries :: Python Modules",
 		],
 	
-	packages = find_packages(exclude=['test', 'script', 'example']),
+	packages = find_packages(exclude=['bench', 'docs', 'example', 'test']),
 	include_package_data = True,
 	namespace_packages = [
-			'web',
-			'web.app',
-			'web.blueprint',
-			'web.cli',
-			'web.ext',
-			'web.rpc',
-			'web.server',
+			'web',  # primary namespace
+			'web.app',  # application code goes here
+			'web.ext',  # framework extensions
+			'web.server',  # front-end WSGI bridges
 		],
 	
 	entry_points = {
-			'console_scripts': ['web = web.cli.core:main'],
-			'web.command': [
-					'versions = web.cli.versions:versions',
-					'clean = web.cli.clean:clean',
-					'compile = web.cli.compile:compile',
-					'serve = web.cli.serve:serve',
-					'shell = web.cli.shell:shell',
-				],
-			'web.dispatch': [
-					'object = web.dialect.dispatch:ObjectDispatchDialect',
-					'route = web.dialect.route:RoutingDialect',
-					'traversal = web.dialect.traversal:TraversalDialect'
-				],
 			'web.extension': [
-					'base = web.ext.base:BaseExtension',  # by name
-					'request = web.ext.base:BaseExtension',  # by `provides`
-					'response = web.ext.base:BaseExtension',  # by `provides`
-					'template = web.ext.template:Extension',
-					# ' = web.ext.:Extension',
+					'base = web.ext.base:BaseExtension',
+					'request = web.ext.base:BaseExtension',
+					'response = web.ext.base:BaseExtension',
+					
+					'typecast = web.ext.cast:CastExtension',
+					'threadlocal = web.ext.local:ThreadLocalExtension',
+					'mail = web.ext.mail:MailExtension',
+					'scheduler = web.ext.schedule:APSchedulerExtension',
+					'transaction = web.ext.transaction:TransactionExtension',
+					#' = web.ext.:Extension',
 				],
+			
 			'web.server': [
 					'auto = web.server.automatic:serve',  # detect available server
 					
-					'wsgiref = web.server.wsgiref_:serve',
-					'waitress = web.server.waitress_:serve',  # http://readthedocs.org/docs/waitress/en/latest/
-					'tornado = web.server.tornado_:serve',  # http://www.tornadoweb.org/
-					'fcgi = web.server.fcgi:serve',
+					# For pure WSGI deployment, where you need the WSGI application itself, use:
+					# web.server.application
+					# This module exposes the WSGI application under a variety of common names.
 					
+					'wsgiref = web.server.wsgiref_:serve',  # Python built-in server; single-threaded
+					'waitress = web.server.waitress_:serve',  # http://s.webcore.io/aIou
+					'tornado = web.server.tornado_:serve',  # http://s.webcore.io/aIaN
+					'fcgi = web.server.fcgi:serve',  # recommended production interface
+					
+					# Planned:
+					#
 					# cgi
+					#
 					# http://wsgi.readthedocs.org/en/latest/servers.html
-					# gae http://code.google.com/appengine/docs/python/overview.html
-					# cherrypy http://www.cherrypy.org/
-					# paste http://pythonpaste.org/
-					# rocket http://pypi.python.org/pypi/rocket
-					# gunicorn http://pypi.python.org/pypi/gunicorn
-					# eventlet http://eventlet.net/
-					# gevent http://www.gevent.org/
-					# diesel http://dieselweb.org/
-					# fapws3 http://www.fapws.org/
-					# twisted http://twistedmatrix.com/
-					# meinheld http://pypi.python.org/pypi/meinheld
-					# bjoern http://pypi.python.org/pypi/bjoern
-				]
+					#
+					# gae Google App Engine http://s.webcore.io/aIic
+					# cherrypy http://s.webcore.io/aIoF
+					# paste http://s.webcore.io/aIdT
+					# rocket http://s.webcore.io/aIgr
+					# gunicorn http://s.webcore.io/aIcy
+					# eventlet http://s.webcore.io/aIaa
+					# gevent http://s.webcore.io/aIpU
+					# diesel http://s.webcore.io/aIg2
+					# fapws3 http://s.webcore.io/aIcI
+					# twisted http://s.webcore.io/aIgc
+					# meinheld http://s.webcore.io/aId1
+					# bjoern http://s.webcore.io/aIne
+				],
 		},
 	
 	install_requires = [
-			'marrow.templating',
-			'marrow.package',
-			'WebOb',
-			'marrow.util<2.0',
+			'WebCore.template<4.0.0',  # extensible template engine support
+			'marrow.package<2.0',  # dynamic execution and plugin management
+			'WebOb',  # HTTP request and response objects, and HTTP status code exceptions
+			'marrow.util<2.0',  # miscelaneous utilities; use of <2.0 is deprecated
+			'pyyaml',  # rich data interchange format; used for configuration
 		],
 	
 	extras_require = dict(
 			development = tests_require,
+			contentment = contentment_require,
+			
+			# TBD: Required by various sub-components.
+			mail = ['marrow.mailer'],
+			textile = ['textile'],
+			markdown = ['markdown'],
+			bbcode = ['bbcode'],
+			analytics = ['geoip2', 'user-agents>=0.3.0'],
 		),
 	
 	tests_require = tests_require,
 	
 	dependency_links = [
-			'git+https://github.com/illico/pytest-spec.git@feature/py26#egg=pytest-spec-0.2.22'
+			'git+https://github.com/mongoengine/mongoengine.git@master#egg=mongoengine-0.9',
 		],
 	
 	zip_safe = True,

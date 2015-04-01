@@ -11,5 +11,5 @@ except ImportError:
 	raise
 
 
-def serve(application, host='127.0.0.1', port=8080, socket=None, threads=4):
-	serve_(application, host=host, port=int(port), threads=int(threads))
+def serve(application, host='127.0.0.1', port=8080, socket=None, threads=4, **kw):
+	serve_(application, host=host, port=int(port), threads=int(threads), **kw)
