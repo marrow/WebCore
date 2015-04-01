@@ -4,6 +4,8 @@
 
 from __future__ import unicode_literals, print_function
 
+import os
+
 try:
 	from flipflop import WSGIServer
 except ImportError:
