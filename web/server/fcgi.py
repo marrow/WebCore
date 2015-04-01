@@ -7,19 +7,18 @@ from __future__ import unicode_literals, print_function
 import os
 
 try:
-	from flipflop import WSGIServer
+	from flup.server.fcgi import WSGIServer
 except ImportError:
-	print("You must install the 'flipflop' package to use FastCGI support.")
+	print("You must install the 'flup' package to use FastCGI support.")
 	raise
 
 
-def serve(application, host='127.0.0.1', port=8080, socket=None):
-	"""Basic FastCGI support via flipflop, an extract of FastCGI protocol support from flup."""
+def serve(application, host='127.0.0.1', port=8080, socket=None, multithreaded=True, multiprocess=False, umask=None, multiplexed=False, debug=False):
+	"""Basic FastCGI support via flup."""
 	
 	if not socket:
-		socket = (host, int(port))
-		# ensure_port_cleanup([sock])
+		bindAddress = (host, int(port))
+	else:
+		bindAddress = socket
 	
-	os.environ['FCGI_WEB_SERVER_ADDRS'] = socket
-	
-	WSGIServer(application).run()
+	WSGIServer(application, multithreaded=multithreaded, multiprocess=multiprocess, bindAddress=bindAddress, umask=umask, multiplexed=multiplexed, debug=debug).run()
