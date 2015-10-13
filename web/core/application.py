@@ -3,6 +3,7 @@
 from __future__ import unicode_literals
 
 import logging
+import logging.config
 
 from inspect import ismethod
 from itertools import chain
@@ -39,6 +40,8 @@ class Application(object):
 		level = config.get('logging', {}).get('level', None)
 		if level:
 			logging.basicConfig(level=getattr(logging, level.upper()))
+		elif 'logging' in config:
+			logging.config.dictConfig(config['logging'])
 		
 		log.debug("Preparing extensions.")
 		
