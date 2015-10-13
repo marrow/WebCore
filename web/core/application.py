@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import logging
 import logging.config
 
-from inspect import ismethod
+from inspect import isclass, ismethod
 from itertools import chain
 from weakref import WeakKeyDictionary
 
@@ -170,17 +170,38 @@ class Application(object):
 		for ext in chain(signals.prepare, signals.before):
 			ext(context)
 		
-		log.debug("%d:Preparing for dispatch.", id(context.request))
+		if __debug__:
+			log.debug("Preparing for dispatch.", extra=dict(request=id(context.request)))
 		
+		handler = context.root
 		exc = None
+		is_endpoint = False
 		
 		try:
-			router = self.dialect_cache[getattr(context.root, '__dispatch__', 'object')](context.config)
-			log.debug("%d:Starting dispatch.%s", id(context.request), ldump(router=repr(router)))
-			
-			for consumed, handler, is_endpoint in router(context, context.root):
-				for ext in signals.dispatch:
-					ext(context, consumed, handler, is_endpoint)
+			while not is_endpoint:
+				# Pull the router out of the handler, defaulting to object dispatch.
+				router = getattr(handler, '__dispatch__', 'object')
+				router_name = None
+				
+				# If the handler isn't already executable, it's probably an entry point reference. Load it from cache.
+				if not hasattr(router, '__call__'):
+					router_name = router
+					router = self.dialect_cache[router]
+				
+				# If it's uninstantiated, instantiate it.
+				if isclass(router):
+					router = router(context.config)
+					
+					if router_name:  # Update the entry point cache, too. Have some singleton.
+						self.dialect_cache[router_name] = router
+				
+				if __debug__:  # Logging in loops is bad; remember to run -O in production!
+					# Extension writer note: remember to wrap your own in-callback logging statements in these.
+					log.debug("Starting dispatch.", extra=dict(request=id(context.request), router=repr(router)))
+				
+				for consumed, handler, is_endpoint in router(context, handler):
+					for ext in signals.dispatch:
+						ext(context, consumed, handler, is_endpoint)  # Logging would be especially bad in these.
 		
 		except HTTPException as e:
 			return e(context.request.environ, start_response)
