@@ -27,9 +27,9 @@ log = __import__('logging').getLogger(__name__)
 class Application(object):
 	"""The WebCore WSGI application."""
 	
-	__slots__ = ('_cache', 'Context', 'log', 'extensions', 'features', 'signals', 'dialect_cache', 'extension_manager')
+	__slots__ = ('_cache', 'Context', 'log', 'extensions', 'features', 'signals', 'dialect_cache', 'extension_manager', '__call__')
 	
-	SIGNALS = ('start', 'stop', 'graceful', 'prepare', 'dispatch', 'before', 'after', 'mutate', 'transform')
+	SIGNALS = ('start', 'stop', 'graceful', 'prepare', 'dispatch', 'before', 'after', 'mutate', 'transform', 'middleware')
 	
 	def __init__(self, root, **config):
 		self._cache = WeakKeyDictionary()
@@ -53,6 +53,13 @@ class Application(object):
 		
 		for ext in signals.start:
 			ext(self.Context)
+		
+		app = self.app
+		
+		for ext in signals.middleware:
+			app = ext(self.Context, app)
+		
+		self.__call__ = app
 	
 	def prepare_configuration(self, config):
 		"""Prepare the incoming configuration and ensure certain expected values are present.
@@ -123,11 +130,15 @@ class Application(object):
 				m = getattr(ext, mn, None)
 				if m:
 					signals[mn].append(m)
+			
+			if hasattr(ext, '__call__'):
+				signals['middleware'].append(ext)
 		
 		# Certain operations act as a stack, i.e. "before" are executed in dependency order, but "after" are executed
 		# in reverse dependency order.  This is also the case with "mutate" (incoming) and "transform" (outgoing).
 		signals['after'].reverse()
 		signals['transform'].reverse()
+		signals['middleware'].reverse()
 		
 		return Bunch((signal, tuple(signals[signal])) for signal in self.SIGNALS)
 	
@@ -148,7 +159,7 @@ class Application(object):
 		for ext in self.signals.stop:
 			ext(self.Context)
 	
-	def __call__(self, environ, start_response=None):
+	def app(self, environ, start_response=None):
 		"""Process a single WSGI request/response cycle."""
 		
 		context = self.Context()
