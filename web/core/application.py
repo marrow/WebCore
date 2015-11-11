@@ -195,10 +195,6 @@ class Application(object):
 					if router_name:  # Update the entry point cache, too. Have some singleton.
 						self.dialect_cache[router_name] = router
 				
-				if __debug__:  # Logging in loops is bad; remember to run -O in production!
-					# Extension writer note: remember to wrap your own in-callback logging statements in these.
-					log.debug("Starting dispatch.", extra=dict(request=id(context.request), router=repr(router)))
-				
 				for consumed, handler, is_endpoint in router(context, handler):
 					for ext in signals.dispatch:
 						ext(context, consumed, handler, is_endpoint)  # Logging would be especially bad in these.
@@ -234,7 +230,12 @@ class Application(object):
 					else:
 						kwargs[name] = value
 				
-				log.debug("%d:Endpoint found.%s", id(context.request), ldump(handler=repr(handler), args=args, kw=kwargs))
+				log.debug("Endpoint found.", extra=dict(
+						request = id(context.request),
+						handler = repr(handler),
+						endpoint_args = args,
+						endpoint_kw = kwargs
+					))
 				
 				for ext in signals.mutate:
 					ext(context, handler, args, kwargs)
@@ -249,12 +250,12 @@ class Application(object):
 					else:
 						result = handler(context, *args, **kwargs)
 				except TypeError:
-					log.warn("%d:TypeError captured during request processing.", id(context.request), exc_info=True)
+					log.warn("TypeError captured during request processing.", extra=dict(request=id(context.request)), exc_info=True)
 					result = HTTPNotFound()
 			else:
 				result = handler
 			
-			log.debug("%d:Endpoint returned, preparing for registry.%s", id(context.request), ldump(result=repr(result)))
+			log.debug("Endpoint returned, preparing for registry.", extra=dict(request=id(context.request), result=repr(result)))
 			
 			for ext in signals.transform:
 				ext(context, result)
@@ -293,7 +294,8 @@ class Application(object):
 			if safe:
 				context.response = exc
 			
-				log.debug("%d:Registry processed, returning response.%s", id(context.request), ldump(
+				log.debug("Registry processed, returning response.", extra=dict(
+						request = id(context.request),
 						exc = repr(exc),
 						response = repr(context.response)
 					))

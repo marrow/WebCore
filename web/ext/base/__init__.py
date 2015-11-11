@@ -63,8 +63,7 @@ class BaseExtension(object):
 		"""
 		
 		request = context.request
-		#context.log.name('ext.base').data(consumed=consumed, handler=handler, endpoint=is_endpoint).debug("Handling dispatch.")
-		context.log.debug("Handling dispatch.")
+		context.log.debug("Handling dispatch.", extra=dict(consumed=consumed, handler=handler, endpoint=is_endpoint))
 		
 		for element in consumed:
 			if element == context.request.path_info_peek():
