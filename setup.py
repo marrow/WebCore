@@ -39,7 +39,7 @@ class PyTest(TestCommand):
 here = os.path.abspath(os.path.dirname(__file__))
 
 contentment_require = [
-		'mongoengine==0.9',  # database layer
+		'mongoengine',  # database layer
 		'pytz',  # timzone support
 		'blinker',  # signals
 		'markupsafe',  # injection protection
@@ -56,7 +56,7 @@ tests_require = contentment_require + [
 		'pytest-cov',  # coverage reporting
 		'pytest-flakes',  # syntax validation
 		'pytest-cagoule',  # intelligent test execution
-		'pytest-spec<=0.2.22',  # output formatting
+		'pytest-spec',  # output formatting
 	]
 
 
@@ -150,7 +150,6 @@ setup(
 		},
 	
 	install_requires = [
-			'WebCore.template<4.0.0',  # extensible template engine support
 			'marrow.package<2.0',  # dynamic execution and plugin management
 			'WebOb',  # HTTP request and response objects, and HTTP status code exceptions
 			'marrow.util<2.0',  # miscelaneous utilities; use of <2.0 is deprecated
@@ -172,7 +171,7 @@ setup(
 	tests_require = tests_require,
 	
 	dependency_links = [
-			'git+https://github.com/mongoengine/mongoengine.git@master#egg=mongoengine-0.9',
+			#'git+https://github.com/mongoengine/mongoengine.git@master#egg=mongoengine-0.9',
 		],
 	
 	zip_safe = True,
