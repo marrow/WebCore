@@ -13,7 +13,7 @@ from webob import Response
 from web.core.compat import str, unicode
 
 
-__all__ = ['serve', 'response', 'textual', 'empty', 'wsgi']
+__all__ = ['serve', 'response', 'textual', 'generator', 'empty', 'wsgi']
 
 log = __import__('logging').getLogger(__name__)
 
@@ -70,13 +70,11 @@ def textual(context, result):
 	return True
 
 
-#@kinds(types.GeneratorType, collections.Iterable)
-#def primary(context, result):
-#	if isinstance(result, (tuple, dict)):
-#		return False
-#	
-#	context.response.body = result
-#	return True
+@kinds(types.GeneratorType)
+def generator(context, result):
+	context.response.encoding = 'utf8'
+	context.response.app_iter = ((i.encode('utf8') if isinstance(i, unicode) else i) for i in result if i is not None)
+	return True
 
 
 @kinds(type(None))
