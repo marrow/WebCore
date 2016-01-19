@@ -5,68 +5,96 @@ from __future__ import unicode_literals
 import logging
 import logging.config
 
+from inspect import isroutine, ismethod, getcallargs
+from webob.multidict import NestedMultiDict
+from webob.exc import HTTPException, HTTPNotFound
+
+from .context import Context
+from .dispatch import WebDispatchers
+from .extension import WebExtensions
+from .view import WebViews
+
+
+
+# Old imports.
+
 from inspect import isclass, ismethod
-from itertools import chain
 from weakref import WeakKeyDictionary
 
-from webob.exc import HTTPException, HTTPNotFound
 
 from marrow.util.bunch import Bunch
 from marrow.package.cache import PluginCache
 from marrow.package.loader import load
-from marrow.package.host import ExtensionManager
 
 from web.ext.base import BaseExtension
 from .compat import native, ldump
 from .response import registry
 
 
+
 log = __import__('logging').getLogger(__name__)
 
 
 class Application(object):
-	"""The WebCore WSGI application."""
+	"""The WebCore WSGI application.
 	
-	__slots__ = ('_cache', 'Context', 'log', 'extensions', 'features', 'signals', 'dialect_cache', 'extension_manager', '__call__')
+	This glues together a few components:
 	
-	SIGNALS = ('start', 'stop', 'graceful', 'prepare', 'dispatch', 'before', 'after', 'mutate', 'transform', 'middleware')
+	* Loading and preparation the Application configuration.
+	* Simple or verbose logging configuration.
+	* Collection and execution of `web.extension` callbacks.
+	* WSGI middleware wrapping.
+	* The final WSGI application handling requests.
+	"""
+	
+	__slots__ = (
+			'config',  # Application configuration.
+			'feature',  # Feature tag announcement; populated by the `provides` of active extensions.
+			
+			'__context',  # Application context.
+			'log',
+			'extensions',
+			'signals',
+			'__call__',
+		)
 	
 	def __init__(self, root, **config):
-		self._cache = WeakKeyDictionary()
+		if __debug__:
+			log.debug("Configuring WebCore application.")
 		
-		config = self.prepare_configuration(config)
-		self.Context = self.context_factory(root, config)
+		self.config = self._configure(config)  # Prepare the configuration.
 		
-		level = config.get('logging', {}).get('level', None)
-		if level:
-			logging.basicConfig(level=getattr(logging, level.upper()))
-		elif 'logging' in config:
-			logging.config.dictConfig(config['logging'])
+		# This construts a basic ApplicationContext containing a few of the passed-in values.
+		context = self.__context = Context(app=self, root=root)._promote('ApplicationContext')
 		
-		log.debug("Preparing extensions.")
+		# These can't really be deferred to extensions themselves, for fairly obvious chicken/egg reasons.
+		context.extension = WebExtensions(context)  # Load extension registry and prepare callbacks.
+		context.dispatch = WebDispatchers(context)  # Load dispatch registry.
+		context.view = WebViews(context)  # Load the view registry.
 		
-		self.features = []
-		self.extension_manager = ExtensionManager('web.extension')
-		extensions = self.extensions = self.extension_manager.order(config, 'extensions')
-		signals = self.signals = self.bind_signals(config, extensions)
-		self.dialect_cache = PluginCache('web.dispatch')
+		# Execute extension startup callbacks; this is the appropriate time to attach descriptors to the context.
+		for ext in context.extension.signal.start: ext(context)
 		
-		for ext in signals.start:
-			ext(self.Context)
+		# At this point the context should have been populated with any descriptor protocol additions.
+		# Promote the ApplicationContext instance to a RequestContext class for use during the request/response cycle.
+		self.RequestContext = context._promote('RequestContext', instantiate=False)
 		
-		app = self.app
+		# Handle WSGI middleware wrapping by extensions.
+		app = self._application
 		
-		for ext in signals.middleware:
-			app = ext(self.Context, app)
+		for ext in context.extension.signal.middleware:
+			app = ext(context, app)
 		
 		self.__call__ = app
+		
+		if __debug__:  # Mostly useful for timing calculations.
+			log.debug("WebCore application prepared.")
 	
-	def prepare_configuration(self, config):
+	def _configure(self, config):
 		"""Prepare the incoming configuration and ensure certain expected values are present.
 		
-		For example, this ensures BaseExtension is included in the extension list.
+		For example, this ensures BaseExtension is included in the extension list, and populates the logging config.
 		"""
-		
 		config = Bunch(config) if config else Bunch()
 		
 		# We really need this to be there.
@@ -76,71 +104,13 @@ class Application(object):
 		# Always make sure the BaseExtension is present since request/response objects are handy.
 		config.extensions.insert(0, BaseExtension())
 		
+		level = config.get('logging', {}).get('level', None)
+		if level:
+			logging.basicConfig(level=getattr(logging, level.upper()))
+		elif 'logging' in config:
+			logging.config.dictConfig(config['logging'])
+		
 		return config
-	
-	def context_factory(self, root, config):
-		"""Construct a new base Context class for this application.
-		
-		The Context is a object cooperatively populated with dynamic attributes that also allows dictionary access.
-		
-		By preparing a base Context ahead of time (and dynamically) we can save some time during each request.
-		
-		Extensions can add attributes to this class within a `start` callback.
-		"""
-		
-		class Context(object):
-			def __iter__(self):
-				return ((i, self[i]) for i in dir(self) if i[0] != '_')
-			
-			def __getitem__(self, name):
-				try:
-					return getattr(self, name)
-				except AttributeError:
-					pass
-				
-				raise KeyError("Unknown attribute: " + name)
-			
-			def __setitem__(self, name, value):
-				setattr(self, name, value)
-			
-			def __delitem__(self, name):
-				try:
-					delattr(self, name)
-				except AttributeError:
-					pass
-				
-				raise KeyError("Unknown attribute: " + name)
-		
-		Context.app = self
-		Context.root = root
-		Context.config = config
-		Context.log = log
-		
-		return Context
-	
-	def bind_signals(self, config, extensions):
-		"""Enumerate active extensions and aggregate callbacks."""
-		
-		signals = dict((signal, []) for signal in self.SIGNALS)
-		
-		for ext in extensions:
-			self.features.extend(getattr(ext, 'provides', [])) 
-			
-			for mn in self.SIGNALS:
-				m = getattr(ext, mn, None)
-				if m:
-					signals[mn].append(m)
-			
-			if hasattr(ext, '__call__'):
-				signals['middleware'].append(ext)
-		
-		# Certain operations act as a stack, i.e. "before" are executed in dependency order, but "after" are executed
-		# in reverse dependency order.  This is also the case with "mutate" (incoming) and "transform" (outgoing).
-		signals['after'].reverse()
-		signals['transform'].reverse()
-		signals['middleware'].reverse()
-		
-		return Bunch((signal, tuple(signals[signal])) for signal in self.SIGNALS)
 	
 	def serve(self, service='auto', **options):
 		"""Initiate a web server service to serve this application.
@@ -153,164 +123,188 @@ class Application(object):
 		`socket`.  By default all web servers will listen to `127.0.0.1` (loopback only) on port 8080.
 		"""
 		
-		service = load(service, 'web.server')
-		service(self, **options)
+		service = load(service, 'web.server')  # We don't bother with a full registry for these one-time lookups.
 		
-		for ext in self.signals.stop:
-			ext(self.Context)
+		try:
+			service(self, **options)
+		except KeyboardInterrupt:  # We catch this as SIG_TERM or ^C are basically the only ways to stop most servers.
+			pass
+		
+		# Notify extensions that the service has returned and we are exiting.
+		for ext in self.signal.stop: ext(self.__context)
 	
-	def app(self, environ, start_response=None):
-		"""Process a single WSGI request/response cycle."""
+	def _extract_arguments(self, request):
+		"""Extract usable args and kwargs from the given request object.
 		
-		context = self.Context()
-		context.environ = environ
-		signals = self.signals
-		log = context.log
+		Candidate for promotion to an extension callback. Two approaches come to mind:
 		
-		for ext in chain(signals.prepare, signals.before):
-			ext(context)
+		* Simple (fast) last-defined-wins.
+		* Slower "list if defined multiple times".
+		   * Optionally merging GET and POST instead of POST overriding.
+		   * Optionally PHP-style with [] to denote array elements explicitly.
+		
+		We currently go for the latter without merging or PHP-ness.
+		
+		TODO: Investigate WebOb's request.urlvars and request.urlargs:
+			https://github.com/Pylons/webob/blob/master/webob/request.py#L566-L646
+		"""
+		
+		args = list(request.remainder)
+		if args and args[0] == '': del args[0]  # Trim the result of a leading `/`.
+		
+		def process_kwargs(src):
+			kwargs = dict()
+			
+			for name, value in src.items():
+				if name in kwargs and not isinstance(kwargs[name], list):
+					kwargs[name] = [kwargs[name], value]
+				elif name in kwargs:
+					kwargs[name].append(value)
+				else:
+					kwargs[name] = value
+			
+			return kwargs
+		
+		kwargs = process_kwargs(request.GET)
+		kwargs.update(process_kwargs(request.POST))
+		
+		return kwargs
+	
+	def _application(self, environ, start_response):
+		"""Process a single WSGI request/response cycle.
+		
+		This is the WSGI handler for WebCore.  Depending on the presence of extensions providing WSGI middleware,
+		the `__call__` attribute of the Application instance will either become this, or become the outermost
+		middleware callable.
+		
+		Most apps won't utilize middleware, the extension interface is preferred for most operations in WebCore.
+		They allow for code injection at various intermediary steps in the processing of a request and response.
+		"""
+		
+		context = self.RequestContext(environ=environ)
+		signals = context.extension.signal
+		
+		# Announce the start of a request cycle. This executes `prepare` and `before` callbacks in the correct order.
+		for ext in signals.pre: ext(context)
+		
+		# This technically doesn't help Pypy at all, but saves repeated deep lookup in CPython.
+		dispatch = context.dispatch
+		request = context.request
+		
+		handler = context.root  # We start at the registered root controller.
+		is_endpoint = False  # We'll search until we find an endpoint.
 		
 		if __debug__:
-			log.debug("Preparing for dispatch.", extra=dict(request=id(context.request)))
-		
-		handler = context.root
-		exc = None
-		is_endpoint = False
+			log.debug("Preparing dispatch.", extra=dict(request=id(request), path=request.path_info))
 		
 		try:
 			while not is_endpoint:
-				# Pull the router out of the handler, defaulting to object dispatch.
-				router = getattr(handler, '__dispatch__', 'object')
-				router_name = None
+				# Pull the dispatcher out of the current handler, defaulting to object dispatch.
+				dispatcher = dispatch[getattr(handler, '__dispatch__', 'object')]
 				
-				# If the handler isn't already executable, it's probably an entry point reference. Load it from cache.
-				if not hasattr(router, '__call__'):
-					router_name = router
-					router = self.dialect_cache[router]
-				
-				# If it's uninstantiated, instantiate it.
-				if isclass(router):
-					router = router(context.config)
-					
-					if router_name:  # Update the entry point cache, too. Have some singleton.
-						self.dialect_cache[router_name] = router
-				
-				for consumed, handler, is_endpoint in router(context, handler):
-					for ext in signals.dispatch:
-						ext(context, consumed, handler, is_endpoint)  # Logging would be especially bad in these.
+				# Iterate dispatch events, issuing appropriate callbacks as we descend.
+				# For details, see: https://github.com/marrow/WebCore/wiki/Dispatch-Protocol
+				for consumed, handler, is_endpoint in dispatcher(context, handler, request.path_info):
+					# DO NOT add production logging statements (ones not wrapped in `if __debug__`) to this callback!
+					for ext in signals.dispatch: ext(context, consumed, handler, is_endpoint)
 		
-		except HTTPException as e:
-			return e(context.request.environ, start_response)
+		# Dispatch failed utterly.
+		except LookupError: pass  # `is_endpoint` can only be `False` here.
 		
-		count = 0
+		# It can also fail by rolling off the bottom with `is_endpoint=False`.
+		if not is_endpoint:
+			# We can't just set the handler to the exception class or instance, because both are callable.
+			def handler(_ctx, *args, **kw):  # Yes, this works.  We're just assigning this code obj. to a label.  :3
+				"""An endpoint that returns a 404 Not Found error on dispatch failure."""
+				return HTTPNotFound()  # Not an exceptional event, so don't raise.
 		
-		cache = self._cache
+		# Process the endpoint.
 		
-		try:
-			# We need to determine if the returned object is callable.
-			#  If not, continue.
-			# Then if the callable is a bound instance method.
-			#  If not call with the context as an argument.
-			# Otherwise call.
+		if not callable(handler):
+			# Endpoints don't have to be functions.
+			# They can instead point to what a function would return for view lookup.
 			
-			request = context.request
+			if __debug__:
+				log.debug("Static endpoint located.", extra=dict(
+						request = id(request),
+						handler = repr(handler),
+						endpoint_args = args,
+						endpoint_kw = kwargs
+					))
 			
-			if callable(handler):
-				args = list(request.remainder)
-				if args and args[0] == '': del args[0]
-				
-				kwargs = dict()
-				for name, value in request.params.items():
-					if name.endswith('[]'):
-						name = name[:-2]
-					if name in kwargs and not isinstance(kwargs[name], list):
-						kwargs[name] = [kwargs[name], value]
-					elif name in kwargs:
-						kwargs[name].append(value)
-					else:
-						kwargs[name] = value
-				
-				log.debug("Endpoint found.", extra=dict(
+			result = handler
+		
+		else:
+			# Our endpoint API states that endpoints recieve as positional parameters all remaining path elements, and
+			# as keyword arguments a combination of GET and POST variables with POST taking precedence.
+			args, kwargs = self._extract_arguments(request)
+			
+			if __debug__:
+				log.debug("Callable endpoint located.", extra=dict(
 						request = id(context.request),
 						handler = repr(handler),
 						endpoint_args = args,
 						endpoint_kw = kwargs
 					))
+			
+			for ext in signals.mutate: ext(context, handler, args, kwargs)  # Allow argument transformation.
+			
+			# Instance methods were handed the context at class construction time via dispatch.
+			# The `not isroutine` bit here catches callable instances, a la "index.html" handling.
+			bound = not isroutine(handler) or (ismethod(handler) and getattr(handler, '__self__', None) is not None)
+			
+			# Make sure the handler can actually accept these arguments.
+			# Passing invalid arguments would 500 Internal Server Error on us due to the TypeError exception bubbling up.
+			try:
+				if bound:
+					getcallargs(handler, *args, **kwargs)
+				else:
+					getcallargs(handler, context, *args, **kwargs)
+			
+			except TypeError as e:
+				# If the argument specification doesn't match, the handler can't process this request.
+				# This is one policy. Another possibility is more computaitonally expensive and would pass only
+				# valid arguments, silently dropping invalid ones. This can be implemented as a mutate handler.
+				log.error(str(e), extra=dict(
+						request = id(request),
+						handler = repr(handler),
+						endpoint_args = args,
+						endpoint_kw = kwargs,
+					))
 				
-				for ext in signals.mutate:
-					ext(context, handler, args, kwargs)
-				
-				# Handle index method calls.
-				#__import__('pudb').set_trace()
+				result = HTTPNotFound()
+			
+			else:
 				try:
-					if hasattr(handler, '__call__') and ismethod(handler.__call__):
-						result = handler(*args, **kwargs)
-					elif ismethod(handler) and getattr(handler, '__self__', None):
+					# Actually call the endpoint.
+					if bound:
 						result = handler(*args, **kwargs)
 					else:
 						result = handler(context, *args, **kwargs)
-				except TypeError:
-					log.warn("TypeError captured during request processing.", extra=dict(request=id(context.request)), exc_info=True)
-					result = HTTPNotFound()
-			else:
-				result = handler
-			
-			log.debug("Endpoint returned, preparing for registry.", extra=dict(request=id(context.request), result=repr(result)))
-			
-			for ext in signals.transform:
-				ext(context, result)
-			
-			try:
-				# We optimize for the general case whereby callables always return the same type of result.
-				kind, renderer, count = cache[handler]
 				
-				# If the current return value isn't of the expceted type, invalidate the cache.
-				# or, if the previous handler can't process the current result, invalidate the cache.
-				if not isinstance(result, kind) or not renderer(context, result):
-					raise KeyError('Invalidating.')
-				
-				# Reset the cache miss counter.
-				if count > 1:
-					cache[handler] = (kind, renderer, 1)
-			except (TypeError, KeyError) as e:
-				# Perform the expensive deep-search for a valid handler.
-				renderer = registry(context, result)
-				
-				if not renderer:
-					raise Exception("Inappropriate return value or return value does not match response registry:\n\t" +
-							__import__('pprint').pformat(result))
-				
-				# If we're updating the cache excessively the optimization is worse than the problem.
-				if count > 5:
-					renderer = registry
-				
-				# Update the cache if this isn't a TypeError.
-				if not isinstance(e, TypeError):
-					cache[handler] = (type(result), renderer, count + 1)
+				except HTTPException as e:
+					result = e
 		
-		except Exception as exc:
-			safe = isinstance(exc, HTTPException)
-			
-			if safe:
-				context.response = exc
-			
-				log.debug("Registry processed, returning response.", extra=dict(
-						request = id(context.request),
-						exc = repr(exc),
-						response = repr(context.response)
-					))
-			
-			for ext in signals.after:
-				if ext(context, exc):  # Returning a truthy value eats the exception.
-					exc = None
-			
-			if exc and not safe:
-				raise
-		else:
-			#log.data(response=context.response).debug("Registry processed, returning response.")
-			log.debug("Registry processed, returning response.")
-			
-			for ext in signals.after:
-				ext(context, None)
+		for ext in signals.transform: ext(context, result)
+		
+		if __debug__:
+			log.debug("Result prepared, identifying view handler.", extra=dict(
+					request = id(request),
+					result = repr(result)
+				))
+		
+		# Identify a view capable of handling this result.
+		view = context.view(result)  # This might explode with a LookupError. This is actually fatal.
+		
+		if __debug__:
+			log.debug("View identified, populating and returning response.", extra=dict(
+					request = id(request),
+					view = repr(view),
+				))
+		
+		view(context, result)
+		
+		for ext in signals.after:
+			ext(context, None):
 		
 		return context.response(environ, start_response)
