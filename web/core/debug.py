@@ -26,33 +26,41 @@ Certain extensions, such as the debugging extension, provide their own exception
 from __future__ import unicode_literals
 
 from weakref import ref
-from webob.multidict import MultiDict
-from marrow.package.canonical import name
-from marrow.package.host import PluginManager
+from marrow.package.host import PluginCache
 
 
 log = __import__('logging').getLogger(__name__)
 
 
-class WebViews(PluginManager):
+class WebViews(PluginCache):
 	__isabstractmethod__ = False
 	
 	def __init__(self, ctx):
 		super(WebViews, self).__init__('web.view')
 		
 		# Perform the mapping.
-		self.__dict__['_map'] = MultiDict()
-	
-	def register(self, kind, handler):
-		log.info("Registering view handler.", extra=dict(type=name(kind), handler=name(handler)))
-		
-		self._map.add(kind, handler)
 	
 	def __call__(self, result):
 		"""Identify view to use based on the type of result."""
 		
 		kind = type(result)
 		
-		for kind, candidate in self._map.iteritems():
-			if isinstance(result, kind):
-				yield candidate
+		
+		
+		raise LookupError("No view could be found to handle " + repr(kind) + " objects.")
+		
+		if hasattr(name, '__call__'):
+			return name
+		
+		# If the dispatcher isn't already executable, it's probably an entry point reference. Load it from cache.
+		dispatcher = self.named[name]
+		
+		# If it's uninstantiated, instantiate it.
+		if isclass(dispatcher):
+			# TODO: Extract **kw settings from context.
+			dispatcher = self.named[name] = dispatcher()  # Instantiate and update the entry point cache.
+		
+		if __debug__:
+			log.debug("Loaded dispatcher.", extra=dict(name=name, dispatcher=repr(dispatcher)))
+		
+		return dispatcher

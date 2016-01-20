@@ -5,31 +5,20 @@ from __future__ import unicode_literals
 import logging
 import logging.config
 
-from inspect import isroutine, ismethod, getcallargs
+from inspect import isroutine, isfunction, ismethod, getcallargs
 from webob.multidict import NestedMultiDict
 from webob.exc import HTTPException, HTTPNotFound
+from marrow.package.loader import load
+from marrow.util.bunch import Bunch  # TODO: Deprecate.
 
 from .context import Context
 from .dispatch import WebDispatchers
 from .extension import WebExtensions
 from .view import WebViews
+from ..ext.base import BaseExtension
 
-
-
-# Old imports.
-
-from inspect import isclass, ismethod
-from weakref import WeakKeyDictionary
-
-
-from marrow.util.bunch import Bunch
-from marrow.package.cache import PluginCache
-from marrow.package.loader import load
-
-from web.ext.base import BaseExtension
-from .compat import native, ldump
-from .response import registry
-
+if __debug__:
+	from marrow.package.canonical import name
 
 
 log = __import__('logging').getLogger(__name__)
@@ -51,7 +40,8 @@ class Application(object):
 			'config',  # Application configuration.
 			'feature',  # Feature tag announcement; populated by the `provides` of active extensions.
 			
-			'__context',  # Application context.
+			'__context',  # Application context instance.
+			'RequestContext',  # Per-request context class.
 			'log',
 			'extensions',
 			'signals',
@@ -59,10 +49,14 @@ class Application(object):
 		)
 	
 	def __init__(self, root, **config):
-		if __debug__:
-			log.debug("Configuring WebCore application.")
-		
 		self.config = self._configure(config)  # Prepare the configuration.
+		
+		if __debug__:
+			log.debug("Preparing WebCore application.")
+		
+		if isfunction(root):
+			# We need to armour against this turning into a method of the context.
+			root = staticmethod(root)
 		
 		# This construts a basic ApplicationContext containing a few of the passed-in values.
 		context = self.__context = Context(app=self, root=root)._promote('ApplicationContext')
@@ -109,6 +103,8 @@ class Application(object):
 			logging.basicConfig(level=getattr(logging, level.upper()))
 		elif 'logging' in config:
 			logging.config.dictConfig(config['logging'])
+		
+		log.debug(repr(config.extensions))
 		
 		return config
 	
@@ -168,7 +164,7 @@ class Application(object):
 		kwargs = process_kwargs(request.GET)
 		kwargs.update(process_kwargs(request.POST))
 		
-		return kwargs
+		return args, kwargs
 	
 	def _application(self, environ, start_response):
 		"""Process a single WSGI request/response cycle.
@@ -195,7 +191,7 @@ class Application(object):
 		is_endpoint = False  # We'll search until we find an endpoint.
 		
 		if __debug__:
-			log.debug("Preparing dispatch.", extra=dict(request=id(request), path=request.path_info))
+			log.debug("Preparing dispatch.", extra=dict(request=id(request), path=request.path_info, handler=repr(handler)))
 		
 		try:
 			while not is_endpoint:
@@ -216,7 +212,7 @@ class Application(object):
 			# We can't just set the handler to the exception class or instance, because both are callable.
 			def handler(_ctx, *args, **kw):  # Yes, this works.  We're just assigning this code obj. to a label.  :3
 				"""An endpoint that returns a 404 Not Found error on dispatch failure."""
-				return HTTPNotFound()  # Not an exceptional event, so don't raise.
+				return HTTPNotFound("Dispatch failed." if __debug__ else None)  # Not an exceptional event, so don't raise.
 		
 		# Process the endpoint.
 		
@@ -227,7 +223,7 @@ class Application(object):
 			if __debug__:
 				log.debug("Static endpoint located.", extra=dict(
 						request = id(request),
-						handler = repr(handler),
+						endpoint = repr(handler),
 						endpoint_args = args,
 						endpoint_kw = kwargs
 					))
@@ -242,7 +238,7 @@ class Application(object):
 			if __debug__:
 				log.debug("Callable endpoint located.", extra=dict(
 						request = id(context.request),
-						handler = repr(handler),
+						endpoint = name(handler),
 						endpoint_args = args,
 						endpoint_kw = kwargs
 					))
@@ -257,22 +253,24 @@ class Application(object):
 			# Passing invalid arguments would 500 Internal Server Error on us due to the TypeError exception bubbling up.
 			try:
 				if bound:
+					print(repr((handler, args, kwargs)))
 					getcallargs(handler, *args, **kwargs)
 				else:
+					print(repr((handler, context, args, kwargs)))
 					getcallargs(handler, context, *args, **kwargs)
 			
 			except TypeError as e:
 				# If the argument specification doesn't match, the handler can't process this request.
-				# This is one policy. Another possibility is more computaitonally expensive and would pass only
+				# This is one policy. Another possibility is more computationally expensive and would pass only
 				# valid arguments, silently dropping invalid ones. This can be implemented as a mutate handler.
 				log.error(str(e), extra=dict(
 						request = id(request),
-						handler = repr(handler),
+						endpoint = repr(handler),
 						endpoint_args = args,
 						endpoint_kw = kwargs,
 					))
 				
-				result = HTTPNotFound()
+				result = HTTPNotFound("Incorrect endpoint arguments." if __debug__ else None)
 			
 			else:
 				try:
@@ -294,7 +292,13 @@ class Application(object):
 				))
 		
 		# Identify a view capable of handling this result.
-		view = context.view(result)  # This might explode with a LookupError. This is actually fatal.
+		views = context.view(result)
+		
+		for view in context.view(result):
+			if view(context, result): break
+		
+		else:
+			raise TypeError("No view could be found to handle: " + repr(type(result)))
 		
 		if __debug__:
 			log.debug("View identified, populating and returning response.", extra=dict(
@@ -304,7 +308,6 @@ class Application(object):
 		
 		view(context, result)
 		
-		for ext in signals.after:
-			ext(context, None):
+		for ext in signals.after: ext(context, None)  # Allow transformation of the result.
 		
 		return context.response(environ, start_response)

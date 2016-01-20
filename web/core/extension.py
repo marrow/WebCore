@@ -24,11 +24,13 @@ class WebExtensions(ExtensionManager):
 			'middleware',  # Executed to allow WSGI middleware wrapping.
 		)
 	
+	__isabstractmethod__ = False
+	
 	def __init__(self, ctx):
 		# TODO: Do a touch more than this, such as named plugin loading / configuration unpacking for dict/yaml-
 		# based loading.
 		self.feature = set()
-		self.all = self.order(ctx.app.config)
+		self.all = self.order(ctx.app.config.extensions)
 		signals = {signal: [] for signal in self.SIGNALS}
 		
 		for ext in self.all:

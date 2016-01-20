@@ -3,9 +3,19 @@
 from mimetypes import init, add_type
 from webob import Request, Response
 
-from ...core.response import registry
 from .helpers import URLGenerator
 from web.ext.base import handler
+
+if __debug__:
+	from marrow.package.canonical import name
+	
+	try:
+		from werkzeug.debug import DebuggedApplication
+	except ImportError:
+		DebuggedApplication = None
+
+
+log = __import__('logging').getLogger(__name__)
 
 
 class BaseExtension(object):
@@ -15,12 +25,16 @@ class BaseExtension(object):
 
 	def __call__(self, context, app):
 		#context.log.name('web.app').debug("Preparing WSGI middleware stack.")
-		context.log.debug("Preparing WSGI middleware stack.")
+		log.debug("Preparing WSGI middleware stack.")
+		
+		if __debug__ and DebuggedApplication is not None:
+			app = DebuggedApplication(app, evalex=True, console_path='/_console')
+		
 		return app
 
 	def start(self, context):
 		#context.log.name('web.app').debug("Registering core return value handlers.")
-		context.log.debug("Registering core return value handlers.")
+		log.debug("Registering core return value handlers.")
 		
 		init()
 		add_type('text/x-yaml', 'yml')
@@ -29,8 +43,9 @@ class BaseExtension(object):
 		# Register the default return handlers.
 		for h in handler.__all__:
 			h = getattr(handler, h)
-			registry.register(h, *h.types)
-
+			for kind in h.types:
+				context.view.register(kind, h)
+	
 	def prepare(self, context):
 		"""Add the usual suspects to the context.
 
@@ -43,7 +58,7 @@ class BaseExtension(object):
 		"""
 
 		#context.log.name('ext.base').debug("Preparing the request context.")
-		context.log.debug("Preparing the request context.")
+		log.debug("Preparing the request context.")
 
 		context.request = Request(context.environ)
 		context.response = Response(request=context.request)
@@ -54,7 +69,7 @@ class BaseExtension(object):
 
 		context.url = URLGenerator(context)
 		context.path = []
-		# context.log = context.log.name('request').data(request=context.request)
+		# log = context.log.name('request').data(request=context.request)
 
 	def dispatch(self, context, consumed, handler, is_endpoint):
 		"""Called as dispatch descends into a tier.
@@ -63,14 +78,25 @@ class BaseExtension(object):
 		"""
 		
 		request = context.request
-		context.log.debug("Handling dispatch.", extra=dict(consumed=consumed, handler=handler, endpoint=is_endpoint))
+		log.debug("Handling dispatch event.", extra=dict(consumed=consumed, handler=name(handler), endpoint=is_endpoint))
 		
-		for element in consumed:
-			if element == context.request.path_info_peek():
-				context.request.path_info_pop()
+		if not consumed and context.request.path_info_peek() == '':
+			consumed = ['']
+		
+		if consumed:
+			if not isinstance(consumed, list):
+				consumed = consumed.split('/')
+			
+			for element in consumed:
+				if element == context.request.path_info_peek():
+					context.request.path_info_pop()
 		
 		context.path.append((handler, request.script_name))
-		request.remainder = request.remainder[len(consumed):]
-
+		
+		if consumed:
+			request.remainder = request.remainder[len(consumed):]
+		
+		
+		
 		if not is_endpoint:
 			context.environ['web.controller'] = str(context.request.script_name)
