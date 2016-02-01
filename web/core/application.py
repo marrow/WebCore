@@ -167,6 +167,74 @@ class Application(object):
 		
 		return args, kwargs
 	
+	def _execute_endpoint(self, context, endpoint):
+		if not callable(endpoint):
+			# Endpoints don't have to be functions.
+			# They can instead point to what a function would return for view lookup.
+			
+			if __debug__:
+				log.debug("Static endpoint located.", extra=dict(
+						request = id(context.request),
+						endpoint = repr(endpoint),
+					))
+			
+			# Use the result directly, as if it were the result of calling a function or method.
+			return endpoint
+		
+		# Our endpoint API states that endpoints recieve as positional parameters all remaining path elements, and
+		# as keyword arguments a combination of GET and POST variables with POST taking precedence.
+		args, kwargs = self._extract_arguments(context.request)
+		
+		if __debug__:
+			log.debug("Callable endpoint located.", extra=dict(
+					request = id(context.request),
+					endpoint = name(endpoint),
+					endpoint_args = args,
+					endpoint_kw = kwargs
+				))
+		
+		# Allow argument transformation; args and kwargs can be manipulated inline.
+		for ext in context.extension.signal.mutate: ext(context, handler, args, kwargs)
+		
+		# Instance methods were handed the context at class construction time via dispatch.
+		# The `not isroutine` bit here catches callable instances, a la "index.html" handling.
+		bound = not isroutine(endpoint) or (ismethod(endpoint) and getattr(endpoint, '__self__', None) is not None)
+		
+		# Make sure the handler can actually accept these arguments when running in development mode.
+		# Passing invalid arguments would 500 Internal Server Error on us due to the TypeError exception bubbling up.
+		try:
+			if __debug__:
+				if bound:
+					getcallargs(endpoint, *args, **kwargs)
+				else:
+					getcallargs(endpoint, context, *args, **kwargs)
+		
+		except TypeError as e:
+			# If the argument specification doesn't match, the handler can't process this request.
+			# This is one policy. Another possibility is more computationally expensive and would pass only
+			# valid arguments, silently dropping invalid ones. This can be implemented as a mutate handler.
+			log.error(str(e), extra=dict(
+					request = id(request),
+					endpoint = name(endpoint),
+					endpoint_args = args,
+					endpoint_kw = kwargs,
+				))
+			
+			result = HTTPNotFound(("Incorrect endpoint arguments: " + str(e)) if __debug__ else None)
+		
+		else:
+			try:
+				# Actually call the endpoint.
+				if bound:
+					result = endpoint(*args, **kwargs)
+				else:
+					result = endpoint(context, *args, **kwargs)
+			
+			except HTTPException as e:
+				result = e
+		
+		return result
+	
 	def application(self, environ, start_response):
 		"""Process a single WSGI request/response cycle.
 		
@@ -198,74 +266,11 @@ class Application(object):
 				return HTTPNotFound("Dispatch failed." if __debug__ else None)  # Not an exceptional event, so don't raise.
 		
 		# Process the endpoint.
+		result = self._execute_endpoint(context, handler)
 		
-		if not callable(handler):
-			# Endpoints don't have to be functions.
-			# They can instead point to what a function would return for view lookup.
-			
-			if __debug__:
-				log.debug("Static endpoint located.", extra=dict(
-						request = id(request),
-						endpoint = repr(handler),
-						endpoint_args = args,
-						endpoint_kw = kwargs
-					))
-			
-			result = handler
-		
-		else:
-			# Our endpoint API states that endpoints recieve as positional parameters all remaining path elements, and
-			# as keyword arguments a combination of GET and POST variables with POST taking precedence.
-			args, kwargs = self._extract_arguments(request)
-			
-			if __debug__:
-				log.debug("Callable endpoint located.", extra=dict(
-						request = id(context.request),
-						endpoint = name(handler),
-						endpoint_args = args,
-						endpoint_kw = kwargs
-					))
-			
-			for ext in signals.mutate: ext(context, handler, args, kwargs)  # Allow argument transformation.
-			
-			# Instance methods were handed the context at class construction time via dispatch.
-			# The `not isroutine` bit here catches callable instances, a la "index.html" handling.
-			bound = not isroutine(handler) or (ismethod(handler) and getattr(handler, '__self__', None) is not None)
-			
-			# Make sure the handler can actually accept these arguments.
-			# Passing invalid arguments would 500 Internal Server Error on us due to the TypeError exception bubbling up.
-			try:
-				if __debug__:
-					if bound:
-						getcallargs(handler, *args, **kwargs)
-					else:
-						getcallargs(handler, context, *args, **kwargs)
-			
-			except TypeError as e:
-				# If the argument specification doesn't match, the handler can't process this request.
-				# This is one policy. Another possibility is more computationally expensive and would pass only
-				# valid arguments, silently dropping invalid ones. This can be implemented as a mutate handler.
-				log.error(str(e), extra=dict(
-						request = id(request),
-						endpoint = repr(handler),
-						endpoint_args = args,
-						endpoint_kw = kwargs,
-					))
-				
-				result = HTTPNotFound("Incorrect endpoint arguments." if __debug__ else None)
-			
-			else:
-				try:
-					# Actually call the endpoint.
-					if bound:
-						result = handler(*args, **kwargs)
-					else:
-						result = handler(context, *args, **kwargs)
-				
-				except HTTPException as e:
-					result = e
-		
-		for ext in signals.transform: ext(context, result)
+		# Execute return value transformation callbacks.
+		for ext in signals.transform:
+			result = ext(context, result)
 		
 		if __debug__:
 			log.debug("Result prepared, identifying view handler.", extra=dict(
