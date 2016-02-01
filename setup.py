@@ -38,24 +38,10 @@ class PyTest(TestCommand):
 
 here = os.path.abspath(os.path.dirname(__file__))
 
-contentment_require = [
-		'mongoengine',  # database layer
-		'pytz',  # timzone support
-		'blinker',  # signals
-		'markupsafe',  # injection protection
-		'tenjin',  # high-performance template engine
-		'babel',  # internationalization and localization
-		'scrypt',  # difficult to verify hashes
-		'webassets',  # static asset management
-		'tablib',  # data interchange
-		'xlwt',  # Microsoft Excel data interchange
-	]
-
-tests_require = contentment_require + [
+tests_require = [
 		'pytest',  # test collector and extensible runner
 		'pytest-cov',  # coverage reporting
 		'pytest-flakes',  # syntax validation
-		'pytest-cagoule',  # intelligent test execution
 		'pytest-spec',  # output formatting
 	]
 
@@ -152,26 +138,22 @@ setup(
 	install_requires = [
 			'marrow.package<2.0',  # dynamic execution and plugin management
 			'WebOb',  # HTTP request and response objects, and HTTP status code exceptions
-			'marrow.util<2.0',  # miscelaneous utilities; use of <2.0 is deprecated
-			'pyyaml',  # rich data interchange format; used for configuration
+			'marrow.util',  # deprecated
 		],
 	
 	extras_require = dict(
 			development = tests_require,
-			contentment = contentment_require,
-			
-			# TBD: Required by various sub-components.
-			mail = ['marrow.mailer'],
-			textile = ['textile'],
-			markdown = ['markdown'],
-			bbcode = ['bbcode'],
-			analytics = ['geoip2', 'user-agents>=0.3.0'],
+			devtools = [  # An extended set of useful development tools.
+					'ptpython',  # Improved Python shell.  Run as "ptipython".
+					'ipython',  # Additional extras to improve the Python shell.
+					'pudb',  # Curses-based interactive debugger.
+					'backlash',  # Web-based interactive debugger.
+				]
 		),
 	
 	tests_require = tests_require,
 	
 	dependency_links = [
-			#'git+https://github.com/mongoengine/mongoengine.git@master#egg=mongoengine-0.9',
 		],
 	
 	zip_safe = True,
