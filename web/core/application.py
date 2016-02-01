@@ -75,7 +75,7 @@ class Application(object):
 		self.RequestContext = context._promote('RequestContext', instantiate=False)
 		
 		# Handle WSGI middleware wrapping by extensions.
-		app = self._application
+		app = self.application
 		
 		for ext in context.extension.signal.middleware:
 			app = ext(context, app)
@@ -167,7 +167,7 @@ class Application(object):
 		
 		return args, kwargs
 	
-	def _application(self, environ, start_response):
+	def application(self, environ, start_response):
 		"""Process a single WSGI request/response cycle.
 		
 		This is the WSGI handler for WebCore.  Depending on the presence of extensions providing WSGI middleware,
