@@ -185,31 +185,12 @@ class Application(object):
 		for ext in signals.pre: ext(context)
 		
 		# This technically doesn't help Pypy at all, but saves repeated deep lookup in CPython.
-		dispatch = context.dispatch
 		request = context.request
 		
-		handler = context.root  # We start at the registered root controller.
-		is_endpoint = False  # We'll search until we find an endpoint.
+		# Identify the endpoint for this request.
+		is_endpoint, handler = context.dispatch(context, context.root, context.environ['PATH_INFO'])
 		
-		if __debug__:
-			log.debug("Preparing dispatch.", extra=dict(request=id(request), path=request.path_info, handler=repr(handler)))
-		
-		try:
-			while not is_endpoint:
-				# Pull the dispatcher out of the current handler, defaulting to object dispatch.
-				dispatcher = dispatch[getattr(handler, '__dispatch__', 'object')]
-				path = deque(request.path_info.lstrip('/').split('/'))
-				
-				# Iterate dispatch events, issuing appropriate callbacks as we descend.
-				# For details, see: https://github.com/marrow/WebCore/wiki/Dispatch-Protocol
-				for consumed, handler, is_endpoint in dispatcher(context, handler, path):
-					# DO NOT add production logging statements (ones not wrapped in `if __debug__`) to this callback!
-					for ext in signals.dispatch: ext(context, consumed, handler, is_endpoint)
-		
-		# Dispatch failed utterly.
-		except LookupError: pass  # `is_endpoint` can only be `False` here.
-		
-		# It can also fail by rolling off the bottom with `is_endpoint=False`.
+		# If no endpoint could be resolved, that's a 404.
 		if not is_endpoint:
 			# We can't just set the handler to the exception class or instance, because both are callable.
 			def handler(_ctx, *args, **kw):  # Yes, this works.  We're just assigning this code obj. to a label.  :3
