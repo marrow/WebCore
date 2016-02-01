@@ -8,7 +8,7 @@ Non-functional until the helpers get worked on a bit more.
 from web.dialect.route import route
 from web.dialect.helper import Resource, Collection, method, render, require
 
-from marrow.util.object import load_object as load
+from marrow.package.loader import load
 
 
 # REST Resources
