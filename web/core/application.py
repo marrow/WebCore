@@ -254,12 +254,11 @@ class Application(object):
 			# Make sure the handler can actually accept these arguments.
 			# Passing invalid arguments would 500 Internal Server Error on us due to the TypeError exception bubbling up.
 			try:
-				if bound:
-					print(repr((handler, args, kwargs)))
-					getcallargs(handler, *args, **kwargs)
-				else:
-					print(repr((handler, context, args, kwargs)))
-					getcallargs(handler, context, *args, **kwargs)
+				if __debug__:
+					if bound:
+						getcallargs(handler, *args, **kwargs)
+					else:
+						getcallargs(handler, context, *args, **kwargs)
 			
 			except TypeError as e:
 				# If the argument specification doesn't match, the handler can't process this request.
@@ -294,8 +293,6 @@ class Application(object):
 				))
 		
 		# Identify a view capable of handling this result.
-		views = context.view(result)
-		
 		for view in context.view(result):
 			if view(context, result): break
 		
