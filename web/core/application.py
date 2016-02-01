@@ -6,6 +6,7 @@ import logging
 import logging.config
 
 from inspect import isroutine, isfunction, ismethod, getcallargs
+from collections import deque
 from webob.multidict import NestedMultiDict
 from webob.exc import HTTPException, HTTPNotFound
 from marrow.package.loader import load
@@ -197,10 +198,11 @@ class Application(object):
 			while not is_endpoint:
 				# Pull the dispatcher out of the current handler, defaulting to object dispatch.
 				dispatcher = dispatch[getattr(handler, '__dispatch__', 'object')]
+				path = deque(request.path_info.lstrip('/').split('/'))
 				
 				# Iterate dispatch events, issuing appropriate callbacks as we descend.
 				# For details, see: https://github.com/marrow/WebCore/wiki/Dispatch-Protocol
-				for consumed, handler, is_endpoint in dispatcher(context, handler, request.path_info):
+				for consumed, handler, is_endpoint in dispatcher(context, handler, path):
 					# DO NOT add production logging statements (ones not wrapped in `if __debug__`) to this callback!
 					for ext in signals.dispatch: ext(context, consumed, handler, is_endpoint)
 		
