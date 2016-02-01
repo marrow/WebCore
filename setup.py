@@ -148,6 +148,7 @@ setup(
 					'ipython',  # Additional extras to improve the Python shell.
 					'pudb',  # Curses-based interactive debugger.
 					'backlash',  # Web-based interactive debugger.
+					'waitress',  # Recommended development server.
 				]
 		),
 	
