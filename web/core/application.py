@@ -128,7 +128,7 @@ class Application(object):
 			pass
 		
 		# Notify extensions that the service has returned and we are exiting.
-		for ext in self.signal.stop: ext(self.__context)
+		for ext in self.__context.extension.signal.stop: ext(self.__context)
 	
 	def _extract_arguments(self, request):
 		"""Extract usable args and kwargs from the given request object.
@@ -214,7 +214,7 @@ class Application(object):
 			# This is one policy. Another possibility is more computationally expensive and would pass only
 			# valid arguments, silently dropping invalid ones. This can be implemented as a mutate handler.
 			log.error(str(e), extra=dict(
-					request = id(request),
+					request = id(context.request),
 					endpoint = name(endpoint),
 					endpoint_args = args,
 					endpoint_kw = kwargs,
