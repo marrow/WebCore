@@ -178,7 +178,7 @@ class Application(object):
 		They allow for code injection at various intermediary steps in the processing of a request and response.
 		"""
 		
-		context = self.RequestContext(environ=environ)
+		context = environ['wc.context'] = self.RequestContext(environ=environ)
 		signals = context.extension.signal
 		
 		# Announce the start of a request cycle. This executes `prepare` and `before` callbacks in the correct order.
