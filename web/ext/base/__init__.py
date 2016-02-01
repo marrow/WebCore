@@ -24,8 +24,8 @@ class BaseExtension(object):
 	provides = ["request", "response"]
 
 	def __call__(self, context, app):
-		#context.log.name('web.app').debug("Preparing WSGI middleware stack.")
-		log.debug("Preparing WSGI middleware stack.")
+		if __debug__:
+			log.debug("Preparing WSGI middleware stack.")
 		
 		if __debug__ and DebuggedApplication is not None:
 			app = DebuggedApplication(app, evalex=True, console_path='/_console')
@@ -34,7 +34,8 @@ class BaseExtension(object):
 
 	def start(self, context):
 		#context.log.name('web.app').debug("Registering core return value handlers.")
-		log.debug("Registering core return value handlers.")
+		if __debug__:
+			log.debug("Registering core return value handlers.")
 		
 		init()
 		add_type('text/x-yaml', 'yml')
@@ -58,7 +59,8 @@ class BaseExtension(object):
 		"""
 
 		#context.log.name('ext.base').debug("Preparing the request context.")
-		log.debug("Preparing the request context.")
+		if __debug__:
+			log.debug("Preparing request context.")
 
 		context.request = Request(context.environ)
 		context.response = Response(request=context.request)
@@ -70,7 +72,7 @@ class BaseExtension(object):
 		context.url = URLGenerator(context)
 		context.path = []
 		# log = context.log.name('request').data(request=context.request)
-
+	
 	def dispatch(self, context, consumed, handler, is_endpoint):
 		"""Called as dispatch descends into a tier.
 
@@ -78,13 +80,15 @@ class BaseExtension(object):
 		"""
 		
 		request = context.request
-		log.debug("Handling dispatch event.", extra=dict(consumed=consumed, handler=name(handler), endpoint=is_endpoint))
+		
+		if __debug__:
+			log.debug("Handling dispatch event.", extra=dict(consumed=consumed, handler=name(handler), endpoint=is_endpoint))
 		
 		if not consumed and context.request.path_info_peek() == '':
 			consumed = ['']
 		
 		if consumed:
-			if not isinstance(consumed, list):
+			if not isinstance(consumed, (list, tuple)):
 				consumed = consumed.split('/')
 			
 			for element in consumed:
