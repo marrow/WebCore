@@ -6,8 +6,8 @@ Applications can be as simple or as complex and layered as your needs dictate.
 """
 
 
-def basic(context):
-	return "Hello world."
+def basic(context, name="world"):
+	return "Hello {name}.".format(name=name)
 
 
 if __name__ == '__main__':
