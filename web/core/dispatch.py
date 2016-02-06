@@ -49,7 +49,7 @@ class WebDispatchers(PluginManager):
 				# Pull the dispatcher out of the current handler, defaulting to object dispatch.
 				dispatcher = self[getattr(handler, '__dispatch__', 'object')]
 				
-				# Now we need the remaining path elemnets as a deque.
+				# Now we need the remaining path elements as a deque.
 				path = deque(path.split('/'))
 				
 				# We don't want a singular leading / in the path to cause trouble.
