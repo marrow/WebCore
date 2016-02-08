@@ -252,9 +252,6 @@ class Application(object):
 		# Announce the start of a request cycle. This executes `prepare` and `before` callbacks in the correct order.
 		for ext in signals.pre: ext(context)
 		
-		# This technically doesn't help Pypy at all, but saves repeated deep lookup in CPython.
-		request = context.request
-		
 		# Identify the endpoint for this request.
 		is_endpoint, handler = context.dispatch(context, context.root, context.environ['PATH_INFO'])
 		
@@ -274,7 +271,7 @@ class Application(object):
 		
 		if __debug__:
 			log.debug("Result prepared, identifying view handler.", extra=dict(
-					request = id(request),
+					request = id(context),
 					result = repr(result)
 				))
 		
@@ -287,7 +284,7 @@ class Application(object):
 		
 		if __debug__:
 			log.debug("View identified, populating and returning response.", extra=dict(
-					request = id(request),
+					request = id(context),
 					view = repr(view),
 				))
 		
