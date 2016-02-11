@@ -2,10 +2,10 @@
 
 """Slightly more advanced example application."""
 
-from web.dialect.helper import Resource, Collection
 
-
-class Person(Resource):
+class Person:
+    __dispatch__ = 'rest'
+    
     def get(self):
         return "Person details."
     
@@ -20,7 +20,8 @@ class Person(Resource):
         return "Delete this person."
 
 
-class Root(Collection):
+class Root:
+    __dispatch__ = 'rest'
     __resource__ = Person
     
     def get(self):
