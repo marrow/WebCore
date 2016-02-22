@@ -43,9 +43,6 @@ class Application(object):
 			
 			'__context',  # Application context instance.
 			'RequestContext',  # Per-request context class.
-			'log',
-			'extensions',
-			'signals',
 			'__call__',
 		)
 	
