@@ -1,9 +1,0 @@
-h1. WebCore 2 Static File Application
-
-This application allows you to "mount" on-disk directories to parts of your own application.
-
-There are three methods of delivering the files:
-
-# Stream the file from disk through a standard response.
-# Use the @X-Sendfile@ header to instruct a front-end load balancer to deliver the file.
-# Use kernel-level sendfile support from the host server.
