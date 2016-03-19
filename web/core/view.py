@@ -44,7 +44,7 @@ class WebViews(PluginManager):
 		self.__dict__['_map'] = MultiDict()
 	
 	def register(self, kind, handler):
-		log.info("Registering view handler.", extra=dict(type=name(kind), handler=name(handler)))
+		log.debug("Registering view handler.", extra=dict(type=name(kind), handler=name(handler)))
 		
 		self._map.add(kind, handler)
 	
