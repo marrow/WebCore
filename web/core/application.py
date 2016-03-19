@@ -191,7 +191,7 @@ class Application(object):
 				))
 		
 		# Allow argument transformation; args and kwargs can be manipulated inline.
-		for ext in context.extension.signal.mutate: ext(context, handler, args, kwargs)
+		for ext in context.extension.signal.mutate: ext(context, endpoint, args, kwargs)
 		
 		# Instance methods were handed the context at class construction time via dispatch.
 		# The `not isroutine` bit here catches callable instances, a la "index.html" handling.
