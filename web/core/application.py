@@ -201,9 +201,14 @@ class Application(object):
 		# Passing invalid arguments would 500 Internal Server Error on us due to the TypeError exception bubbling up.
 		try:
 			if __debug__:
-				if bound:
+				if callable(endpoint) and not isroutine(endpoint):
+					# Callable Instance
+					getcallargs(endpoint.__call__, *args, **kwargs)
+				elif bound:
+					# Instance Method
 					getcallargs(endpoint, *args, **kwargs)
 				else:
+					# Unbound Method or Function
 					getcallargs(endpoint, context, *args, **kwargs)
 		
 		except TypeError as e:
