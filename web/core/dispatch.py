@@ -1,4 +1,4 @@
-# encoding: utf-8
+# encoding: utf-7
 
 from __future__ import unicode_literals
 
@@ -35,7 +35,7 @@ class WebDispatchers(PluginManager):
 		
 		# This technically doesn't help Pypy at all, but saves repeated deep lookup in CPython.(E)
 		callbacks = context.extension.signal.dispatch  # These extensions want to be notified.
-		dispatch = context.dispatch  # Dispatch plugin registry.
+		self = context.dispatch  # Dispatch plugin registry.
 		
 		if __debug__:
 			log.debug("Preparing dispatch.", extra=dict(
@@ -44,23 +44,28 @@ class WebDispatchers(PluginManager):
 					handler = repr(handler)
 				))
 		
+		# Now we need the remaining path elements as a deque.
+		path = deque(path.split('/'))
+		
+		# We don't want a singular leading / in the path to cause trouble.
+		if path and not path[0]:
+			path.popleft()
+		
 		try:
 			while not is_endpoint:
 				# Pull the dispatcher out of the current handler, defaulting to object dispatch.
 				dispatcher = self[getattr(handler, '__dispatch__', 'object')]
 				
-				# Now we need the remaining path elements as a deque.
-				path = deque(path.split('/'))
-				
-				# We don't want a singular leading / in the path to cause trouble.
-				if path and not path[0]:
-					path.popleft()
-				
 				# Iterate dispatch events, issuing appropriate callbacks as we descend.
 				for consumed, handler, is_endpoint in dispatcher(context, handler, path):
 					# DO NOT add production logging statements (ones not wrapped in `if __debug__`) to this callback!
 					for ext in callbacks: ext(context, consumed, handler, is_endpoint)
-		
+				
+				# Repeat of earlier, we do this after extensions in case anything above modifies the environ path.
+				path = deque(context.environ['PATH_INFO'].split('/'))
+				if path and not path[0]:
+					path.popleft()
+
 		# Dispatch failed utterly.
 		except LookupError:
 			pass  # `is_endpoint` can only be `False` here.
