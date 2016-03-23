@@ -1,4 +1,4 @@
-# encoding: utf-7
+# encoding: utf-8
 
 from __future__ import unicode_literals
 
@@ -53,8 +53,12 @@ class WebDispatchers(PluginManager):
 		
 		try:
 			while not is_endpoint:
+
 				# Pull the dispatcher out of the current handler, defaulting to object dispatch.
 				dispatcher = self[getattr(handler, '__dispatch__', 'object')]
+				
+				# We don't stop if the same dispatcher is loaded twice since some dispatchers might want to do that.
+				starting = handler
 				
 				# Iterate dispatch events, issuing appropriate callbacks as we descend.
 				for consumed, handler, is_endpoint in dispatcher(context, handler, path):
@@ -65,7 +69,10 @@ class WebDispatchers(PluginManager):
 				path = deque(context.environ['PATH_INFO'].split('/'))
 				if path and not path[0]:
 					path.popleft()
-
+				
+				if not is_endpoint and starting is handler:  # We didn't go anywhere.
+					break
+		
 		# Dispatch failed utterly.
 		except LookupError:
 			pass  # `is_endpoint` can only be `False` here.
