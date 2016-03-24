@@ -292,4 +292,4 @@ class Application(object):
 		
 		for ext in signals.after: ext(context, None)  # Allow transformation of the result.
 		
-		return context.response(environ, start_response)
+		return context.response.conditional_response_app(environ, start_response)
