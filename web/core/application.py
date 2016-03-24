@@ -6,8 +6,6 @@ import logging
 import logging.config
 
 from inspect import isroutine, isfunction, ismethod, getcallargs
-from collections import deque
-from webob.multidict import NestedMultiDict
 from webob.exc import HTTPException, HTTPNotFound
 from marrow.package.loader import load
 from marrow.util.bunch import Bunch  # TODO: Deprecate.
@@ -149,13 +147,13 @@ class Application(object):
 		def process_kwargs(src):
 			kwargs = dict()
 			
-			for name, value in src.items():
-				if name in kwargs and not isinstance(kwargs[name], list):
-					kwargs[name] = [kwargs[name], value]
+			for name_, value in src.items():
+				if name_ in kwargs and not isinstance(kwargs[name_], list):
+					kwargs[name_] = [kwargs[name_], value]
 				elif name in kwargs:
-					kwargs[name].append(value)
+					kwargs[name_].append(value)
 				else:
-					kwargs[name] = value
+					kwargs[name_] = value
 			
 			return kwargs
 		
