@@ -132,8 +132,8 @@ class Application(object):
 		
 		* Simple (fast) last-defined-wins.
 		* Slower "list if defined multiple times".
-		   * Optionally merging GET and POST instead of POST overriding.
-		   * Optionally PHP-style with [] to denote array elements explicitly.
+			* Optionally merging GET and POST instead of POST overriding.
+			* Optionally PHP-style with [] to denote array elements explicitly.
 		
 		We currently go for the latter without merging or PHP-ness.
 		
@@ -180,6 +180,9 @@ class Application(object):
 		# as keyword arguments a combination of GET and POST variables with POST taking precedence.
 		args, kwargs = self._extract_arguments(context.request)
 		
+		# Allow argument transformation; args and kwargs can be manipulated inline.
+		for ext in context.extension.signal.mutate: ext(context, endpoint, args, kwargs)
+		
 		if __debug__:
 			log.debug("Callable endpoint located.", extra=dict(
 					request = id(context.request),
@@ -187,9 +190,6 @@ class Application(object):
 					endpoint_args = args,
 					endpoint_kw = kwargs
 				))
-		
-		# Allow argument transformation; args and kwargs can be manipulated inline.
-		for ext in context.extension.signal.mutate: ext(context, endpoint, args, kwargs)
 		
 		# Instance methods were handed the context at class construction time via dispatch.
 		# The `not isroutine` bit here catches callable instances, a la "index.html" handling.
