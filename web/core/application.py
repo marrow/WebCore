@@ -150,7 +150,7 @@ class Application(object):
 			for name_, value in src.items():
 				if name_ in kwargs and not isinstance(kwargs[name_], list):
 					kwargs[name_] = [kwargs[name_], value]
-				elif name in kwargs:
+				elif name_ in kwargs:
 					kwargs[name_].append(value)
 				else:
 					kwargs[name_] = value
