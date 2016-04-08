@@ -68,6 +68,8 @@ class BaseExtension(object):
 		context.environ['web.base'] = context.request.script_name
 		
 		context.request.remainder = context.request.path_info.split('/')
+		if context.request.remainder and not context.request.remainder[0]:
+			del context.request.remainder[0]
 
 		context.url = URLGenerator(context)
 		context.path = []
