@@ -102,7 +102,6 @@ class BaseExtension(object):
 		if consumed:
 			request.remainder = request.remainder[len(consumed):]
 		
-		
-		
 		if not is_endpoint:
 			context.environ['web.controller'] = str(context.request.script_name)
+
