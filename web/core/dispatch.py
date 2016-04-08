@@ -53,7 +53,6 @@ class WebDispatchers(PluginManager):
 		
 		try:
 			while not is_endpoint:
-
 				# Pull the dispatcher out of the current handler, defaulting to object dispatch.
 				dispatcher = self[getattr(handler, '__dispatch__', 'object')]
 				
