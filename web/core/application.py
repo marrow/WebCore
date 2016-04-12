@@ -197,8 +197,8 @@ class Application(object):
 		
 		# Make sure the handler can actually accept these arguments when running in development mode.
 		# Passing invalid arguments would 500 Internal Server Error on us due to the TypeError exception bubbling up.
-		try:
-			if __debug__:
+		if __debug__:  # TODO: Factor out into its own method.
+			try:
 				if callable(endpoint) and not isroutine(endpoint):
 					# Callable Instance
 					getcallargs(endpoint.__call__, *args, **kwargs)
@@ -208,30 +208,29 @@ class Application(object):
 				else:
 					# Unbound Method or Function
 					getcallargs(endpoint, context, *args, **kwargs)
-		
-		except TypeError as e:
-			# If the argument specification doesn't match, the handler can't process this request.
-			# This is one policy. Another possibility is more computationally expensive and would pass only
-			# valid arguments, silently dropping invalid ones. This can be implemented as a mutate handler.
-			log.error(str(e), extra=dict(
-					request = id(context.request),
-					endpoint = name(endpoint),
-					endpoint_args = args,
-					endpoint_kw = kwargs,
-				))
 			
-			result = HTTPNotFound(("Incorrect endpoint arguments: " + str(e)) if __debug__ else None)
+			except TypeError as e:
+				# If the argument specification doesn't match, the handler can't process this request.
+				# This is one policy. Another possibility is more computationally expensive and would pass only
+				# valid arguments, silently dropping invalid ones. This can be implemented as a mutate handler.
+				log.error(str(e), extra=dict(
+						request = id(context.request),
+						endpoint = name(endpoint),
+						endpoint_args = args,
+						endpoint_kw = kwargs,
+					))
+				
+				return HTTPNotFound(("Incorrect endpoint arguments: " + str(e)) if __debug__ else None)
 		
-		else:
-			try:
-				# Actually call the endpoint.
-				if bound:
-					result = endpoint(*args, **kwargs)
-				else:
-					result = endpoint(context, *args, **kwargs)
-			
-			except HTTPException as e:
-				result = e
+		try:
+			# Actually call the endpoint.
+			if bound:
+				result = endpoint(*args, **kwargs)
+			else:
+				result = endpoint(context, *args, **kwargs)
+		
+		except HTTPException as e:
+			result = e
 		
 		return result
 	
