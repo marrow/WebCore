@@ -143,7 +143,7 @@ class Application(object):
 		
 		args = list(request.remainder)
 		if args and args[0] == '': del args[0]  # Trim the result of a leading `/`.
-		
+	
 		def process_kwargs(src):
 			kwargs = dict()
 			
@@ -162,42 +162,8 @@ class Application(object):
 		
 		return args, kwargs
 	
-	def _execute_endpoint(self, context, endpoint):
-		if not callable(endpoint):
-			# Endpoints don't have to be functions.
-			# They can instead point to what a function would return for view lookup.
-			
-			if __debug__:
-				log.debug("Static endpoint located.", extra=dict(
-						request = id(context.request),
-						endpoint = repr(endpoint),
-					))
-			
-			# Use the result directly, as if it were the result of calling a function or method.
-			return endpoint
-		
-		# Our endpoint API states that endpoints recieve as positional parameters all remaining path elements, and
-		# as keyword arguments a combination of GET and POST variables with POST taking precedence.
-		args, kwargs = self._extract_arguments(context.request)
-		
-		# Allow argument transformation; args and kwargs can be manipulated inline.
-		for ext in context.extension.signal.mutate: ext(context, endpoint, args, kwargs)
-		
-		if __debug__:
-			log.debug("Callable endpoint located.", extra=dict(
-					request = id(context.request),
-					endpoint = name(endpoint),
-					endpoint_args = args,
-					endpoint_kw = kwargs
-				))
-		
-		# Instance methods were handed the context at class construction time via dispatch.
-		# The `not isroutine` bit here catches callable instances, a la "index.html" handling.
-		bound = not isroutine(endpoint) or (ismethod(endpoint) and getattr(endpoint, '__self__', None) is not None)
-		
-		# Make sure the handler can actually accept these arguments when running in development mode.
-		# Passing invalid arguments would 500 Internal Server Error on us due to the TypeError exception bubbling up.
-		if __debug__:  # TODO: Factor out into its own method.
+	if __debug__:  # This method only exists in development. Really; thus the use of name mangling.
+		def __validate_arguments(self, context, endpoint, bound, args, kwargs):
 			try:
 				if callable(endpoint) and not isroutine(endpoint):
 					# Callable Instance
@@ -220,7 +186,47 @@ class Application(object):
 						endpoint_kw = kwargs,
 					))
 				
-				return HTTPNotFound(("Incorrect endpoint arguments: " + str(e)) if __debug__ else None)
+				return HTTPNotFound("Incorrect endpoint arguments: " + str(e))
+	
+	def _execute_endpoint(self, context, endpoint):
+		if not callable(endpoint):
+			# Endpoints don't have to be functions.
+			# They can instead point to what a function would return for view lookup.
+			
+			if __debug__:
+				log.debug("Static endpoint located.", extra=dict(
+						request = id(context.request),
+						endpoint = repr(endpoint),
+					))
+			
+			# Use the result directly, as if it were the result of calling a function or method.
+			return endpoint
+		
+		# Our endpoint API states that endpoints recieve as positional parameters all remaining path elements, and
+		# as keyword arguments a combination of GET and POST variables with POST taking precedence.
+		args, kwargs = self._extract_arguments(context.request)
+		
+		# Instance methods were handed the context at class construction time via dispatch.
+		# The `not isroutine` bit here catches callable instances, a la "index.html" handling.
+		bound = not isroutine(endpoint) or (ismethod(endpoint) and getattr(endpoint, '__self__', None) is not None)
+	
+		# Allow argument transformation; args and kwargs can be manipulated inline.
+		for ext in context.extension.signal.mutate: ext(context, endpoint, args, kwargs)
+		
+		if __debug__:
+			log.debug("Callable endpoint located.", extra=dict(
+					request = id(context.request),
+					endpoint = name(endpoint),
+					endpoint_args = args,
+					endpoint_kw = kwargs
+				))
+			
+			# Make sure the handler can actually accept these arguments when running in development mode.
+			# Passing invalid arguments would 500 Internal Server Error on us due to the TypeError exception bubbling up.
+			result = self.__validate_arguments(context, endpoint, bound, args, kwargs)
+			
+			if result:  # Bail if validation returned any truthy value.
+				return result
 		
 		try:
 			# Actually call the endpoint.
