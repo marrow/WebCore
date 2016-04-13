@@ -41,40 +41,41 @@ class Application(object):
 			
 			'__context',  # Application context instance.
 			'RequestContext',  # Per-request context class.
-			'__call__',
+			'__call__',  # WSGI request handler.  Dynamically assigned.
 		)
 	
 	def __init__(self, root, **config):
+		"""Construct the initial ApplicationContext, populate, and prepare the WSGI stack.
+		
+		No actions other than configuration should happen during construction or during extension "start" callbacks.
+		"""
+		
 		self.config = self._configure(config)  # Prepare the configuration.
 		
 		if __debug__:
 			log.debug("Preparing WebCore application.")
 		
-		if isfunction(root):
-			# We need to armour against this turning into a method of the context.
+		if isfunction(root):  # We need to armour against this turning into a bound method of the context.
 			root = staticmethod(root)
 		
 		# This construts a basic ApplicationContext containing a few of the passed-in values.
 		context = self.__context = Context(app=self, root=root)._promote('ApplicationContext')
 		
 		# These can't really be deferred to extensions themselves, for fairly obvious chicken/egg reasons.
-		context.extension = WebExtensions(context)  # Load extension registry and prepare callbacks.
+		exts = context.extension = WebExtensions(context)  # Load extension registry and prepare callbacks.
 		context.dispatch = WebDispatchers(context)  # Load dispatch registry.
 		context.view = WebViews(context)  # Load the view registry.
 		
 		# Execute extension startup callbacks; this is the appropriate time to attach descriptors to the context.
-		for ext in context.extension.signal.start: ext(context)
+		for ext in exts.signal.start: ext(context)
 		
 		# At this point the context should have been populated with any descriptor protocol additions.
 		# Promote the ApplicationContext instance to a RequestContext class for use during the request/response cycle.
 		self.RequestContext = context._promote('RequestContext', instantiate=False)
 		
-		# Handle WSGI middleware wrapping by extensions.
+		# Handle WSGI middleware wrapping by extensions and point our __call__ at the result.
 		app = self.application
-		
-		for ext in context.extension.signal.middleware:
-			app = ext(context, app)
-		
+		for ext in exts.signal.middleware: app = ext(context, app)
 		self.__call__ = app
 		
 		if __debug__:  # Mostly useful for timing calculations.
@@ -88,8 +89,7 @@ class Application(object):
 		config = Bunch(config) if config else Bunch()
 		
 		# We really need this to be there.
-		if 'extensions' not in config:
-			config.extensions = list()
+		if 'extensions' not in config: config.extensions = list()
 		
 		# Always make sure the BaseExtension is present since request/response objects are handy.
 		config.extensions.insert(0, BaseExtension())
@@ -180,7 +180,7 @@ class Application(object):
 				# This is one policy. Another possibility is more computationally expensive and would pass only
 				# valid arguments, silently dropping invalid ones. This can be implemented as a mutate handler.
 				log.error(str(e), extra=dict(
-						request = id(context.request),
+						request = id(context),
 						endpoint = name(endpoint),
 						endpoint_args = args,
 						endpoint_kw = kwargs,
@@ -195,7 +195,7 @@ class Application(object):
 			
 			if __debug__:
 				log.debug("Static endpoint located.", extra=dict(
-						request = id(context.request),
+						request = id(context),
 						endpoint = repr(endpoint),
 					))
 			
@@ -215,7 +215,7 @@ class Application(object):
 		
 		if __debug__:
 			log.debug("Callable endpoint located.", extra=dict(
-					request = id(context.request),
+					request = id(context),
 					endpoint = name(endpoint),
 					endpoint_args = args,
 					endpoint_kw = kwargs
@@ -267,12 +267,10 @@ class Application(object):
 				"""An endpoint that returns a 404 Not Found error on dispatch failure."""
 				return HTTPNotFound("Dispatch failed." if __debug__ else None)  # Not an exceptional event, so don't raise.
 		
-		# Process the endpoint.
-		result = self._execute_endpoint(context, handler)
+		result = self._execute_endpoint(context, handler)  # Process the endpoint.
 		
 		# Execute return value transformation callbacks.
-		for ext in signals.transform:
-			result = ext(context, result)
+		for ext in signals.transform: result = ext(context, result)
 		
 		if __debug__:
 			log.debug("Result prepared, identifying view handler.", extra=dict(
@@ -283,12 +281,12 @@ class Application(object):
 		# Identify a view capable of handling this result.
 		for view in context.view(result):
 			if view(context, result): break
-		
 		else:
+			# We've run off the bottom of the list of possible views.
 			raise TypeError("No view could be found to handle: " + repr(type(result)))
 		
 		if __debug__:
-			log.debug("View identified, populating and returning response.", extra=dict(
+			log.debug("View identified, populating response.", extra=dict(
 					request = id(context),
 					view = repr(view),
 				))
