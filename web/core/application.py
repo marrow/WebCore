@@ -8,7 +8,6 @@ import logging.config
 from inspect import isroutine, isfunction, ismethod, getcallargs
 from webob.exc import HTTPException, HTTPNotFound
 from marrow.package.loader import load
-from marrow.util.bunch import Bunch  # TODO: Deprecate.
 
 from .context import Context
 from .dispatch import WebDispatchers
@@ -86,21 +85,19 @@ class Application(object):
 		
 		For example, this ensures BaseExtension is included in the extension list, and populates the logging config.
 		"""
-		config = Bunch(config) if config else Bunch()
+		config = config or dict()
 		
 		# We really need this to be there.
-		if 'extensions' not in config: config.extensions = list()
+		if 'extensions' not in config: config['extensions'] = list()
 		
 		# Always make sure the BaseExtension is present since request/response objects are handy.
-		config.extensions.insert(0, BaseExtension())
+		config['extensions'].insert(0, BaseExtension())
 		
 		level = config.get('logging', {}).get('level', None)
 		if level:
 			logging.basicConfig(level=getattr(logging, level.upper()))
 		elif 'logging' in config:
 			logging.config.dictConfig(config['logging'])
-		
-		log.debug(repr(config.extensions))
 		
 		return config
 	

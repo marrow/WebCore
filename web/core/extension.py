@@ -75,7 +75,7 @@ class WebExtensions(ExtensionManager):
 		# based loading.
 		
 		self.feature = set()  # Track the active `provides` tags.
-		self.all = self.order(ctx.app.config.extensions)  # Needs/uses/provides-dependency ordered active extensions.
+		self.all = self.order(ctx.app.config['extensions'])  # Needs/uses/provides-dependency ordered active extensions.
 		signals = {signal: [] for signal in self.SIGNALS}  # Prepare the known callback sets.
 		
 		for ext in self.all:
