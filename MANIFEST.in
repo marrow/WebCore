@@ -1,0 +1,9 @@
+global-include *.py *.txt *.rst
+global-exclude *.pyc *.pyo .gitignore
+
+prune .git
+prune htmlcov
+prune docs
+prune bench
+prune example
+prune test

@@ -21,7 +21,8 @@ if sys.version_info < (2, 7):
 elif sys.version_info > (3, 0) and sys.version_info < (3, 3):
 	raise SystemExit("Python 3.3 or later is required.")
 
-exec(open(os.path.join("web", "release.py")).read())
+version = description = url = author = author_email = ""  # Silence linter warnings.
+exec(open(os.path.join("web", "release.py")).read())  # Actually populate those values.
 
 
 class PyTest(TestCommand):
@@ -59,7 +60,7 @@ setup(
 	author_email = author.email,
 	
 	license = 'MIT',
-	keywords = '',
+	keywords = ['marrow', 'web.core'],
 	classifiers = [
 			"Development Status :: 5 - Production/Stable",
 			"Environment :: Console",
@@ -79,7 +80,7 @@ setup(
 			"Topic :: Software Development :: Libraries :: Python Modules",
 		],
 	
-	packages = find_packages(exclude=['bench', 'docs', 'example', 'test']),
+	packages = find_packages(exclude=['bench', 'docs', 'example', 'test', 'htmlcov']),
 	include_package_data = True,
 	namespace_packages = [
 			'web',  # primary namespace
@@ -89,6 +90,10 @@ setup(
 		],
 	
 	entry_points = {
+			'web.app': [  # Re-usable applications or application components.
+					'static = web.app.static:static',
+				],
+			
 			'web.extension': [
 					'base = web.ext.base:BaseExtension',
 					'request = web.ext.base:BaseExtension',
@@ -149,7 +154,6 @@ setup(
 					'pudb',  # Curses-based interactive debugger.
 					'backlash',  # Web-based interactive REPL shell and traceback explorer.
 					'waitress',  # Recommended development server.
-					'web.app.static',  # Used to serve static files such as CSS/JS in development.
 				],
 			'production': [  # A default set of production tools.
 					'flup6',  # Python 2 and 3 compatible Flup fork.
