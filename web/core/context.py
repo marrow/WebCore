@@ -6,10 +6,15 @@ from collections import MutableMapping
 
 
 class Context(MutableMapping):
-	"""An attribute access dictionary, of a kind."""
+	"""An attribute access dictionary, of a kind.
+	
+	This utility class is used to cooperatively construct the ApplicationContext (and subsequent RequestContext)
+	from the contributions of multiple extensions. The concept of "promotion to a class" is needed in order to enable
+	the use of descriptor protocol attributes; without promotion the protocol would not be utilized.
+	"""
 	
 	# M-Morty! We're, *belch*, gonna have to go in deep, Morty!  Elbow deep!
-	def _promote(self, name="Context", instantiate=True):  # Having them all named Context may be confusing...
+	def _promote(self, name, instantiate=True):
 		"""Create a new subclass of Context which incorporates instance attributes and new descriptors.
 		
 		This promotes an instance and its instance attributes up to being a class with class attributes, then
