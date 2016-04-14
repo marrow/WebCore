@@ -22,6 +22,13 @@ class ThreadLocalExtension(object):
 	provides = ['local', 'threadlocal']
 	
 	def __init__(self, where='web.core:local'):
+		"""Initialize thread local storage for the context.
+		
+		By default the `local` object in the `web.core` package will be populated as a `threading.local` pool. The
+		context, during a request, can then be accessed as `web.core.local.context`. Your own extensions can add
+		additional arbitrary data to this pool.
+		"""
+		
 		super(ThreadLocalExtension, self).__init__()
 		
 		if __debug__:

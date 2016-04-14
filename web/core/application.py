@@ -47,6 +47,14 @@ class Application(object):
 		"""Construct the initial ApplicationContext, populate, and prepare the WSGI stack.
 		
 		No actions other than configuration should happen during construction or during extension "start" callbacks.
+		
+		Current configuration is limited to two arguments:
+		
+			* `logging` -- either None to indicate WebCore should not manipulate the logging configuration (the
+				default), a string representing the logging level to globally configure (such as "debug"), or a
+				dictionary configuraiton to pass to the Python standard `logging.dictConfig` process.
+			* `extensions` -- a list of configured Extension instances, ignoring BaseExtension which is automatically
+				added to the extension set.
 		"""
 		
 		self.config = self._configure(config)  # Prepare the configuration.
