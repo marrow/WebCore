@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 import time
 
-from web.core.compat import str, unicode
+from web.core.compat import unicode
 
 
 class AnalyticsExtension(object):
@@ -14,7 +14,7 @@ class AnalyticsExtension(object):
 	`debug` level.  You can disable either by passing `header=None` or `log=None`, or specify an alternate logging
 	level by passing in the name of the level.
 	
-	In the future you'll be able to define a MongoDB database connection to log performance data, and optionall the
+	In the future you'll be able to define a MongoDB database connection to log performance data, and the
 	complete context including request and response.
 	
 	Finally, if you enable the inspector this extension will add a request generation time gadget to the central HUD.
@@ -85,3 +85,4 @@ class AnalyticsExtension(object):
 		"""Return an object conforming to the inspector panel API."""
 		
 		pass  # TODO: Not implemented yet, reference #141.
+

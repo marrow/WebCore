@@ -1,7 +1,5 @@
 # encoding: utf-8
 
-"""The default development and production HTTP server."""
-
 from __future__ import unicode_literals, print_function
 
 try:
@@ -16,14 +14,15 @@ except ImportError:
 def serve(application, host='127.0.0.1', port=8080, **options):
 	"""Tornado's HTTPServer.
 	
-	This server has many options.  For details, please visit:
+	This is a high quality asynchronous server with many options.  For details, please visit:
 	
 		http://www.tornadoweb.org/en/stable/httpserver.html#http-server
 	"""
 	
-	container = tornado.wsgi.WSGIContainer(Application(basic))
+	container = tornado.wsgi.WSGIContainer(application)
 	
 	http_server = tornado.httpserver.HTTPServer(container, **options)
 	http_server.listen(int(port), host)
 	
 	tornado.ioloop.IOLoop.instance().start()
+

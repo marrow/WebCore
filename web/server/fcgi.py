@@ -4,8 +4,6 @@
 
 from __future__ import unicode_literals, print_function
 
-import os
-
 try:
 	from flup.server.fcgi import WSGIServer
 except ImportError:
@@ -13,12 +11,16 @@ except ImportError:
 	raise
 
 
-def serve(application, host='127.0.0.1', port=8080, socket=None, multithreaded=True, multiprocess=False, umask=None, multiplexed=False, debug=False):
-	"""Basic FastCGI support via flup."""
+def serve(application, host='127.0.0.1', port=8080, socket=None, **options):
+	"""Basic FastCGI support via flup.
+	
+	This web server has many, many options. Please see the Flup project documentation for details.
+	"""
 	
 	if not socket:
 		bindAddress = (host, int(port))
 	else:
 		bindAddress = socket
 	
-	WSGIServer(application, multithreaded=multithreaded, multiprocess=multiprocess, bindAddress=bindAddress, umask=umask, multiplexed=multiplexed, debug=debug).run()
+	WSGIServer(application, bindAddress=bindAddress, **options).run()
+

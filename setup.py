@@ -94,25 +94,27 @@ setup(
 					'request = web.ext.base:BaseExtension',
 					'response = web.ext.base:BaseExtension',
 					
-					'typecast = web.ext.cast:CastExtension',
+					'analytics = web.ext.analytics:AnalyticsExtension',
+					
+					'annotation = web.ext.annotation:AnnotationExtension',  # Preferred use/needs reference.
+					'cast = web.ext.annotation:AnnotationExtension',
+					'typecast = web.ext.annotation:AnnotationExtension',
+					
+					'local = web.ext.local:ThreadLocalExtension',  # Preferred use/needs reference.
 					'threadlocal = web.ext.local:ThreadLocalExtension',
-					'mail = web.ext.mail:MailExtension',
-					'scheduler = web.ext.schedule:APSchedulerExtension',
-					'transaction = web.ext.transaction:TransactionExtension',
+					
 					#' = web.ext.:Extension',
 				],
 			
 			'web.server': [
-					'auto = web.server.automatic:serve',  # detect available server
-					
 					# For pure WSGI deployment, where you need the WSGI application itself, use:
 					# web.server.application
 					# This module exposes the WSGI application under a variety of common names.
 					
 					'wsgiref = web.server.wsgiref_:serve',  # Python built-in server; single-threaded
-					'waitress = web.server.waitress_:serve',  # http://s.webcore.io/aIou
-					'tornado = web.server.tornado_:serve',  # http://s.webcore.io/aIaN
-					'fcgi = web.server.fcgi:serve',  # recommended production interface
+					'waitress = web.server.waitress_:serve[waitress]',  # http://s.webcore.io/aIou development server
+					'tornado = web.server.tornado_:serve[tornado]',  # http://s.webcore.io/aIaN
+					'fcgi = web.server.fcgi:serve[flup]',  # http://s.webcore.io/fhVY recommended production server
 					
 					# Planned:
 					#
@@ -138,19 +140,31 @@ setup(
 	install_requires = [
 			'marrow.package<2.0',  # dynamic execution and plugin management
 			'WebOb',  # HTTP request and response objects, and HTTP status code exceptions
-			'marrow.util',  # deprecated
 		],
 	
-	extras_require = dict(
-			development = tests_require,
-			devtools = [  # An extended set of useful development tools.
+	extras_require = {
+			'development': tests_require + [  # An extended set of useful development tools.
 					'ptpython',  # Improved Python shell.  Run as "ptipython".
 					'ipython',  # Additional extras to improve the Python shell.
 					'pudb',  # Curses-based interactive debugger.
-					'backlash',  # Web-based interactive debugger.
+					'backlash',  # Web-based interactive REPL shell and traceback explorer.
 					'waitress',  # Recommended development server.
-				]
-		),
+					'web.app.static',  # Used to serve static files such as CSS/JS in development.
+				],
+			'production': [  # A default set of production tools.
+					'flup6',  # Python 2 and 3 compatible Flup fork.
+				],
+			
+			# Extras similar to Gentoo USE flags.
+			'object': ['web.dispatch.object'],
+			'route': ['web.dispatch.route'],
+			'traversal': ['web.dispatch.traversal'],
+			
+			# Plugin dependencies.
+			'waitress': ['waitress'],
+			'tornado': ['tornado'],
+			'flup': ['flup6'],
+		},
 	
 	tests_require = tests_require,
 	

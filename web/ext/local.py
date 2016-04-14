@@ -3,8 +3,6 @@
 from __future__ import unicode_literals
 
 from threading import local
-from inspect import getargspec
-from functools import partial
 
 from marrow.package.loader import load
 
@@ -77,3 +75,4 @@ class ThreadLocalExtension(object):
 			log.debug("Cleaning up thread local request context.")
 		
 		del self.local.context
+

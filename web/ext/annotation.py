@@ -2,13 +2,13 @@
 
 from __future__ import unicode_literals
 
-from inspect import getargspec, ismethod
+from inspect import ismethod
 from functools import partial
 
 try:
 	from inspect import getfullargspec as getargspec
 except ImportError:
-	pass
+	from inspect import getargspec
 
 from web.core.compat import unicode
 
@@ -25,12 +25,12 @@ def unicodestr(s, encoding='utf-8', fallback='iso-8859-1'):
 		return s.decode(fallback)
 
 
-class CastExtension(object):
+class AnnotationExtension(object):
 	"""Typecast the arguments to your controllers using Python 3 function annotations."""
 	
 	__slots__ = ('handler', )
 	
-	provides = ['typecast']
+	provides = ['annotation', 'cast', 'typecast']
 	
 	def __init__(self, encoding='utf-8', fallback='iso-8859-1'):
 		super(CastExtension, self).__init__()
@@ -54,13 +54,14 @@ class CastExtension(object):
 		
 		if ismethod(handler):
 			del arglist[0]
-
+		
 		for i, value in enumerate(list(args)):
 			key = arglist[i]
 			if key in annotations:
 				args[i] = annotations[key](value)
-
+		
 		# Convert keyword arguments
 		for key, value in list(kw.items()):
 			if key in annotations:
 				kw[key] = annotations[key](value)
+
