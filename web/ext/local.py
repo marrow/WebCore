@@ -19,7 +19,7 @@ class ThreadLocalExtension(object):
 	"""
 	
 	first = True
-	provides = ['threadlocal']
+	provides = ['local', 'threadlocal']
 	
 	def __init__(self, where='web.core:local'):
 		super(ThreadLocalExtension, self).__init__()
