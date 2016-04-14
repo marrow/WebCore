@@ -3,7 +3,6 @@
 from mimetypes import init, add_type
 from webob import Request, Response
 
-from .helpers import URLGenerator
 from web.ext.base import handler
 
 if __debug__:
@@ -71,7 +70,7 @@ class BaseExtension(object):
 		if context.request.remainder and not context.request.remainder[0]:
 			del context.request.remainder[0]
 
-		context.url = URLGenerator(context)
+		# context.url = URLGenerator(context)
 		context.path = []
 		# log = context.log.name('request').data(request=context.request)
 	
