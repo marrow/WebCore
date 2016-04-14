@@ -3,7 +3,6 @@
 from __future__ import unicode_literals
 
 from collections import deque
-from weakref import ref
 from inspect import isclass
 from marrow.package.host import PluginManager
 
@@ -12,11 +11,30 @@ log = __import__('logging').getLogger(__name__)
 
 
 class WebDispatchers(PluginManager):
+	"""WebCore dispatch protocol adapter.
+	
+	The process of resolving a request path to an endpoint. The dispatch protocol utilized is documented in full
+	in the `protocol` project: https://github.com/marrow/protocols/blob/master/dispatch/README.md
+	
+	The allowable controller structures offered by individual methods of dispatch is documented in the relevant
+	dispatch project. Examples of dispatch include:
+	
+		* Object Dispatch: https://github.com/marrow/web.dispatch.object
+		* Registered Routes: https://github.com/marrow/web.dispatch.route
+		* Traversal: https://github.com/marrow/web.dispatch.traversal
+	
+	Others may exist, and dispatch middleware may be available to perform more complex behaviours. The default
+	dispatcher if not otherwise configured is object dispatch.
+	"""
+	
 	__isabstractmethod__ = False  # Jerry, it's a weird bug, Jerry.
 	
 	def __init__(self, ctx):
-		self._ctx = ref(ctx)  # Stored for later use during dispatcher configuration.
-		# The above is a weak reference to try to reduce cycles; a WebDispatchers instance is itself stored in the context.
+		"""Dispatch registry constructor.
+		
+		The dispatch registry is not meant to be instantiated by third-party software. Instead, access the registry as
+		an attribute of the current Application or Request context: `context.dispatch`
+		"""
 		
 		super(WebDispatchers, self).__init__('web.dispatch')
 	
@@ -27,8 +45,6 @@ class WebDispatchers(PluginManager):
 		
 		This requires a context prepared with a `context.extension.signal.dispatch` list and dispatch plugin registry
 		as `context.dispatch`.  This does not use `self` to allow for more creative overriding.
-		
-		For details, see: https://github.com/marrow/WebCore/wiki/Dispatch-Protocol
 		"""
 		
 		is_endpoint = False  # We'll search until we find an endpoint.
@@ -79,6 +95,13 @@ class WebDispatchers(PluginManager):
 		return is_endpoint, handler if is_endpoint else None
 	
 	def __getitem__(self, name):
+		"""Retrieve a dispatcher from the registry.
+		
+		This performs some additional work beyond the standard plugin manager in order to construct configured
+		instances of the dispatchers instead of simply returning them bare. This allows for configuration and caching
+		of these configured dispatchers to happen in a single place.
+		"""
+		
 		if hasattr(name, '__call__'):
 			return name
 		
