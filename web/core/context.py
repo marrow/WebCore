@@ -35,11 +35,11 @@ class Context(MutableMapping):
 		super(Context, self).__init__()
 	
 	def __len__(self):
-		return len(iter(self))
+		return len([i for i in (set(dir(self)) - self._STANDARD_ATTRS) if i[0] != '_'])
 	
 	def __iter__(self):
 		"""Iterate all valid attributes/keys."""
-		return (i for i in dir(self) if i[0] != '_')
+		return (i for i in (set(dir(self)) - self._STANDARD_ATTRS) if i[0] != '_')
 	
 	def __getitem__(self, name):
 		try:
@@ -61,3 +61,6 @@ class Context(MutableMapping):
 		
 		# We do this here to avoid Python 3's nested exception support.
 		raise KeyError(name)
+
+Context._STANDARD_ATTRS = set(dir(Context()))
+
