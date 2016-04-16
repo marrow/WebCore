@@ -4,12 +4,7 @@ from __future__ import unicode_literals
 
 from inspect import ismethod
 
-try:
-	from inspect import getfullargspec as getargspec
-except ImportError:
-	from inspect import getargspec
-
-from web.core.compat import unicode
+from inspect import getfullargspec
 
 
 class AnnotationExtension(object):
@@ -51,7 +46,7 @@ class AnnotationExtension(object):
 		if not annotations:
 			return
 		
-		argspec = getargspec(handler)
+		argspec = getfullargspec(handler)
 		arglist = list(argspec.args)
 		
 		if ismethod(handler):
