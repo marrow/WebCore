@@ -45,6 +45,7 @@ tests_require = [
 		'pytest-flakes',  # syntax validation
 		'pytest-spec',  # output formatting
 		'web.dispatch.object',  # dispatch tests
+		'backlash',  # debug tests
 	]
 
 
