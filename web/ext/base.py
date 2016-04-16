@@ -5,10 +5,16 @@ try:
 except ImportError:
 	IOBase = None
 
+try:
+	from collections import Generator
+except ImportError:
+	def _tmp():
+		yield None
+	Generator = type(_tmp())
+
 from os.path import getmtime
 from time import mktime, gmtime
 from datetime import datetime
-from collections import Generator
 from mimetypes import init, add_type, guess_type
 from webob import Request, Response
 
