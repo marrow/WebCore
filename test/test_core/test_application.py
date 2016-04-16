@@ -17,6 +17,11 @@ class TestApplicationParts(TestCase):
 		assert isclass(self.app.RequestContext), "Non-class prepared request context."
 
 
+
+
+
+def binary_endpoint(ctx): return b"Word."
+
 def string_endpoint(ctx): return "Hi."
 
 def empty_endpoint(ctx): return None
@@ -30,7 +35,12 @@ def generator_endpoint(ctx):
 	yield b'bar'
 
 
-class TestStaticEndpoints(object):
+class TestDefaulViews(object):
+	def test_binary(self):
+		app = Application(binary_endpoint)
+		response = Request.blank('/').get_response(app)
+		assert response.text == "Word."
+	
 	def test_string(self):
 		app = Application(string_endpoint)
 		response = Request.blank('/').get_response(app)

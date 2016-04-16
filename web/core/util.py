@@ -4,6 +4,15 @@ from __future__ import unicode_literals
 
 from threading import RLock
 
+from marrow.package.canonical import name
+
+
+def safe_name(thing):
+	try:
+		return name(thing)
+	except:
+		return repr(thing)
+
 
 sentinel = object()
 

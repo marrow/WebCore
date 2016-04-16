@@ -16,7 +16,7 @@ from .view import WebViews
 from ..ext.base import BaseExtension
 
 if __debug__:
-	from marrow.package.canonical import name
+	from .util import safe_name
 
 
 log = __import__('logging').getLogger(__name__)
@@ -186,7 +186,7 @@ class Application(object):
 				# valid arguments, silently dropping invalid ones. This can be implemented as a mutate handler.
 				log.error(str(e), extra=dict(
 						request = id(context),
-						endpoint = name(endpoint),
+						endpoint = safe_name(endpoint),
 						endpoint_args = args,
 						endpoint_kw = kwargs,
 					))
@@ -221,7 +221,7 @@ class Application(object):
 		if __debug__:
 			log.debug("Callable endpoint located.", extra=dict(
 					request = id(context),
-					endpoint = name(endpoint),
+					endpoint = safe_name(endpoint),
 					endpoint_args = args,
 					endpoint_kw = kwargs
 				))

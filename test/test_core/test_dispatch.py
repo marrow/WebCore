@@ -8,6 +8,14 @@ from web.core.context import Context
 from web.core.dispatch import WebDispatchers
 
 
+class MockController(object):
+	def __init__(self, context):
+		self._ctx = context
+	
+	def endpoint(self):
+		return "endpoint"
+
+
 class DispatchBase(TestCase):
 	def setUp(self):
 		self._ctx = Context(
@@ -73,7 +81,13 @@ class TestDispatchProtocol(DispatchBase):
 		assert not is_endpoint
 		assert handler is None
 		assert self._ctx.dispatched
-
+	
+	def test_stanard_controller(self):
+		self._ctx.request = Request.blank('/endpoint')
+		is_endpoint, handler = self.dispatch(self._ctx, MockController, self._ctx.request.path)
+		
+		assert is_endpoint
+		assert handler() == "endpoint"
 
 
 class TestDispatchPlugins(DispatchBase):

@@ -2,20 +2,16 @@
 
 from __future__ import unicode_literals
 
+from io import IOBase
 try:
-	from io import IOBase
-	try:
-		IOBase = (IOBase, file)
-	except:
-		pass
-except ImportError:
-	IOBase = file
+	IOBase = (IOBase, file)
+except:
+	pass
 
 try:
 	from collections import Generator
 except ImportError:
-	def _tmp():
-		yield None
+	def _tmp(): yield None  # pragma: no cover
 	Generator = type(_tmp())
 
 from os.path import getmtime
@@ -24,9 +20,8 @@ from datetime import datetime
 from mimetypes import init, add_type, guess_type
 from webob import Request, Response
 
-from marrow.package.canonical import name
 from web.core.compat import str, unicode
-
+from web.core.util import safe_name
 
 log = __import__('logging').getLogger(__name__)
 
@@ -48,12 +43,9 @@ class BaseExtension(object):
 		
 		register(type(None), self.render_none)
 		register(Response, self.render_response)
-		
-		register(str, self.render_text)
+		register(str, self.render_binary)
 		register(unicode, self.render_text)
-		
 		register(IOBase, self.render_file)
-		
 		register(Generator, self.render_generator)
 	
 	def prepare(self, context):
@@ -67,7 +59,6 @@ class BaseExtension(object):
 		* environ -- the current request environment
 		"""
 
-		#context.log.name('ext.base').debug("Preparing the request context.")
 		if __debug__:
 			log.debug("Preparing request context.")
 
@@ -80,9 +71,7 @@ class BaseExtension(object):
 		if context.request.remainder and not context.request.remainder[0]:
 			del context.request.remainder[0]
 
-		# context.url = URLGenerator(context)
 		context.path = []
-		# log = context.log.name('request').data(request=context.request)
 	
 	def dispatch(self, context, consumed, handler, is_endpoint):
 		"""Called as dispatch descends into a tier.
@@ -93,7 +82,7 @@ class BaseExtension(object):
 		request = context.request
 		
 		if __debug__:
-			log.debug("Handling dispatch event.", extra=dict(consumed=consumed, handler=name(handler), endpoint=is_endpoint))
+			log.debug("Handling dispatch event.", extra=dict(consumed=consumed, handler=safe_name(handler), endpoint=is_endpoint))
 		
 		if not consumed and context.request.path_info_peek() == '':
 			consumed = ['']
@@ -110,17 +99,18 @@ class BaseExtension(object):
 		
 		if consumed:
 			request.remainder = request.remainder[len(consumed):]
-		
-		if not is_endpoint:
-			context.environ['web.controller'] = str(context.request.script_name)
 	
 	def render_none(self, context, result):
 		context.response.length = 0
-		context.response.body = b'' 
+		context.response.body = b''
 		return True
 	
 	def render_response(self, context, result):
 		context.response = result
+		return True
+	
+	def render_binary(self, context, result):
+		context.response.app_iter = iter((result, ))
 		return True
 	
 	def render_text(self, context, result):
