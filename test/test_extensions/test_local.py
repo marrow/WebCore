@@ -47,4 +47,6 @@ def test_new_thread_local_extension():
 	assert not hasattr(local, 'context')
 	
 	ext.stop(ctx)
+	
+	assert not hasattr(web, 'local')
 
