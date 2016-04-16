@@ -1,2 +1,2 @@
 [run]
-omit = web/server/*
+omit = web/server/*, web/core/release.py
