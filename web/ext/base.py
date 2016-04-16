@@ -28,7 +28,7 @@ log = __import__('logging').getLogger(__name__)
 class BaseExtension(object):
 	first = True
 	always = True
-	provides = ["request", "response"]
+	provides = ["base", "request", "response"]
 
 	def start(self, context):
 		if __debug__:
@@ -110,7 +110,7 @@ class BaseExtension(object):
 	
 	def render_none(self, context, result):
 		context.response.length = 0
-		context.response.body = None
+		context.response.body = b'' 
 		return True
 	
 	def render_response(self, context, result):
