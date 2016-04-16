@@ -1,17 +1,19 @@
 # encoding: utf-8
 
-from mimetypes import init, add_type
+try:
+	from io import IOBase
+except ImportError:
+	IOBase = None
+
+from os.path import getmtime
+from time import mktime, gmtime
+from datetime import datetime
+from collections import Generator
+from mimetypes import init, add_type, guess_type
 from webob import Request, Response
 
-from web.ext.base import handler
-
-if __debug__:
-	from marrow.package.canonical import name
-	
-	try:
-		from werkzeug.debug import DebuggedApplication
-	except ImportError:
-		DebuggedApplication = None
+from marrow.package.canonical import name
+from web.core.compat import str, unicode
 
 
 log = __import__('logging').getLogger(__name__)
@@ -22,17 +24,7 @@ class BaseExtension(object):
 	always = True
 	provides = ["request", "response"]
 
-	def __call__(self, context, app):
-		if __debug__:
-			log.debug("Preparing WSGI middleware stack.")
-		
-		if __debug__ and DebuggedApplication is not None:
-			app = DebuggedApplication(app, evalex=True, console_path='/_console')
-		
-		return app
-
 	def start(self, context):
-		#context.log.name('web.app').debug("Registering core return value handlers.")
 		if __debug__:
 			log.debug("Registering core return value handlers.")
 		
@@ -40,11 +32,17 @@ class BaseExtension(object):
 		add_type('text/x-yaml', 'yml')
 		add_type('text/x-yaml', 'yaml')
 		
-		# Register the default return handlers.
-		for h in handler.__all__:
-			h = getattr(handler, h)
-			for kind in h.types:
-				context.view.register(kind, h)
+		register = context.view.register
+		
+		register(type(None), self.render_none)
+		register(Response, self.render_response)
+		
+		register(str, self.render_text)
+		register(unicode, self.render_text)
+		
+		register(IOBase or file, self.render_file)
+		
+		register(Generator, self.render_generator)
 	
 	def prepare(self, context):
 		"""Add the usual suspects to the context.
@@ -103,4 +101,50 @@ class BaseExtension(object):
 		
 		if not is_endpoint:
 			context.environ['web.controller'] = str(context.request.script_name)
+	
+	def render_none(self, context, result):
+		context.response.length = 0
+		context.response.body = None
+		return True
+	
+	def render_response(self, context, result):
+		context.response = result
+		return True
+	
+	def render_text(self, context, result):
+		context.response.text = result
+		return True
+	
+	def render_file(self, context, result):
+		if __debug__:
+			log.debug("Processing file-like object.", extra=dict(request=id(context), result=repr(result)))
+		
+		response = context.response = Response(
+				conditional_response = True,
+			)
+		
+		modified = mktime(gmtime(getmtime(result.name)))
+		
+		response.last_modified = datetime.fromtimestamp(modified)
+		response.cache_control = 'public'
+		ct, ce = guess_type(result.name)
+		if not ct: ct = 'application/octet-stream'
+		response.content_type, response.content_encoding = ct, ce
+		response.etag = unicode(modified)
+		
+		result.seek(0, 2)  # Seek to the end of the file.
+		response.content_length = result.tell()
+		
+		result.seek(0)  # Seek back to the start of the file.
+		response.body_file = result
+		
+		return True
+	
+	def render_generator(self, context, result):
+		context.response.encoding = 'utf8'
+		context.response.app_iter = (
+				(i.encode('utf8') if isinstance(i, unicode) else i)
+				for i in result if i is not None
+			)
+		return True
 
