@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 from threading import local
 
-from marrow.package.loader import load
+from marrow.package.loader import traverse
 
 
 log = __import__('logging').getLogger(__name__)
@@ -40,7 +40,7 @@ class ThreadLocalExtension(object):
 	
 	def _lookup(self):
 		module, _, name = self.where.rpartition(':')
-		module = load(module)
+		module = traverse(__import__(module), '.'.join(module.split('.')[1:]), separator='.')
 		
 		return module, name
 	
@@ -65,11 +65,9 @@ class ThreadLocalExtension(object):
 		if __debug__:
 			log.debug("Cleaning up thread local storage.")
 		
-		if self.preserve:
-			return
-		
-		module, name = self._lookup()
-		delattr(module, name)
+		if not self.preserve:
+			module, name = self._lookup()
+			delattr(module, name)
 	
 	def prepare(self, context):
 		if __debug__:
@@ -77,7 +75,7 @@ class ThreadLocalExtension(object):
 		
 		self.local.context = context
 	
-	def after(self, result, exc=None):
+	def after(self, result):
 		if __debug__:
 			log.debug("Cleaning up thread local request context.")
 		
