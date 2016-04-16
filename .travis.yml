@@ -1,9 +1,14 @@
 language: python
 sudo: false
 
+python:
+  - "3.3"
+  - "3.4"
+  - "3.5"
+
 env:
-  - TOXENV=py33
-  - TOXENV=py34
+  - PYTHONOPTIMIZE=0
+  - PYTHONOPTIMIZE=1
 
 install: travis_retry .travis/install.sh
 
@@ -21,5 +26,3 @@ notifications:
       - "%{repository_slug}:%{branch}@%{commit} %{message}"
       - "Duration: %{duration} - Details: %{build_url}"
 
-after_success:
-  - coveralls
