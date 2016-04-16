@@ -4,6 +4,7 @@ import pytest
 
 from webob import Request
 from webob.exc import HTTPNotFound
+from web.core.compat import py3
 from web.core.context import Context
 from web.ext.debug import Console, DebugExtension
 
@@ -32,7 +33,7 @@ def test_debug_extension_catches():
 	response = req.get_response(app)
 	
 	assert 'CONSOLE_MODE = false' in response.text
-	assert 'division by zero' in response.text
+	assert ('division by zero' if py3 else 'integer division or modulo by zero') in response.text
 
 
 def test_inline_console():

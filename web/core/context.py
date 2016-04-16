@@ -23,7 +23,7 @@ class Context(MutableMapping):
 		
 		metaclass = type(self.__class__)
 		contents = self.__dict__.copy()
-		cls = metaclass(name, (self.__class__, ), contents)
+		cls = metaclass(str(name), (self.__class__, ), contents)
 		
 		if instantiate:
 			return cls()

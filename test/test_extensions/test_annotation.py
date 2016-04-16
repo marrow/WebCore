@@ -4,13 +4,14 @@ import pytest
 
 from web.core.compat import py3
 from web.core.context import Context
-from web.ext.annotation import AnnotationExtension
 
 
 if not py3:
 	pytest.skip("Python 3 required for annotation support.")
 	raise ImportError("Python 3 only.")
 
+
+from web.ext.annotation import AnnotationExtension
 
 endpoint = None  # Correct mistaken linter.
 
