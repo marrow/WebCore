@@ -5,15 +5,14 @@
 This application always raises 404 Not Found.
 """
 
-from marrow.wsgi.exceptions import HTTPNotFound
+from webob.exc import HTTPNotFound
 
 
 def exception(context):
-    raise HTTPNotFound()
+	raise HTTPNotFound()
 
 
 if __name__ == '__main__':
-    from web.core.application import Application
-    from marrow.server.http import HTTPServer
-    
-    HTTPServer('127.0.0.1', 8080, application=Application(exception)).start()
+	from web.core import Application
+	Application(exception).serve('wsgiref')
+

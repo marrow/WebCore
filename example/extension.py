@@ -138,7 +138,7 @@ class Extension(object):
 		"""
 		pass
 	
-	def transform(self, contexti, handler, result):
+	def transform(self, context, handler, result):
 		"""Transform outgoing values prior to view lookup."""
 		pass
 	

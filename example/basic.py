@@ -11,6 +11,7 @@ def basic(context, name="world"):
 
 
 if __name__ == '__main__':
-	from web.core.application import Application
+	from web.core import Application
 	
 	Application(basic).serve('waitress')
+

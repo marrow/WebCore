@@ -31,6 +31,7 @@ class Root(object):
 if __name__ == '__main__':
 	from web.core.application import Application
 	from web.ext.template import TemplateExtension
-	from web.ext.analytic import AnalyticsExtension
+	from web.ext.analytics import AnalyticsExtension
 	
-	Application(Root, logging={'level': 'debug'}, extensions=[AnalyticsExtension(), TemplateExtension()]).serve('waitress')
+	Application(Root, logging={'level': 'debug'}, extensions=[AnalyticsExtension(), TemplateExtension()]).serve('wsgiref')
+

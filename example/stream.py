@@ -50,7 +50,8 @@ def root(context):
 
 
 if __name__ == '__main__':
-	from web.core.application import Application
+	from web.core import Application
 	
 	# wsgiref streams the chunks correctly, waitress buffers in 18000 byte chunks.
 	Application(root, logging={'level': 'debug'}).serve('waitress', send_bytes=1)
+

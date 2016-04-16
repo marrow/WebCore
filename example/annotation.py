@@ -1,16 +1,13 @@
 # encoding: utf-8
 
-"""Basic class-based demonstration application.
-
-Applications can be as simple or as complex and layered as your needs dictate.
-"""
+"""Python 3 function annotation and AnnotationExtension example."""
 
 
-class Root(object):
+class Root:
 	def __init__(self, context):
 		self._ctx = context
 	
-	def tmpl(self) -> './template.html':
+	def tmpl(self) -> 'mako:./template.html':
 		return dict()
 	
 	def mul(self, a: int = None, b: int = None) -> 'json:':
@@ -42,8 +39,9 @@ class Root(object):
 
 
 if __name__ == '__main__':
-	from web.core.application import Application
+	from web.core import Application
 	from web.ext.template import TemplateExtension
-	from web.ext.cast import CastExtension
+	from web.ext.annotation import AnnotationExtension
 	
-	Application(Root, extensions=[TemplateExtension(default='mako'), CastExtension()]).serve('waitress')
+	Application(Root, extensions=[TemplateExtension(), AnnotationExtension()]).serve('wsgiref')
+
