@@ -101,15 +101,18 @@ class Application(object):
 		# Always make sure the BaseExtension is present since request/response objects are handy.
 		config['extensions'].insert(0, BaseExtension())
 		
+		# Tests are skipped on these as we have no particular need to test Python's own logging mechanism.
 		level = config.get('logging', {}).get('level', None)
-		if level:
+		if level:  # pragma: no cover
 			logging.basicConfig(level=getattr(logging, level.upper()))
-		elif 'logging' in config:
+		elif 'logging' in config:  # pragma: no cover
 			logging.config.dictConfig(config['logging'])
 		
 		return config
 	
-	def serve(self, service='auto', **options):
+	# This is impractical to test due to the blocking nature of starting a web server interface.
+	# Individual adapters are hand-tested for basic operation prior to release.
+	def serve(self, service='auto', **options):  # pragma: no cover
 		"""Initiate a web server service to serve this application.
 		
 		You can always use the Application instance as a bare WSGI application, of course.  This method is provided as

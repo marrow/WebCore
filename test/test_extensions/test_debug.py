@@ -4,11 +4,16 @@ import pytest
 
 from webob import Request
 from webob.exc import HTTPNotFound
+from web.core import Application
 from web.core.context import Context
 from web.ext.debug import Console, DebugExtension
 
 
 def mock_app(environ, start_response):
+	1/0
+
+
+def mock_endpoint(context):
 	1/0
 
 
@@ -55,4 +60,13 @@ def test_inline_console_disallowed():
 	
 	with pytest.raises(HTTPNotFound):
 		con()
+
+
+def test_full_pipeline():
+	app = Application(mock_endpoint, extensions=[DebugExtension()])
+	req = Request.blank('/')
+	response = req.get_response(app)
+	
+	assert response.status_int == 500
+	assert 'by zero' in response.text
 
