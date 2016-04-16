@@ -18,14 +18,16 @@ from setuptools.command.test import test as TestCommand
 
 if sys.version_info < (2, 7):
 	raise SystemExit("Python 2.7 or later is required.")
-elif sys.version_info > (3, 0) and sys.version_info < (3, 3):
-	raise SystemExit("Python 3.3 or later is required.")
+elif sys.version_info > (3, 0) and sys.version_info < (3, 2):
+	raise SystemExit("CPython 3.3 or Pypy 3 (3.2) or later is required.")
 
 version = description = url = author = author_email = ""  # Silence linter warnings.
 exec(open(os.path.join("web", "core", "release.py")).read())  # Actually populate those values.
 
 
 class PyTest(TestCommand):
+	__slots__ = ('test_args', 'test_suite')
+	
 	def finalize_options(self):
 		TestCommand.finalize_options(self)
 		

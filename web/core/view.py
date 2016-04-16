@@ -6,7 +6,7 @@ from webob.multidict import MultiDict
 from marrow.package.canonical import name
 from marrow.package.host import PluginManager
 
-from .compat import py3
+from .compat import py3, pypy
 
 
 log = __import__('logging').getLogger(__name__)
@@ -88,7 +88,7 @@ class WebViews(PluginManager):
 		Otherwise unknown attributes of the view registry will attempt to look up a handler plugin by that name.
 		"""
 		if __debug__:
-			if py3:
+			if py3 and not pypy:
 				log.debug("Registering view handler.", extra=dict(type=name(kind), handler=name(handler)))
 			else:
 				log.debug("Registering view handler.", extra=dict(type=repr(kind), handler=repr(handler)))
