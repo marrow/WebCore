@@ -3,7 +3,6 @@
 from __future__ import unicode_literals
 
 from inspect import ismethod
-from functools import partial
 
 try:
 	from inspect import getfullargspec as getargspec
@@ -11,18 +10,6 @@ except ImportError:
 	from inspect import getargspec
 
 from web.core.compat import unicode
-
-
-def unicodestr(s, encoding='utf-8', fallback='iso-8859-1'):
-	"""Convert a string to unicode if it isn't already."""
-	
-	if isinstance(s, unicode):
-		return s
-	
-	try:
-		return s.decode(encoding)
-	except UnicodeError:
-		return s.decode(fallback)
 
 
 class AnnotationExtension(object):
@@ -49,20 +36,11 @@ class AnnotationExtension(object):
 	
 	If your editor has difficulty syntax highlighting such annotations, check for a Python 3 compatible update to your
 	editor's syntax definitions.
-	
-	Explicitly requesting unicode casting will instead utilize a conversion function that can try a fallback encoding.
-	By default the `encoding` option is `utf-8`, and the `fallback` is `iso-8859-1`.
 	"""
 	
-	__slots__ = ('handler', )
+	__slots__ = tuple()
 	
 	provides = ['annotation', 'cast', 'typecast']
-	
-	def __init__(self, encoding='utf-8', fallback='iso-8859-1'):
-		"""Instantiate an AnnotationExtension."""
-		
-		super(AnnotationExtension, self).__init__()
-		self.handler = partial(unicodestr, encoding=encoding, fallback=fallback)
 	
 	def mutate(self, context, handler, args, kw):
 		"""Inspect and potentially mutate the given handler's arguments.
@@ -72,10 +50,6 @@ class AnnotationExtension(object):
 		annotations = getattr(handler.__func__ if hasattr(handler, '__func__') else handler, '__annotations__', None)
 		if not annotations:
 			return
-		
-		for k in annotations:
-			if annotations[k] == unicode:
-				annotations[k] = self.handler
 		
 		argspec = getargspec(handler)
 		arglist = list(argspec.args)
