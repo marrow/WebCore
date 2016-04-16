@@ -44,6 +44,7 @@ tests_require = [
 		'pytest-cov',  # coverage reporting
 		'pytest-flakes',  # syntax validation
 		'pytest-spec',  # output formatting
+		'web.dispatch.object',  # dispatch tests
 	]
 
 
