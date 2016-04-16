@@ -36,7 +36,8 @@ Dependencies and Extras
 -----------------------
 
 WebCore only depends on the excellent `webob <http://webob.org>`_ package to provide request, response, and HTTP
-status code exception helpers. All other dependencies will be application dependencies; choice of template engine,
+status code exception helpers and the `marrow.package <https://github.com/marrow/package>`_ utility package for plugin
+management. All other dependencies will be application dependencies; choice of template engine,
 database layer, session storage mechanism, and even dispatch method are left entirely up to the developer making use
 of the framework. Provided are a number of ``extras`` requirements, which you can define using a comma-separated list
 appended to the package name during installation from the command-line, or within your own package's
@@ -87,7 +88,7 @@ runtime::
 
 You can then upgrade to the latest version at any time::
 
-    (cd cinje; git pull; pip install -e .)
+    (cd WebCore; git pull; pip install -e .)
 
 If you would like to make changes and contribute them back to the project, fork the GitHub project, make your changes,
 and submit a pull request.  This process is beyond the scope of this documentation; for more information see
