@@ -44,25 +44,25 @@ appended to the package name during installation from the command-line, or withi
 
 The available extras are:
 
- * ``development`` -- this installs a recommended set of development-time packages, including
-   `pytest <http://pytest.org/>`_ and a suite of plugins for it, plus the 
-   `backlash <https://github.com/TurboGears/backlash>`_ interactive debugger (needed by the optional
-   ``DebugExtension``), object dispatch, the comprehensive ``ptipython`` upgraded REPL, and the
-   `waitress <https://github.com/Pylons/waitress>`_ development web server.
- * ``production`` -- install recommended production-time packages; currently this only installs the ``flup`` FastCGI
-   server bridge.
+* ``development`` -- this installs a recommended set of development-time packages, including
+  `pytest <http://pytest.org/>`_ and a suite of plugins for it, plus the 
+  `backlash <https://github.com/TurboGears/backlash>`_ interactive debugger (needed by the optional
+  ``DebugExtension``), object dispatch, the comprehensive ``ptipython`` upgraded REPL, and the
+  `waitress <https://github.com/Pylons/waitress>`_ development web server.
+* ``production`` -- install recommended production-time packages; currently this only installs the ``flup`` FastCGI
+  server bridge.
 
 The default choices for disatch are allowed as extras:
 
- * ``object`` -- install object dispatch
- * ``route`` -- install route-based dispatch
- * ``traversal`` -- install traversal dispatch
+* ``object`` -- install object dispatch
+* ``route`` -- install route-based dispatch
+* ``traversal`` -- install traversal dispatch
 
 You can also name a supported server bridge as an extra.  Currently available bridges with third-party dependencies include:
 
- * ``waitress``
- * ``tornado``
- * ``flup``
+* ``waitress``
+* ``tornado``
+* ``flup``
 
 Development Version
 -------------------
