@@ -33,6 +33,7 @@ class DispatchBase(TestCase):
 	def test_resolution(self):
 		cb = self.mock_view
 		self.view.register(unicode, cb)
+		self.view.register(int, object)
 		results = list(self.view("hi"))
 		assert len(results) == 1
 		assert results[0] is cb
