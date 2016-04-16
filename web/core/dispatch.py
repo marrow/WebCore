@@ -94,7 +94,7 @@ class WebDispatchers(PluginManager):
 		
 		return is_endpoint, handler if is_endpoint else None
 	
-	def __getitem__(self, name):
+	def __getitem__(self, dispatcher):
 		"""Retrieve a dispatcher from the registry.
 		
 		This performs some additional work beyond the standard plugin manager in order to construct configured
@@ -102,16 +102,22 @@ class WebDispatchers(PluginManager):
 		of these configured dispatchers to happen in a single place.
 		"""
 		
-		if hasattr(name, '__call__'):
-			return name
+		name = None
+		
+		if callable(dispatcher) and not isclass(dispatcher):
+			return dispatcher
 		
 		# If the dispatcher isn't already executable, it's probably an entry point reference. Load it from cache.
-		dispatcher = super(WebDispatchers, self).__getitem__(name)
+		if not isclass(dispatcher):
+			name = dispatcher
+			dispatcher = super(WebDispatchers, self).__getitem__(dispatcher)
 		
 		# If it's uninstantiated, instantiate it.
 		if isclass(dispatcher):
 			# TODO: Extract **kw settings from context.
-			dispatcher = self.named[name] = dispatcher()  # Instantiate and update the entry point cache.
+			dispatcher = dispatcher()  # Instantiate the dispatcher.
+			if name:  # Update the entry point cache if loaded by name.
+				self.named[name] = dispatcher
 		
 		if __debug__:
 			log.debug("Loaded dispatcher.", extra=dict(dispatcher=repr(dispatcher)))
