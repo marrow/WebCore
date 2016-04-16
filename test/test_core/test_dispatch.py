@@ -1,8 +1,8 @@
 # encoding: utf-8
 
-from unittest import TestCase
-
+import pytest
 from inspect import isclass
+from unittest import TestCase
 from webob import Request
 from web.core.context import Context
 from web.core.dispatch import WebDispatchers
@@ -89,7 +89,9 @@ class TestDispatchPlugins(DispatchBase):
 		assert isinstance(result, Closure)
 	
 	def test_named_cache(self):
-		assert 'object' in self.dispatch.named  # TODO: skip test if missing
+		if 'object' not in self.dispatch.named:
+			pytest.skip("missing web.dispatch.object")
+		
 		assert isclass(self.dispatch.named['object'])
 		
 		dispatcher = self.dispatch['object']
