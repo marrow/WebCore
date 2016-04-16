@@ -88,6 +88,8 @@ class WebViews(PluginManager):
 		log.debug("Registering view handler.", extra=dict(type=name(kind), handler=name(handler)))
 		
 		self._map.add(kind, handler)
+		
+		return handler
 	
 	def __call__(self, result):
 		"""Identify view to use based on the type of result.
