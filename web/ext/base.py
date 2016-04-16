@@ -1,9 +1,15 @@
 # encoding: utf-8
 
+from __future__ import unicode_literals
+
 try:
 	from io import IOBase
+	try:
+		IOBase = (IOBase, file)
+	except:
+		pass
 except ImportError:
-	IOBase = None
+	IOBase = file
 
 try:
 	from collections import Generator
@@ -46,7 +52,7 @@ class BaseExtension(object):
 		register(str, self.render_text)
 		register(unicode, self.render_text)
 		
-		register(IOBase or file, self.render_file)
+		register(IOBase, self.render_file)
 		
 		register(Generator, self.render_generator)
 	
