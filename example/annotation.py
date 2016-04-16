@@ -13,15 +13,11 @@ class Root(object):
 	def tmpl(self) -> './template.html':
 		return dict()
 	
-	def mul(self, a: int = None, b: int = None) -> 'json':
+	def mul(self, a: int = None, b: int = None) -> 'json:':
 		"""Multiply two values together and return the result via JSON.
 		
 		Python 3 function annotations are used to ensure that the arguments are integers. This requires the
-		functionality of web.ext.cast:CastExtension.
-		
-		The return value annotation is handled by web.ext.template:TemplateExtension and may be the name of
-		a serialization engine or template path.  (The trailing colon may be omitted for serialization when used
-		this way.)
+		functionality of `web.ext.annotation:AnnotationExtension`.
 		
 		There are several ways to execute this method:
 		
@@ -39,7 +35,7 @@ class Root(object):
 			https://github.com/davidbonnet/python.tmbundle
 		"""
 		
-		if not a and not b:
+		if not a or not b:
 			return dict(message="Pass arguments a and b to multiply them together!")
 		
 		return dict(answer=a * b)

@@ -124,12 +124,10 @@ class Extension(object):
 		"""Executed after all extension prepare methods have been called, prior to dispatch."""
 		pass
 	
-	def after(self, context, exc=None):
+	def after(self, context):
 		"""Executed after dispatch has returned and the response populated, prior to anything being sent to the client.
 		
 		Similar to middleware, the first extension registered has its `after` method called last.
-		
-		If this method returns any value that evaluates to `True`, the current exception is not propagated.
 		"""
 		pass
 	
@@ -140,7 +138,7 @@ class Extension(object):
 		"""
 		pass
 	
-	def transform(self, context, result):
+	def transform(self, contexti, handler, result):
 		"""Transform outgoing values prior to view lookup."""
 		pass
 	

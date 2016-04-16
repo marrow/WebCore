@@ -193,7 +193,7 @@ class Application(object):
 				
 				return HTTPNotFound("Incorrect endpoint arguments: " + str(e))
 	
-	def _execute_endpoint(self, context, endpoint):
+	def _execute_endpoint(self, context, endpoint, signals):
 		if not callable(endpoint):
 			# Endpoints don't have to be functions.
 			# They can instead point to what a function would return for view lookup.
@@ -216,7 +216,7 @@ class Application(object):
 		bound = not isroutine(endpoint) or (ismethod(endpoint) and getattr(endpoint, '__self__', None) is not None)
 	
 		# Allow argument transformation; args and kwargs can be manipulated inline.
-		for ext in context.extension.signal.mutate: ext(context, endpoint, args, kwargs)
+		for ext in signals.mutate: ext(context, endpoint, args, kwargs)
 		
 		if __debug__:
 			log.debug("Callable endpoint located.", extra=dict(
@@ -242,6 +242,9 @@ class Application(object):
 		
 		except HTTPException as e:
 			result = e
+		
+		# Execute return value transformation callbacks.
+		for ext in signals.transform: result = ext(context, result)
 		
 		return result
 	
@@ -272,11 +275,9 @@ class Application(object):
 				"""An endpoint that returns a 404 Not Found error on dispatch failure."""
 				return HTTPNotFound("Dispatch failed." if __debug__ else None)  # Not an exceptional event, so don't raise.
 		
-		result = self._execute_endpoint(context, handler)  # Process the endpoint.
+		result = self._execute_endpoint(context, handler, signals)  # Process the endpoint.
 		
-		# Execute return value transformation callbacks.
-		for ext in signals.transform: result = ext(context, result)
-		
+				
 		if __debug__:
 			log.debug("Result prepared, identifying view handler.", extra=dict(
 					request = id(context),
@@ -296,6 +297,6 @@ class Application(object):
 					view = repr(view),
 				))
 		
-		for ext in signals.after: ext(context, None)  # Allow transformation of the result.
+		for ext in signals.after: ext(context)
 		
 		return context.response.conditional_response_app(environ, start_response)
