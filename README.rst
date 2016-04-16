@@ -41,7 +41,9 @@ management. All other dependencies will be application dependencies; choice of t
 database layer, session storage mechanism, and even dispatch method are left entirely up to the developer making use
 of the framework. Provided are a number of ``extras`` requirements, which you can define using a comma-separated list
 appended to the package name during installation from the command-line, or within your own package's
-``install_requires``.
+``install_requires``. For example, to install a typical set of development tools at the same time as WebCore, run::
+
+    pip install WebCore[development]
 
 The available extras are:
 
@@ -89,6 +91,10 @@ runtime::
 You can then upgrade to the latest version at any time::
 
     (cd WebCore; git pull; pip install -e .)
+
+Extra dependenies can be declared the same as per web-based installation::
+
+    pip install -e WebCore[development]
 
 If you would like to make changes and contribute them back to the project, fork the GitHub project, make your changes,
 and submit a pull request.  This process is beyond the scope of this documentation; for more information see
