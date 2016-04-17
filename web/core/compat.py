@@ -20,7 +20,7 @@ pypy = hasattr(sys, 'pypy_version_info')
 
 # ## Builtins Compatibility
 
-if py3:  # pragma: no cover
+if py3:
 	native = str
 	unicode = str
 	str = bytes
@@ -29,7 +29,7 @@ if py3:  # pragma: no cover
 	values = dict.values
 	items = dict.items
 	zip = zip
-else:  # pragma: no cover
+else:
 	native = str
 	unicode = unicode
 	str = str
@@ -42,19 +42,19 @@ else:  # pragma: no cover
 
 # ## Ordered Dictionaries
 
-try:  # pragma: no cover
+try:
 	from collections import OrderedDict as odict
-except ImportError:  # pragma: no cover
+except ImportError:
 	from ordereddict import OrderedDict as odict
 
 
 # ## File-Like String Handling
 
-try:  # pragma: no cover
-	try:  # pragma: no cover
+try:
+	try:
 		from cStringIO import StringIO
-	except ImportError:  # pragma: no cover
+	except ImportError:
 		from StringIO import StringIO
-except ImportError:  # pragma: no cover
+except ImportError:
 	from io import StringIO
 
