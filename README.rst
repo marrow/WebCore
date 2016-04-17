@@ -13,6 +13,26 @@ WebCore
     |latestversion| |downloads| |masterstatus| |mastercover| |issuecount|
 
 
+What is WebCore?
+================
+
+WebCore is a nanoframework, a fraction of the size of competing "microframeworks", and culmination of more than ten
+years of web development experience. It provides a clean API for standard points of extension while strongly
+encouraging model, view, controller separation. Being less than 400 source lines of code (SLoC; excluding comments and
+documentation) and containing more comments and lines of documentation than lines of code, WebCore is built to be
+insanely easy to test, adapt, and use, allowing any developer familiar with programming (not just Python programming)
+to be able to read and understand the entirety of the framework in an evening.
+
+It is substantially smaller and more efficient than monolithic frameworks such as Django or Pyramid::
+
+    from web.core import Application
+    
+    Application("Hi.").serve('wsgiref')
+
+Really; that's it. (It can be made into one line if you're willing to make the import ugly using ``__import__``.) The
+Application class represents a standard Python WSGI application, the rest is up to you to pick the components that
+best fit your own needs.
+
 
 Installation
 ============
@@ -99,6 +119,184 @@ Extra dependenies can be declared the same as per web-based installation::
 If you would like to make changes and contribute them back to the project, fork the GitHub project, make your changes,
 and submit a pull request.  This process is beyond the scope of this documentation; for more information see
 `GitHub's documentation <http://help.github.com/>`_.
+
+
+Basic Concepts
+==============
+
+Application
+-----------
+
+The ``Application`` class is the primary entry point for the web framework. Its constructor currently takes up to
+three arguments:
+
+- ``root`` -- the root object to use as the controller for ``/`` requests
+
+- ``extensions`` -- a list of extensions to use with your application
+
+- ``logging`` -- Python ``logging`` configuration
+
+The "root controller" is used as the starting point for dispatch resolution of the endpoint for a request, see the
+Controllers section below for details on what can be used here, but it's basically anything.
+
+By defualt the ``BaseExtension``, providing basic request and response objects and baisc views, is always enabled for 
+your application, has no configuration, and does not need to be instantiated yourself. Other extensions should be
+instantiated and passed in the ``extensions`` list.
+
+Logging configuration offers two choices: simple "global logging level" by defining ``logging`` as a dictionary
+only containing a ``level`` key naming the level to set, or full ``logging.config.dictConfig`` configuration. Passing
+only a level is equivalent to running ``logging.basicConfig``.
+
+This configuration can entirely come from YAML, for example::
+
+    root: !!python/name:web.app.example.RootController
+    
+    extensions:
+        - !!python/object:web.ext.debug.DebugExtension
+        - !!python/object:web.ext.analytics.AnalyticsExtension
+        - !!python/object:web.ext.annotation:AnnotationExtension
+    
+    logging:
+        level: debug
+
+This would make managing complex extension configuration easier. One way to invoke WebCore with a configuration like
+this, while allowing for a distinction between production and development environments and use under ModWSGI would
+be::
+
+    import yaml
+    from web.core import Application
+    
+    fname = 'development.yaml' if __debug__ else 'production.yaml'
+    with open(fname, 'r', encoding='utf-8') as fh:
+        config = yaml.load(fh)
+    
+    app = Application(**config)
+    
+    if __name__ == "__main__":
+        app.serve('wsgiref')
+
+Now, running ``python run.py`` (if saved as ``run.py``) would serve the ``development.yaml`` configuration, and
+running as ``python -O run.py`` (optimization enabled) or with ``PYTHONOPTIMIZE=1`` set in the environment will
+utilize the ``production.yaml`` file.
+
+WebCore is highly aware running with optimizations enabled, eliminating many of the expensive validation checks that
+are only really useful in development. For example, calling an endpoint with invalid arguments will ``404`` with a
+friendly warning in development, but ``500`` in production as the ``TypeError`` is not preemptively checked and
+caught; this is one of the most expensive validation checks. Feel free to browse the code looking for ``if __debug__``
+blocks to see what else changes in "production mode".
+
+The order you define the extensions in does not matter; they declare dependencies and will be automatically
+dependency-ordered when collecting callbacks. Please see the ``extension.py`` example for additional information on
+what you can do with them.
+
+
+Context
+-------
+
+The overall application has an ``ApplicationContext`` associated with it. This object is passed around to the various
+extension callbacks and acts as an attribute access dictionary.  (All of the typical dictionary methods will work,
+and the keys can be accessed as attributes instead, saving some typing.) During the processing of a request a subclass
+is constructed called ``RequestContext`` and in-request extension callbacks, and your controller endpoints, are given
+a reference to this instance.
+
+The attributes present in the base ``ApplicationContext`` are:
+
+- ``app`` -- a reference to the ``Application`` instance
+
+- ``root`` -- the original object passed when constructing the ``Application`` instance
+
+- ``extension`` -- the ``WebExtensions`` extension registry
+
+- ``dispatch`` -- the ``WebDispatchers`` dispatch protocol bridge and plugin registry
+
+- ``view`` -- the ``WebViews`` view handler registry
+
+Extensions would access these during ``start`` and ``stop`` events, for example to register new view handlers.
+
+The attributes present in the ``RequestContext`` (added by WebCore itself or the ``BaseExtension`` during request
+processing) are:
+
+- ``environ`` -- the WSGI request environment as passed to WebCore's WSGI handler
+
+- ``request`` -- a ``webob.Request`` representing the current HTTP request
+
+- ``response`` -- a ``webob.Response`` object corresponding to the response WebCore will return
+
+- ``path`` -- a list of dispatch steps represented by tuples of ``(handler, script_name)``
+
+Additional attributes may be added by other extensions.
+
+
+Controllers, Endpoints, Dispatch, Oh My!
+----------------------------------------
+
+Controllers and, more generally, *callable endpoints*, are functions or methods called to process a request and return
+a value for view or raise an exception. Non-method callables are passed the context as a first argument; methods are
+assumed to have access via ``self`` as the context will have been passed as the only positional argument to the class
+constructor. *Callable endpoints* are additionally passed any unprocessed path elements as positional parameters, and
+a combination of query string arguments (``GET`` values) and form-encoded body elements (``POST`` values) as keyword
+arguments, with arguments from the request body taking precedence and duplicated keys being passed as a list of
+values. They may return any value there is a view registered for, see the Views section below for details.
+
+*Static endpoints*, on the other hand, are non-callable objects that can be handled by a view. The very first example
+at the top of this document relies on the fact that there is a view to handle strings, both static, and as returned by
+a *callable endpoint* such as::
+
+    def hello(context):
+        return "Hello world!"
+
+To allow for customization of the name, you would write this endpoint as::
+
+    def hello(context, name="world"):
+        return "Hello {}!".format(name)
+
+As noted in the Application section, when Python is run with optimizations enabled (``-O`` or ``PYTHONOPTIMIZE`` set)
+unknown arguments being passed (unknown query string arguments or form values) will result in a ``TypeError`` being
+raised and thus a ``500 Internal Server Error`` due to the uncaught exception. In development (without optimizations)
+a ``404 Not Found`` error with a message indicating the mismatched values will be the result. You can use ``*args``
+and ``**kwargs`` to capture any otherwise undefined positional and keyword arguments, or use an extension to mutate
+the incoming data and strip invalid arguments prior to the endpoint being called.
+
+That "hello world" endpoint, however, may be called in one of several different ways, as no other restrictions have
+been put in place:
+
+- ``GET /`` -- Hello world! (Default used.)
+
+- ``GET /Alice`` -- Hello Alice! (Passed positionally.)
+
+- ``GET /?name=Bob`` -- Hello Bob! (Via query string assignment.)
+
+- ``POST /`` submitting a form with a ``name`` field and value of ``Eve`` -- Hello Eve! (Via form-encoded body
+  assignment.)
+
+Other HTTP verbs will work as well, but a form-encoded body is only expected and processed on ``POST`` requests.
+
+The process of finding the endpoint to use to process a request is called *dispatch*. There are a number of forms of
+dispatch available, some should be immediately familiar.
+
+- **Object dispatch.** This is the default (providided by the 
+  `web.dispatch.object <https://github.com/marrow/web.dispatch.object>`_ package) form of dispatch for WebCore, and
+  is also utilized by several other frameworks such as TurboGears. Essentially each path element is looked up as
+  an attribute of the previously looked up object treating a path such as ``/foo/bar/baz`` as an attempt to resolve
+  the Python reference ``root.foo.bar.baz``. This is quite flexible, allowing easy redirection of descent using
+  Python-stanard protocols such as ``__getattr__`` methods, use of lazy evaluation descriptors, etc., etc.
+
+- **Registered routes.** This will likely be the approach most familiar to developers switching from PHP frameworks or
+  who have used any of the major macro- or micro-frameworks in Python such as Django, Flask, etc. You explicitly map 
+  URLs, generally using a regular expression or regular expression short-hand, to specific callable endpoints. Often
+  this is a accomplished using a decorator. WebCore offers this form of dispatch throuhg the
+  `web.dispatch.route <https://github.com/marrow/web.dispatch.route>`_ package.
+
+- **Traversal.** This is similar to object dispatch, but descending through mapping keys. The previous example then
+  translates to ``root['foo']['bar']['baz']``, allowing managed descent through the ``__getitem__`` protocol. This
+  is one of the methods (the other being routes) provided by Pyramid. We offer this form of dispatch through the
+  `web.dispatch.traversal <https://github.com/marrow/web.dispatch.traversal>`_ package.
+
+There may be other dispatchers available and the protocol allows for "dispatch middleware" to offer even more flexible
+approaches to endpoint lookup. The dispatch protocol itself is framework agnostic (these example dispatchers are in
+no way WebCore-specific) and
+`has its own documentation <https://github.com/marrow/protocols/blob/master/dispatch/README.md>`_.
+
 
 
 Version History
