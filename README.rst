@@ -99,7 +99,9 @@ Development Version
 
 Development takes place on `GitHub <https://github.com/>`_ in the
 `WebCore <https://github.com/marrow/WebCore/>`_ project.  Issue tracking, documentation, and downloads
-are provided there.
+are provided there. Development chat (both development of WebCore and chat for users using WebCore to develop their
+own solutions) is graciously provided by `Freenode <ircs://chat.freenode.net:6697/#webcore` in the ``#webcore``
+channel.
 
 Installing the current development version requires `Git <http://git-scm.com/>`_, a distributed source code management
 system.  If you have Git you can run the following to download and *link* the development version into your Python
@@ -279,7 +281,7 @@ dispatch available, some should be immediately familiar.
   is also utilized by several other frameworks such as TurboGears. Essentially each path element is looked up as
   an attribute of the previously looked up object treating a path such as ``/foo/bar/baz`` as an attempt to resolve
   the Python reference ``root.foo.bar.baz``. This is quite flexible, allowing easy redirection of descent using
-  Python-stanard protocols such as ``__getattr__`` methods, use of lazy evaluation descriptors, etc., etc.
+  Python-standard protocols such as ``__getattr__`` methods, use of lazy evaluation descriptors, etc., etc.
 
 - **Registered routes.** This will likely be the approach most familiar to developers switching from PHP frameworks or
   who have used any of the major macro- or micro-frameworks in Python such as Django, Flask, etc. You explicitly map 
