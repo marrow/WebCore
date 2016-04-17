@@ -238,7 +238,8 @@ assumed to have access via ``self`` as the context will have been passed as the 
 constructor. *Callable endpoints* are additionally passed any unprocessed path elements as positional parameters, and
 a combination of query string arguments (``GET`` values) and form-encoded body elements (``POST`` values) as keyword
 arguments, with arguments from the request body taking precedence and duplicated keys being passed as a list of
-values. They may return any value there is a view registered for, see the Views section below for details.
+values. They may return any value there is a view registered for, see the
+`docstring of the view manager <https://github.com/marrow/WebCore/blob/develop/web/core/view.py?ts=4>`_ for details.
 
 *Static endpoints*, on the other hand, are non-callable objects that can be handled by a view. The very first example
 at the top of this document relies on the fact that there is a view to handle strings, both static, and as returned by
@@ -299,6 +300,37 @@ approaches to endpoint lookup. The dispatch protocol itself is framework agnosti
 no way WebCore-specific) and
 `has its own documentation <https://github.com/marrow/protocols/blob/master/dispatch/README.md>`_.
 
+
+Plugins and Namespaces
+======================
+
+WebCore recommends registration of extensions and other plugins as Python-standard ``entry_points`` references.
+Please see the `relevant setuptools documentation 
+<https://pythonhosted.org/setuptools/setuptools.html#dynamic-discovery-of-services-and-plugins>`_ for details on this
+process. Additionally, WebCore marks package namespaces for shared use. The namespaces used, and their purposes, are:
+
+- ``web`` -- the top level shared namespace for WebCore and WebCore accessories
+
+- ``web.app`` -- a namespace for reusable application components and your own use
+
+- ``web.ext`` -- a namespace for WebCore extensions; your own can be placed here
+
+- ``web.server`` -- light-weight WSGI server adapters; your own WSGI server can define a dependency-free adapter
+  here, for example
+
+The plugin namespaces follow a similar pattern:
+
+- ``web.app`` -- re-usable components you can attach to your own controller trees
+
+- ``web.extension`` -- extensions registered by name and "provides" tag
+
+- ``web.server`` -- similarly, server adapters registered by name
+
+WebCore also makes use of the ``web.dispatch`` namespace to look up dispatchers. Other WebCore-related packages and
+extensions may make use of other plugin namespaces. Have a gander at WebCore's ``setup.py`` file for an example of
+how to register plugins this way, and copy the ``__init__.py`` file from the ``web`` package into the overlay in your
+own package (and declare such in your ``setup.py`` package metadata as the ``namespace_packages`` argument) to
+participate in the Python package namespaces.
 
 
 Version History
