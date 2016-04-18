@@ -1,5 +1,9 @@
 # encoding: utf-8
 
+"""WebCore common utilities."""
+
+# ## Imports
+
 from __future__ import unicode_literals
 
 from threading import RLock
@@ -7,15 +11,22 @@ from threading import RLock
 from marrow.package.canonical import name
 
 
+# ## Module Global Constants
+
+sentinel = object()  # A singleton value to allow `None` as a legal value.
+
+
+# ## Utility Functions
+
 def safe_name(thing):
+	"""Attempt to resolve the canonical name for an object, falling back on the `repr()` if unable to do so."""
 	try:
 		return name(thing)
 	except:
 		return repr(thing)
 
 
-sentinel = object()
-
+# ## Context-Related Utility Classes
 
 class lazy(object):
 	"""Lazily record the result of evaluating a function and cache the result.

@@ -1,5 +1,9 @@
 # encoding: utf-8
 
+"""Primary WSGI application and framework entry point."""
+
+# ## Imports
+
 from __future__ import unicode_literals
 
 import logging
@@ -19,8 +23,13 @@ if __debug__:
 	from .util import safe_name
 
 
+# ## Module Globals
+
+# A standard Python logger object.
 log = __import__('logging').getLogger(__name__)
 
+
+# ## WSGI Application
 
 class Application(object):
 	"""The WebCore WSGI application.
@@ -303,3 +312,4 @@ class Application(object):
 		for ext in signals.after: ext(context)
 		
 		return context.response.conditional_response_app(environ, start_response)
+

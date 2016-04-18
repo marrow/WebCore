@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>compat.py</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" href="dycco.css">
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <table cellpadding="0" cellspacing="0">
+      <thead>
+        <tr>
+          <th class="docs">
+            <h1>compat.py</h1>
+          </th>
+          <th class="code">
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr id="section-2">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Compatibility helpers to bridge the differences between Python 2 and Python 3.</p>
+<p>Similar in purpose to <a href="https://warehouse.python.org/project/six/"><code>six</code></a>.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-8">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <h2>Imports</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="kn">import</span> <span class="nn">sys</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-13">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <h2>Version Detection</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="n">py3</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&gt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="p">)</span>
+<span class="n">pypy</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">sys</span><span class="p">,</span> <span class="s">&#39;pypy_version_info&#39;</span><span class="p">)</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-19">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <h2>Builtins Compatibility</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="k">if</span> <span class="n">py3</span><span class="p">:</span>
+	<span class="nb">unicode</span> <span class="o">=</span> <span class="nb">str</span>
+	<span class="nb">str</span> <span class="o">=</span> <span class="nb">bytes</span>
+	<span class="nb">basestring</span> <span class="o">=</span> <span class="nb">unicode</span>
+	<span class="n">items</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">items</span>
+<span class="k">else</span><span class="p">:</span>
+	<span class="nb">unicode</span> <span class="o">=</span> <span class="nb">unicode</span>
+	<span class="nb">str</span> <span class="o">=</span> <span class="nb">str</span>
+	<span class="nb">basestring</span> <span class="o">=</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">unicode</span><span class="p">)</span>
+	<span class="nb">range</span> <span class="o">=</span> <span class="nb">xrange</span>
+	<span class="n">items</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">iteritems</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-33">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-33">&#182;</a>
+              </div>
+              <h2>Ordered Dictionaries</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="k">try</span><span class="p">:</span>
+	<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span> <span class="k">as</span> <span class="n">odict</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+	<span class="kn">from</span> <span class="nn">ordereddict</span> <span class="kn">import</span> <span class="n">OrderedDict</span> <span class="k">as</span> <span class="n">odict</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-41">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-41">&#182;</a>
+              </div>
+              <h2>File-Like String Handling</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="k">try</span><span class="p">:</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="kn">from</span> <span class="nn">cStringIO</span> <span class="kn">import</span> <span class="n">StringIO</span>
+	<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+		<span class="kn">from</span> <span class="nn">StringIO</span> <span class="kn">import</span> <span class="n">StringIO</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+	<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
+</pre></div>
+
+            </td>
+          </tr>
+      </tbody>
+    </table>
+    <footer>
+      Generated by <b><a href="http://mccutchen.github.com/dycco/">Dycco</a></b>.
+      Last updated <b>18 Apr 2016</b>.
+    </footer>
+  </div>
+</body>
+</html>

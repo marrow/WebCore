@@ -1,5 +1,7 @@
 # encoding: utf-8
 
+# ## Imports
+
 from __future__ import unicode_literals
 
 from collections import deque
@@ -7,8 +9,13 @@ from inspect import isclass
 from marrow.package.host import PluginManager
 
 
+# ## Module Globals
+
+# A standard logger object.
 log = __import__('logging').getLogger(__name__)
 
+
+# ## Dispatch Plugin Manager
 
 class WebDispatchers(PluginManager):
 	"""WebCore dispatch protocol adapter.
@@ -27,7 +34,7 @@ class WebDispatchers(PluginManager):
 	dispatcher if not otherwise configured is object dispatch.
 	"""
 	
-	__isabstractmethod__ = False  # Jerry, it's a weird bug, Jerry.
+	__isabstractmethod__ = False  # Work around an issue in modern (3.4+) Python due to our instances being callable.
 	
 	def __init__(self, ctx):
 		"""Dispatch registry constructor.
@@ -123,3 +130,4 @@ class WebDispatchers(PluginManager):
 			log.debug("Loaded dispatcher.", extra=dict(dispatcher=repr(dispatcher)))
 		
 		return dispatcher
+

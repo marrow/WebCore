@@ -1,13 +1,22 @@
 # encoding: utf-8
 
+"""Basic static file delivery mechanism."""
+
+# ## Imports
+
 from __future__ import unicode_literals
 
 from os.path import abspath, normpath, exists, isfile, join as pathjoin, basename
 from webob.exc import HTTPForbidden, HTTPNotFound
 
 
+# ## Module Globals
+
+# A standard logging object.
 log = __import__('logging').getLogger(__name__)
 
+
+# ## Static File Endpoint
 
 def static(base, mapping=None):
 	"""Serve files from disk.
@@ -42,22 +51,21 @@ def static(base, mapping=None):
 					path = path
 				))
 		
-		if not path.startswith(base):
+		if not path.startswith(base):  # Ensure we only serve files from the allowed path.
 			raise HTTPForbidden("Cowardly refusing to violate base path policy." if __debug__ else None)
 		
-		if not exists(path):
+		if not exists(path):  # Do the right thing if the file doesn't actually exist.
 			raise HTTPNotFound()
 		
-		if not isfile(path):
+		if not isfile(path):  # Only serve normal files; no UNIX domain sockets, FIFOs, etc., etc.
 			raise HTTPForbidden("Cowardly refusing to open a non-file." if __debug__ else None)
 		
-		if mapping:
-			# This handles automatic template rendering.  'Cause why not?
+		if mapping:  # Handle the mapping of filename extensions to 2-tuples. 'Cause why not?
 			_, _, extension = basename(path).partition('.')
 			if extension in mapping:
 				return mapping[extension] + ':' + path, dict()
 		
 		return open(path, 'rb')
-		
+	
 	return static_handler
 

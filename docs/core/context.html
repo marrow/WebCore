@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>context.py</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" href="dycco.css">
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <table cellpadding="0" cellspacing="0">
+      <thead>
+        <tr>
+          <th class="docs">
+            <h1>context.py</h1>
+          </th>
+          <th class="code">
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr id="section-2">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>A <code>MutableMapping</code> subclass for use as a request-local context object.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-5">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <h2>Imports</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">unicode_literals</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">MutableMapping</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-12">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <h2>Mapping Class</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-13">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>An attribute access dictionary, of a kind.</p>
+<p>This utility class is used to cooperatively construct the ApplicationContext (and subsequent RequestContext)
+from the contributions of multiple extensions. The concept of "promotion to a class" is needed in order to enable
+the use of descriptor protocol attributes; without promotion the protocol would not be utilized.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="k">class</span> <span class="nc">Context</span><span class="p">(</span><span class="n">MutableMapping</span><span class="p">):</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-22">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <p>M-Morty! We're, <em>belch</em>, gonna have to go in deep, Morty!  Elbow deep!</p>
+<p>Create a new subclass of Context which incorporates instance attributes and new descriptors.</p>
+<p>This promotes an instance and its instance attributes up to being a class with class attributes, then
+returns an instance of that class.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">_promote</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">instantiate</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+		
+		<span class="n">metaclass</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">)</span>
+		<span class="n">contents</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+		<span class="n">cls</span> <span class="o">=</span> <span class="n">metaclass</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">),</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">,</span> <span class="p">),</span> <span class="n">contents</span><span class="p">)</span>
+		
+		<span class="k">if</span> <span class="n">instantiate</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">cls</span><span class="p">()</span>
+		
+		<span class="k">return</span> <span class="n">cls</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-38">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-38">&#182;</a>
+              </div>
+              <p>Construct a new Context instance.</p>
+<p>All keyword arguments are applied to the instance as attributes through direct assignment to <code>__dict__</code>.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kw</span><span class="p">)</span>
+		<span class="nb">super</span><span class="p">(</span><span class="n">Context</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-46">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-46">&#182;</a>
+              </div>
+              <p>Get a list of the public data attributes.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="nb">len</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">dir</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_STANDARD_ATTRS</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;_&#39;</span><span class="p">])</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-50">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-50">&#182;</a>
+              </div>
+              <p>Iterate all valid (public) attributes/keys.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="p">(</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">dir</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_STANDARD_ATTRS</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;_&#39;</span><span class="p">)</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-54">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-54">&#182;</a>
+              </div>
+              <p>Retrieve an attribute through dictionary access.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+		<span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+			<span class="k">pass</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-62">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-62">&#182;</a>
+              </div>
+              <p>We do this here to avoid Python 3's nested exception support.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-64">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-64">&#182;</a>
+              </div>
+              <p>Assign an attribute through dictionary access.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+		<span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-68">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-68">&#182;</a>
+              </div>
+              <p>Delete an attribute through dictionary access.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="k">return</span> <span class="nb">delattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+		<span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+			<span class="k">pass</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-76">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-76">&#182;</a>
+              </div>
+              <p>We do this here to avoid Python 3's nested exception support.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-80">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-80">&#182;</a>
+              </div>
+              <p>We generally want to exclude "default object attributes" from the context's list of attributes.
+ This auto-detects the basic set of them for exclusion from iteration in the above methods.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="n">Context</span><span class="o">.</span><span class="n">_STANDARD_ATTRS</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">dir</span><span class="p">(</span><span class="n">Context</span><span class="p">()))</span>
+</pre></div>
+
+            </td>
+          </tr>
+      </tbody>
+    </table>
+    <footer>
+      Generated by <b><a href="http://mccutchen.github.com/dycco/">Dycco</a></b>.
+      Last updated <b>18 Apr 2016</b>.
+    </footer>
+  </div>
+</body>
+</html>

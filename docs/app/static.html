@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>static.py</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" href="dycco.css">
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <table cellpadding="0" cellspacing="0">
+      <thead>
+        <tr>
+          <th class="docs">
+            <h1>static.py</h1>
+          </th>
+          <th class="code">
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr id="section-2">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Basic static file delivery mechanism.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-5">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <h2>Imports</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">unicode_literals</span>
+
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">abspath</span><span class="p">,</span> <span class="n">normpath</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">isfile</span><span class="p">,</span> <span class="n">join</span> <span class="k">as</span> <span class="n">pathjoin</span><span class="p">,</span> <span class="n">basename</span>
+<span class="kn">from</span> <span class="nn">webob.exc</span> <span class="kn">import</span> <span class="n">HTTPForbidden</span><span class="p">,</span> <span class="n">HTTPNotFound</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-13">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <h2>Module Globals</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-15">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>A standard logging object.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="n">log</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="s">&#39;logging&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-19">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <h2>Static File Endpoint</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-20">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <p>Serve files from disk.</p>
+<p>This utility endpoint factory is meant primarily for use in development environments; in production environments
+it is better (more efficient, secure, etc.) to serve your static content using a front end load balancer such as
+Nginx.</p>
+<p>The first argument, <code>base</code>, represents the base path to serve files from. Paths below the attachment point for
+the generated endpoint will combine this base path with the remaining path elements to determine the file to
+serve.</p>
+<p>The second argument is an optional dictionary mapping filename extensions to template engines, for cooperation
+with the TemplateExtension.  (See: https://github.com/marrow/template)  The result of attempting to serve a
+mapped path is a 2-tuple of <code>("{mapping}:{path}", dict())</code>. For example, to render all <code>.html</code> files as Mako
+templates, you would attach something like the following:</p>
+<pre><code>    class Root:
+            page = static('/path/to/static/pages', dict(html='mako'))
+</code></pre>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="k">def</span> <span class="nf">static</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+	
+	<span class="n">base</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="n">base</span><span class="p">)</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-42">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-42">&#182;</a>
+              </div>
+              
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="nd">@staticmethod</span>
+	<span class="k">def</span> <span class="nf">static_handler</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="o">*</span><span class="n">parts</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+		<span class="n">path</span> <span class="o">=</span> <span class="n">normpath</span><span class="p">(</span><span class="n">pathjoin</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="o">*</span><span class="n">parts</span><span class="p">))</span>
+		
+		<span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Attempting to serve static file.&quot;</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+					<span class="n">request</span> <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="n">context</span><span class="p">),</span>
+					<span class="n">base</span> <span class="o">=</span> <span class="n">base</span><span class="p">,</span>
+					<span class="n">path</span> <span class="o">=</span> <span class="n">path</span>
+				<span class="p">))</span>
+		
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">base</span><span class="p">):</span>  <span class="c"># Ensure we only serve files from the allowed path.</span>
+			<span class="k">raise</span> <span class="n">HTTPForbidden</span><span class="p">(</span><span class="s">&quot;Cowardly refusing to violate base path policy.&quot;</span> <span class="k">if</span> <span class="n">__debug__</span> <span class="k">else</span> <span class="bp">None</span><span class="p">)</span>
+		
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>  <span class="c"># Do the right thing if the file doesn&#39;t actually exist.</span>
+			<span class="k">raise</span> <span class="n">HTTPNotFound</span><span class="p">()</span>
+		
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>  <span class="c"># Only serve normal files; no UNIX domain sockets, FIFOs, etc., etc.</span>
+			<span class="k">raise</span> <span class="n">HTTPForbidden</span><span class="p">(</span><span class="s">&quot;Cowardly refusing to open a non-file.&quot;</span> <span class="k">if</span> <span class="n">__debug__</span> <span class="k">else</span> <span class="bp">None</span><span class="p">)</span>
+		
+		<span class="k">if</span> <span class="n">mapping</span><span class="p">:</span>  <span class="c"># Handle the mapping of filename extensions to 2-tuples. &#39;Cause why not?</span>
+			<span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">extension</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">extension</span> <span class="ow">in</span> <span class="n">mapping</span><span class="p">:</span>
+				<span class="k">return</span> <span class="n">mapping</span><span class="p">[</span><span class="n">extension</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;:&#39;</span> <span class="o">+</span> <span class="n">path</span><span class="p">,</span> <span class="nb">dict</span><span class="p">()</span>
+		
+		<span class="k">return</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span>
+	
+	<span class="k">return</span> <span class="n">static_handler</span>
+</pre></div>
+
+            </td>
+          </tr>
+      </tbody>
+    </table>
+    <footer>
+      Generated by <b><a href="http://mccutchen.github.com/dycco/">Dycco</a></b>.
+      Last updated <b>18 Apr 2016</b>.
+    </footer>
+  </div>
+</body>
+</html>

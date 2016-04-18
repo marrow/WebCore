@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>util.py</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" href="dycco.css">
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <table cellpadding="0" cellspacing="0">
+      <thead>
+        <tr>
+          <th class="docs">
+            <h1>util.py</h1>
+          </th>
+          <th class="code">
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr id="section-2">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>WebCore common utilities.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-5">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <h2>Imports</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">unicode_literals</span>
+
+<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">RLock</span>
+
+<span class="kn">from</span> <span class="nn">marrow.package.canonical</span> <span class="kn">import</span> <span class="n">name</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-14">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <h2>Module Global Constants</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="n">sentinel</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>  <span class="c"># A singleton value to allow `None` as a legal value.</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-19">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <h2>Utility Functions</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-20">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <p>Attempt to resolve the canonical name for an object, falling back on the <code>repr()</code> if unable to do so.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="k">def</span> <span class="nf">safe_name</span><span class="p">(</span><span class="n">thing</span><span class="p">):</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">name</span><span class="p">(</span><span class="n">thing</span><span class="p">)</span>
+	<span class="k">except</span><span class="p">:</span>
+		<span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="n">thing</span><span class="p">)</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-29">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-29">&#182;</a>
+              </div>
+              <h2>Context-Related Utility Classes</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-30">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-30">&#182;</a>
+              </div>
+              <p>Lazily record the result of evaluating a function and cache the result.</p>
+<p>This is a non-data descriptor which tells Python to allow the instance <strong>dict</strong> to override. Intended to be used
+by extensions to add zero-overhead (if un-accessed) values to the context.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="k">class</span> <span class="nc">lazy</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-37">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-37">&#182;</a>
+              </div>
+              
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">__name__</span> <span class="o">=</span> <span class="n">name</span> <span class="ow">or</span> <span class="n">func</span><span class="o">.</span><span class="n">__name__</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">__module__</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="n">__module__</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">__doc__</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="n">__doc__</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">lock</span> <span class="o">=</span> <span class="n">RLock</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">func</span> <span class="o">=</span> <span class="n">func</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-44">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-44">&#182;</a>
+              </div>
+              
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">instance</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>  <span class="c"># Allow direct access to the non-data descriptor via the class.</span>
+			<span class="k">return</span> <span class="bp">self</span>
+		
+		<span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="p">:</span>  <span class="c"># Try to avoid situations with parallel thread access hammering the function.</span>
+			<span class="n">value</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="n">sentinel</span><span class="p">)</span>
+			
+			<span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="n">sentinel</span><span class="p">:</span>
+				<span class="n">value</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__name__</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span>
+		
+		<span class="k">return</span> <span class="n">value</span>
+</pre></div>
+
+            </td>
+          </tr>
+      </tbody>
+    </table>
+    <footer>
+      Generated by <b><a href="http://mccutchen.github.com/dycco/">Dycco</a></b>.
+      Last updated <b>18 Apr 2016</b>.
+    </footer>
+  </div>
+</body>
+</html>

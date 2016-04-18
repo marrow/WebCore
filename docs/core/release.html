@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>release.py</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" href="dycco.css">
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <table cellpadding="0" cellspacing="0">
+      <thead>
+        <tr>
+          <th class="docs">
+            <h1>release.py</h1>
+          </th>
+          <th class="code">
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr id="section-2">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Release information about WebCore.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-5">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <h2>Imports</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">unicode_literals</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-13">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <h2>Module Globals</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="n">version_info</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;version_info&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;major&#39;</span><span class="p">,</span> <span class="s">&#39;minor&#39;</span><span class="p">,</span> <span class="s">&#39;micro&#39;</span><span class="p">,</span> <span class="s">&#39;releaselevel&#39;</span><span class="p">,</span> <span class="s">&#39;serial&#39;</span><span class="p">))(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;final&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">version</span> <span class="o">=</span> <span class="s">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">version_info</span><span class="p">[:</span><span class="mi">3</span><span class="p">]])</span> <span class="o">+</span> <span class="p">((</span><span class="n">version_info</span><span class="o">.</span><span class="n">releaselevel</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">version_info</span><span class="o">.</span><span class="n">serial</span><span class="p">))</span> <span class="k">if</span> <span class="n">version_info</span><span class="o">.</span><span class="n">releaselevel</span> <span class="o">!=</span> <span class="s">&#39;final&#39;</span> <span class="k">else</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+
+<span class="n">author</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;Author&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;email&#39;</span><span class="p">])(</span><span class="s">&quot;Alice Bevan-McGregor&quot;</span><span class="p">,</span> <span class="s">&#39;alice@gothcandy.com&#39;</span><span class="p">)</span>
+<span class="n">description</span> <span class="o">=</span> <span class="s">&quot;A powerful web development nanoframework so small it&#39;s not even a microframework.&quot;</span>
+<span class="n">copyright</span> <span class="o">=</span> <span class="s">&quot;2009-2016, Alice Bevan-McGregor and contributors&quot;</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s">&#39;https://github.com/marrow/WebCore/&#39;</span>
+<span class="n">colophon</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;Powered by:</span>
+<span class="s">	&lt;a class=&quot;noicon&quot; href=&quot;http://www.python.org/&quot; title=&quot;A programming language that lets you work more quickly and integrate your systems more effectively.&quot;&gt;Python&lt;/a&gt; &lt;em class=&quot;version&quot;&gt;{0.major}.{0.minor}&lt;/em&gt;</span>
+<span class="s">	and &lt;a class=&quot;noicon&quot; href=&quot;{1}&quot; title=&quot;A lightweight and extremely fast Python web framework.&quot;&gt;WebCore&lt;/a&gt; &lt;em class=&quot;version&quot;&gt;{2}&lt;/em&gt;.&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+</pre></div>
+
+            </td>
+          </tr>
+      </tbody>
+    </table>
+    <footer>
+      Generated by <b><a href="http://mccutchen.github.com/dycco/">Dycco</a></b>.
+      Last updated <b>18 Apr 2016</b>.
+    </footer>
+  </div>
+</body>
+</html>

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>extension.py</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" href="dycco.css">
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <table cellpadding="0" cellspacing="0">
+      <thead>
+        <tr>
+          <th class="docs">
+            <h1>extension.py</h1>
+          </th>
+          <th class="code">
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr id="section-2">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Extension management.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-5">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <h2>Imports</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">unicode_literals</span>
+
+<span class="kn">from</span> <span class="nn">marrow.package.host</span> <span class="kn">import</span> <span class="n">ExtensionManager</span>
+
+<span class="kn">from</span> <span class="nn">.compat</span> <span class="kn">import</span> <span class="n">items</span>
+<span class="kn">from</span> <span class="nn">.context</span> <span class="kn">import</span> <span class="n">Context</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-15">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <h2>Module Globals</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="n">log</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="s">&#39;logging&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-20">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <h2>Extension Manager</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-21">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <p>Principal WebCore extension manager.</p>
+<p>This extension registry handles loading and access to extensions as well as the collection of standard WebCore
+Extension API callbacks. Reference the <code>SIGNALS</code> constant for a list of the individual callbacks that can be
+utilized and their meanings, and the <code>extension.py</code> example for more detailed descriptions.</p>
+<p>At a basic level an extension is a class. That's it; attributes and methods are used to inform the manager
+of extension metadata and register callbacks for certain events. The most basic extension is one that does
+nothing:</p>
+<pre><code>    class Extension:
+            pass
+</code></pre>
+<p>To register your extension, add a reference to it to your project's <code>entry_points</code> in your project's <code>setup.py</code>
+under the <code>web.extension</code> namespace:</p>
+<pre><code>    ...
+
+    setup(
+            ...,
+            entry_points = {'web.extension': [
+                            'example = myapp:Extension',
+                    ]},
+    )
+</code></pre>
+<p>Your extension may define several additional properties:</p>
+<pre><code>    * `provides` -- declare tags describing the features offered by the plugin
+    * `needs` -- delcare the tags that must be present for this extension to function
+    * `uses` -- declare the tags that must be evaluated prior to this extension, but aren't hard requirements
+    * `first` -- declare that this extension is a dependency of all other non-first extensions
+    * `last` -- declare that this extension depends on all other non-last extensions
+</code></pre>
+<p>Tags used as <code>provides</code> values should also be registered as <code>web.extension</code> entry points.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="k">class</span> <span class="nc">WebExtensions</span><span class="p">(</span><span class="n">ExtensionManager</span><span class="p">):</span>
+	
+	<span class="n">SIGNALS</span> <span class="o">=</span> <span class="p">(</span>  <span class="c"># Extension hooks.</span>
+			<span class="s">&#39;start&#39;</span><span class="p">,</span>  <span class="c"># Executed during Application construction.</span>
+			<span class="s">&#39;stop&#39;</span><span class="p">,</span>  <span class="c"># Executed when (and if) the serve() server returns.</span>
+			<span class="s">&#39;graceful&#39;</span><span class="p">,</span>  <span class="c"># Executed when (and if) the process is instructed to reload configuration.</span>
+			<span class="s">&#39;prepare&#39;</span><span class="p">,</span>  <span class="c"># Executed during initial request processing.</span>
+			<span class="s">&#39;dispatch&#39;</span><span class="p">,</span>  <span class="c"># Executed once for each dispatch event.</span>
+			<span class="s">&#39;before&#39;</span><span class="p">,</span>  <span class="c"># Executed after all extension `prepare` methods have been called, prior to dispatch.</span>
+			<span class="s">&#39;after&#39;</span><span class="p">,</span>  <span class="c"># Executed after dispatch has returned and the response populated.</span>
+			<span class="s">&#39;mutate&#39;</span><span class="p">,</span>  <span class="c"># Inspect and potentially mutate arguments to the handler prior to execution.</span>
+			<span class="s">&#39;transform&#39;</span><span class="p">,</span>  <span class="c"># Transform the result returned by the handler and apply it to the response.</span>
+			<span class="s">&#39;middleware&#39;</span><span class="p">,</span>  <span class="c"># Executed to allow WSGI middleware wrapping.</span>
+		<span class="p">)</span>
+	
+	<span class="n">__isabstractmethod__</span> <span class="o">=</span> <span class="bp">False</span>  <span class="c"># Work around a Python 3.4+ issue when attaching to the context.</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-73">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-73">&#182;</a>
+              </div>
+              <p>Extension registry constructor.</p>
+<p>The extension registry is not meant to be instantiated by third-party software. Instead, access the registry
+as an attribute of the current Application or Request context: <code>context.extension</code></p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">):</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-81">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-81">&#182;</a>
+              </div>
+              <p>Currently, this uses some application-internal shenanigans to construct the initial extension set.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-84">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-84">&#182;</a>
+              </div>
+              <p>TODO: Do a touch more than this, such as named plugin loading / configuration unpacking for dict/yaml-
+ based loading.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		
+		<span class="bp">self</span><span class="o">.</span><span class="n">feature</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>  <span class="c"># Track the active `provides` tags.</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">all</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;extensions&#39;</span><span class="p">])</span>  <span class="c"># Needs/uses/provides-dependency ordered active extensions.</span>
+		<span class="n">signals</span> <span class="o">=</span> <span class="p">{</span><span class="n">signal</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">signal</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">SIGNALS</span><span class="p">}</span>  <span class="c"># Prepare the known callback sets.</span>
+		
+		<span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">all</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">ext</span><span class="p">,</span> <span class="s">&#39;provides&#39;</span><span class="p">,</span> <span class="p">[]))</span>  <span class="c"># Enable those flags.</span>
+			
+			<span class="k">for</span> <span class="n">mn</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">SIGNALS</span><span class="p">:</span>  <span class="c"># Attach any callbacks that might exist.</span>
+				<span class="n">m</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ext</span><span class="p">,</span> <span class="n">mn</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+				<span class="k">if</span> <span class="n">m</span><span class="p">:</span> <span class="n">signals</span><span class="p">[</span><span class="n">mn</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+			
+			<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ext</span><span class="p">,</span> <span class="s">&#39;__call__&#39;</span><span class="p">):</span>  <span class="c"># This one is aliased; the extension itself is treated as WSGI middleware.</span>
+				<span class="n">signals</span><span class="p">[</span><span class="s">&#39;middleware&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ext</span><span class="p">)</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-101">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-101">&#182;</a>
+              </div>
+              <p>Certain operations act as a stack, i.e. "before" are executed in dependency order, but "after" are executed
+ in reverse dependency order.  This is also the case with "mutate" (incoming) and "transform" (outgoing).</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="n">signals</span><span class="p">[</span><span class="s">&#39;after&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+		<span class="n">signals</span><span class="p">[</span><span class="s">&#39;transform&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+		<span class="n">signals</span><span class="p">[</span><span class="s">&#39;middleware&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+		
+		<span class="bp">self</span><span class="o">.</span><span class="n">signal</span> <span class="o">=</span> <span class="n">Context</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">items</span><span class="p">(</span><span class="n">signals</span><span class="p">)})</span>  <span class="c"># Packaged up, ready to go.</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">signal</span><span class="p">[</span><span class="s">&#39;pre&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">signals</span><span class="p">[</span><span class="s">&#39;prepare&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">signals</span><span class="p">[</span><span class="s">&#39;before&#39;</span><span class="p">])</span>  <span class="c"># Save a chain() on each request.</span>
+		
+		<span class="nb">super</span><span class="p">(</span><span class="n">WebExtensions</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="s">&#39;web.extension&#39;</span><span class="p">)</span>
+</pre></div>
+
+            </td>
+          </tr>
+      </tbody>
+    </table>
+    <footer>
+      Generated by <b><a href="http://mccutchen.github.com/dycco/">Dycco</a></b>.
+      Last updated <b>18 Apr 2016</b>.
+    </footer>
+  </div>
+</body>
+</html>

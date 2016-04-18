@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>dispatch.py</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" href="dycco.css">
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <table cellpadding="0" cellspacing="0">
+      <thead>
+        <tr>
+          <th class="docs">
+            <h1>dispatch.py</h1>
+          </th>
+          <th class="code">
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr id="section-3">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <h2>Imports</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">unicode_literals</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">deque</span>
+<span class="kn">from</span> <span class="nn">inspect</span> <span class="kn">import</span> <span class="n">isclass</span>
+<span class="kn">from</span> <span class="nn">marrow.package.host</span> <span class="kn">import</span> <span class="n">PluginManager</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-12">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <h2>Module Globals</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-14">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>A standard logger object.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="n">log</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="s">&#39;logging&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-18">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <h2>Dispatch Plugin Manager</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-19">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <p>WebCore dispatch protocol adapter.</p>
+<p>The process of resolving a request path to an endpoint. The dispatch protocol utilized is documented in full
+in the <code>protocol</code> project: https://github.com/marrow/protocols/blob/master/dispatch/README.md</p>
+<p>The allowable controller structures offered by individual methods of dispatch is documented in the relevant
+dispatch project. Examples of dispatch include:</p>
+<pre><code>    * Object Dispatch: https://github.com/marrow/web.dispatch.object
+    * Registered Routes: https://github.com/marrow/web.dispatch.route
+    * Traversal: https://github.com/marrow/web.dispatch.traversal
+</code></pre>
+<p>Others may exist, and dispatch middleware may be available to perform more complex behaviours. The default
+dispatcher if not otherwise configured is object dispatch.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="k">class</span> <span class="nc">WebDispatchers</span><span class="p">(</span><span class="n">PluginManager</span><span class="p">):</span>
+	
+	<span class="n">__isabstractmethod__</span> <span class="o">=</span> <span class="bp">False</span>  <span class="c"># Work around an issue in modern (3.4+) Python due to our instances being callable.</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-38">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-38">&#182;</a>
+              </div>
+              <p>Dispatch registry constructor.</p>
+<p>The dispatch registry is not meant to be instantiated by third-party software. Instead, access the registry as
+an attribute of the current Application or Request context: <code>context.dispatch</code></p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">):</span>
+		
+		<span class="nb">super</span><span class="p">(</span><span class="n">WebDispatchers</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="s">&#39;web.dispatch&#39;</span><span class="p">)</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-47">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-47">&#182;</a>
+              </div>
+              <p>Having been bound to an appropriate context, find a handler for the request path.</p>
+<p>This is the part of the WebCore request cycle that speaks the Dispatch protocol and performs event bridging.</p>
+<p>This requires a context prepared with a <code>context.extension.signal.dispatch</code> list and dispatch plugin registry
+as <code>context.dispatch</code>.  This does not use <code>self</code> to allow for more creative overriding.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">handler</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+		
+		<span class="n">is_endpoint</span> <span class="o">=</span> <span class="bp">False</span>  <span class="c"># We&#39;ll search until we find an endpoint.</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-59">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-59">&#182;</a>
+              </div>
+              <p>This technically doesn't help Pypy at all, but saves repeated deep lookup in CPython.(E)</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="n">callbacks</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">extension</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">dispatch</span>  <span class="c"># These extensions want to be notified.</span>
+		<span class="bp">self</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">dispatch</span>  <span class="c"># Dispatch plugin registry.</span>
+		
+		<span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Preparing dispatch.&quot;</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+					<span class="n">request</span> <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">request</span><span class="p">),</span>
+					<span class="n">path</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">path_info</span><span class="p">,</span>
+					<span class="n">handler</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+				<span class="p">))</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-70">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-70">&#182;</a>
+              </div>
+              <p>Now we need the remaining path elements as a deque.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="n">path</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">))</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-73">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-73">&#182;</a>
+              </div>
+              <p>We don't want a singular leading / in the path to cause trouble.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="k">if</span> <span class="n">path</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+			<span class="n">path</span><span class="o">.</span><span class="n">popleft</span><span class="p">()</span>
+		
+		<span class="k">try</span><span class="p">:</span>
+			<span class="k">while</span> <span class="ow">not</span> <span class="n">is_endpoint</span><span class="p">:</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-79">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-79">&#182;</a>
+              </div>
+              <p>Pull the dispatcher out of the current handler, defaulting to object dispatch.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>				<span class="n">dispatcher</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="n">handler</span><span class="p">,</span> <span class="s">&#39;__dispatch__&#39;</span><span class="p">,</span> <span class="s">&#39;object&#39;</span><span class="p">)]</span>
+				
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-82">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-82">&#182;</a>
+              </div>
+              <p>We don't stop if the same dispatcher is loaded twice since some dispatchers might want to do that.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>				<span class="n">starting</span> <span class="o">=</span> <span class="n">handler</span>
+				
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-85">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-85">&#182;</a>
+              </div>
+              <p>Iterate dispatch events, issuing appropriate callbacks as we descend.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>				<span class="k">for</span> <span class="n">consumed</span><span class="p">,</span> <span class="n">handler</span><span class="p">,</span> <span class="n">is_endpoint</span> <span class="ow">in</span> <span class="n">dispatcher</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">handler</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-87">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-87">&#182;</a>
+              </div>
+              <p>DO NOT add production logging statements (ones not wrapped in <code>if __debug__</code>) to this callback!</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>					<span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">callbacks</span><span class="p">:</span> <span class="n">ext</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">consumed</span><span class="p">,</span> <span class="n">handler</span><span class="p">,</span> <span class="n">is_endpoint</span><span class="p">)</span>
+				
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-90">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-90">&#182;</a>
+              </div>
+              <p>Repeat of earlier, we do this after extensions in case anything above modifies the environ path.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>				<span class="n">path</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;PATH_INFO&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">))</span>
+				<span class="k">if</span> <span class="n">path</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+					<span class="n">path</span><span class="o">.</span><span class="n">popleft</span><span class="p">()</span>
+				
+				<span class="k">if</span> <span class="ow">not</span> <span class="n">is_endpoint</span> <span class="ow">and</span> <span class="n">starting</span> <span class="ow">is</span> <span class="n">handler</span><span class="p">:</span>  <span class="c"># We didn&#39;t go anywhere.</span>
+					<span class="k">break</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-98">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-98">&#182;</a>
+              </div>
+              <p>Dispatch failed utterly.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="k">except</span> <span class="ne">LookupError</span><span class="p">:</span>
+			<span class="k">pass</span>  <span class="c"># `is_endpoint` can only be `False` here.</span>
+		
+		<span class="k">return</span> <span class="n">is_endpoint</span><span class="p">,</span> <span class="n">handler</span> <span class="k">if</span> <span class="n">is_endpoint</span> <span class="k">else</span> <span class="bp">None</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-103">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-103">&#182;</a>
+              </div>
+              <p>Retrieve a dispatcher from the registry.</p>
+<p>This performs some additional work beyond the standard plugin manager in order to construct configured
+instances of the dispatchers instead of simply returning them bare. This allows for configuration and caching
+of these configured dispatchers to happen in a single place.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dispatcher</span><span class="p">):</span>
+		
+		<span class="n">name</span> <span class="o">=</span> <span class="bp">None</span>
+		
+		<span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">dispatcher</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isclass</span><span class="p">(</span><span class="n">dispatcher</span><span class="p">):</span>
+			<span class="k">return</span> <span class="n">dispatcher</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-117">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-117">&#182;</a>
+              </div>
+              <p>If the dispatcher isn't already executable, it's probably an entry point reference. Load it from cache.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="k">if</span> <span class="ow">not</span> <span class="n">isclass</span><span class="p">(</span><span class="n">dispatcher</span><span class="p">):</span>
+			<span class="n">name</span> <span class="o">=</span> <span class="n">dispatcher</span>
+			<span class="n">dispatcher</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">WebDispatchers</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__getitem__</span><span class="p">(</span><span class="n">dispatcher</span><span class="p">)</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-122">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-122">&#182;</a>
+              </div>
+              <p>If it's uninstantiated, instantiate it.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="k">if</span> <span class="n">isclass</span><span class="p">(</span><span class="n">dispatcher</span><span class="p">):</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-124">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-124">&#182;</a>
+              </div>
+              <p>TODO: Extract **kw settings from context.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>			<span class="n">dispatcher</span> <span class="o">=</span> <span class="n">dispatcher</span><span class="p">()</span>  <span class="c"># Instantiate the dispatcher.</span>
+			<span class="k">if</span> <span class="n">name</span><span class="p">:</span>  <span class="c"># Update the entry point cache if loaded by name.</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">named</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">dispatcher</span>
+		
+		<span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Loaded dispatcher.&quot;</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">dispatcher</span><span class="o">=</span><span class="nb">repr</span><span class="p">(</span><span class="n">dispatcher</span><span class="p">)))</span>
+		
+		<span class="k">return</span> <span class="n">dispatcher</span>
+</pre></div>
+
+            </td>
+          </tr>
+      </tbody>
+    </table>
+    <footer>
+      Generated by <b><a href="http://mccutchen.github.com/dycco/">Dycco</a></b>.
+      Last updated <b>18 Apr 2016</b>.
+    </footer>
+  </div>
+</body>
+</html>

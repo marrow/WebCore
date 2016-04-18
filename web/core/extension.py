@@ -1,5 +1,9 @@
 # encoding: utf-8
 
+"""Extension management."""
+
+# ## Imports
+
 from __future__ import unicode_literals
 
 from marrow.package.host import ExtensionManager
@@ -8,8 +12,12 @@ from .compat import items
 from .context import Context
 
 
+# ## Module Globals
+
 log = __import__('logging').getLogger(__name__)
 
+
+# ## Extension Manager
 
 class WebExtensions(ExtensionManager):
 	"""Principal WebCore extension manager.
