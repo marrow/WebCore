@@ -26,9 +26,9 @@ class WebDispatchers(PluginManager):
 	The allowable controller structures offered by individual methods of dispatch is documented in the relevant
 	dispatch project. Examples of dispatch include:
 	
-		* Object Dispatch: https://github.com/marrow/web.dispatch.object
-		* Registered Routes: https://github.com/marrow/web.dispatch.route
-		* Traversal: https://github.com/marrow/web.dispatch.traversal
+	* Object Dispatch: https://github.com/marrow/web.dispatch.object
+	* Registered Routes: https://github.com/marrow/web.dispatch.route
+	* Traversal: https://github.com/marrow/web.dispatch.traversal
 	
 	Others may exist, and dispatch middleware may be available to perform more complex behaviours. The default
 	dispatcher if not otherwise configured is object dispatch.

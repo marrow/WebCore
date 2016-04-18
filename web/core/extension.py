@@ -1,6 +1,38 @@
 # encoding: utf-8
 
-"""Extension management."""
+"""WebCore extension management.
+
+This extension registry handles loading and access to extensions as well as the collection of standard WebCore
+Extension API callbacks. Reference the `SIGNALS` constant for a list of the individual callbacks that can be
+utilized and their meanings, and the `extension.py` example for more detailed descriptions.
+
+At a basic level an extension is a class. That's it; attributes and methods are used to inform the manager
+of extension metadata and register callbacks for certain events. The most basic extension is one that does
+nothing:
+
+	class Extension: pass
+
+To register your extension, add a reference to it to your project's `entry_points` in your project's `setup.py`
+under the `web.extension` namespace:
+
+	setup(
+		...,
+		entry_points = {'web.extension': [
+				'example = myapp:Extension',
+			]},
+	)
+
+Your extension may define several additional properties:
+
+* `provides` -- declare tags describing the features offered by the plugin
+* `needs` -- delcare the tags that must be present for this extension to function
+* `uses` -- declare the tags that must be evaluated prior to this extension, but aren't hard requirements
+* `first` -- declare that this extension is a dependency of all other non-first extensions
+* `last` -- declare that this extension depends on all other non-last extensions
+
+Tags used as `provides` values should also be registered as `web.extension` entry points.
+
+"""
 
 # ## Imports
 
@@ -14,48 +46,16 @@ from .context import Context
 
 # ## Module Globals
 
+# A standard Python logger object.
 log = __import__('logging').getLogger(__name__)
 
 
 # ## Extension Manager
 
 class WebExtensions(ExtensionManager):
-	"""Principal WebCore extension manager.
+	"""Principal WebCore extension manager."""
 	
-	This extension registry handles loading and access to extensions as well as the collection of standard WebCore
-	Extension API callbacks. Reference the `SIGNALS` constant for a list of the individual callbacks that can be
-	utilized and their meanings, and the `extension.py` example for more detailed descriptions.
-	
-	At a basic level an extension is a class. That's it; attributes and methods are used to inform the manager
-	of extension metadata and register callbacks for certain events. The most basic extension is one that does
-	nothing:
-	
-		class Extension:
-			pass
-	
-	To register your extension, add a reference to it to your project's `entry_points` in your project's `setup.py`
-	under the `web.extension` namespace:
-	
-		...
-		
-		setup(
-			...,
-			entry_points = {'web.extension': [
-					'example = myapp:Extension',
-				]},
-		)
-	
-	Your extension may define several additional properties:
-	
-		* `provides` -- declare tags describing the features offered by the plugin
-		* `needs` -- delcare the tags that must be present for this extension to function
-		* `uses` -- declare the tags that must be evaluated prior to this extension, but aren't hard requirements
-		* `first` -- declare that this extension is a dependency of all other non-first extensions
-		* `last` -- declare that this extension depends on all other non-last extensions
-	
-	Tags used as `provides` values should also be registered as `web.extension` entry points.
-	"""
-	
+	# Each of these is an optional extension callback attribute.
 	SIGNALS = (  # Extension hooks.
 			'start',  # Executed during Application construction.
 			'stop',  # Executed when (and if) the serve() server returns.
@@ -71,17 +71,15 @@ class WebExtensions(ExtensionManager):
 	
 	__isabstractmethod__ = False  # Work around a Python 3.4+ issue when attaching to the context.
 	
+	# ### \_\_init__(ctx: _ApplicationContext_)
 	def __init__(self, ctx):
 		"""Extension registry constructor.
 		
 		The extension registry is not meant to be instantiated by third-party software. Instead, access the registry
 		as an attribute of the current Application or Request context: `context.extension`
+		
+		Currently, this uses some application-internal shenanigans to construct the initial extension set.
 		"""
-		
-		# Currently, this uses some application-internal shenanigans to construct the initial extension set.
-		
-		# TODO: Do a touch more than this, such as named plugin loading / configuration unpacking for dict/yaml-
-		# based loading.
 		
 		self.feature = set()  # Track the active `provides` tags.
 		self.all = self.order(ctx.app.config['extensions'])  # Needs/uses/provides-dependency ordered active extensions.
@@ -103,8 +101,13 @@ class WebExtensions(ExtensionManager):
 		signals['transform'].reverse()
 		signals['middleware'].reverse()
 		
-		self.signal = Context(**{k: tuple(v) for k, v in items(signals)})  # Packaged up, ready to go.
-		self.signal['pre'] = tuple(signals['prepare'] + signals['before'])  # Save a chain() on each request.
+		# Transform the signal lists into tuples to compact them.
+		self.signal = Context(**{k: tuple(v) for k, v in items(signals)})
 		
+		# This will save a chain() call on each request by pre-prepending the two lists.
+		# Attempts to add extensions during runtime are complicated by this optimization.
+		self.signal['pre'] = tuple(signals['prepare'] + signals['before'])
+		
+		# Continue up the chain with the `ExtensionManager` initializer, using the `web.extension` namespace.
 		super(WebExtensions, self).__init__('web.extension')
 
