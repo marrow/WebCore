@@ -430,7 +430,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
     :target: https://github.com/marrow/WebCore/issues
     :alt: Github Issues
 
-.. |ghsince| image:: https://img.shields.io/github/commits-since/marrow/WebCore/1.0.svg
+.. |ghsince| image:: https://img.shields.io/github/commits-since/marrow/WebCore/2.0.0.svg
     :target: https://github.com/marrow/WebCore/commits/develop
     :alt: Changes since last release.
 
