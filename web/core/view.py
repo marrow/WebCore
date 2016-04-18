@@ -97,7 +97,7 @@ class WebViews(PluginManager):
 		rtype = type(result)
 		
 		# Short-circuit on exact matches.
-		for kind, candidate in self._map.getall(rtype):
+		for candidate in self._map.getall(rtype):
 			yield candidate
 		
 		# More exhaustive search for potentially more crafty use such as ABC, zope.interface, marrow.interface, etc.

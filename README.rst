@@ -118,7 +118,7 @@ You can also name a supported server bridge as an extra.  Currently available br
 Development Version
 -------------------
 
-    |developstatus| |developcover| |ghsince| |issuecount| |ghfork|
+|developstatus| |developcover| |ghsince| |issuecount| |ghfork|
 
 Development takes place on `GitHub <https://github.com/>`_ in the
 `WebCore <https://github.com/marrow/WebCore/>`_ project.  Issue tracking, documentation, and downloads

@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 from inspect import ismethod, getfullargspec
 
-from .compat import items
+from web.core.compat import items
 
 
 class AnnotationExtension(object):

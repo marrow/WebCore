@@ -9,7 +9,6 @@ from inspect import isroutine, isfunction, ismethod, getcallargs
 from webob.exc import HTTPException, HTTPNotFound
 from marrow.package.loader import load
 
-from .compat import items
 from .context import Context
 from .dispatch import WebDispatchers
 from .extension import WebExtensions
@@ -156,7 +155,7 @@ class Application(object):
 		def process_kwargs(src):
 			kwargs = dict()
 			
-			for name_, value in items(src):
+			for name_, value in src.items():
 				if name_ in kwargs and not isinstance(kwargs[name_], list):
 					kwargs[name_] = [kwargs[name_], value]
 				elif name_ in kwargs:
