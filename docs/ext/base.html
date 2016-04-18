@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>base.py</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" href="dycco.css">
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <table cellpadding="0" cellspacing="0">
+      <thead>
+        <tr>
+          <th class="docs">
+            <h1>base.py</h1>
+          </th>
+          <th class="code">
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr id="section-2">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>The base extension providing request, response, and core views.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-5">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <h2>Imports</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">unicode_literals</span>
+
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">IOBase</span>
+<span class="k">try</span><span class="p">:</span>
+	<span class="n">IOBase</span> <span class="o">=</span> <span class="p">(</span><span class="n">IOBase</span><span class="p">,</span> <span class="nb">file</span><span class="p">)</span>
+<span class="k">except</span><span class="p">:</span>
+	<span class="k">pass</span>
+
+<span class="k">try</span><span class="p">:</span>
+	<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Generator</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-17">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">_tmp</span><span class="p">():</span> <span class="k">yield</span> <span class="bp">None</span>  <span class="c"># pragma: no cover</span>
+	<span class="n">Generator</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">_tmp</span><span class="p">())</span>
+
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">getmtime</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">mktime</span><span class="p">,</span> <span class="n">gmtime</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">mimetypes</span> <span class="kn">import</span> <span class="n">init</span><span class="p">,</span> <span class="n">add_type</span><span class="p">,</span> <span class="n">guess_type</span>
+<span class="kn">from</span> <span class="nn">webob</span> <span class="kn">import</span> <span class="n">Request</span><span class="p">,</span> <span class="n">Response</span>
+
+<span class="kn">from</span> <span class="nn">web.core.compat</span> <span class="kn">import</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">unicode</span>
+<span class="kn">from</span> <span class="nn">web.core.util</span> <span class="kn">import</span> <span class="n">safe_name</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-31">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-31">&#182;</a>
+              </div>
+              <h2>Module Globals</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="n">log</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="s">&#39;logging&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-36">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-36">&#182;</a>
+              </div>
+              <h2>Extension</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-37">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-37">&#182;</a>
+              </div>
+              <p>Base framework extension.</p>
+<p>This extension is not meant to be manually constructed or manipulated; use is automatic.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="k">class</span> <span class="nc">BaseExtension</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+	
+	<span class="n">first</span> <span class="o">=</span> <span class="bp">True</span>  <span class="c"># Must occur as early as possible in callback lists.</span>
+	<span class="n">always</span> <span class="o">=</span> <span class="bp">True</span>  <span class="c"># Always enabled.</span>
+	<span class="n">provides</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;base&quot;</span><span class="p">,</span> <span class="s">&quot;request&quot;</span><span class="p">,</span> <span class="s">&quot;response&quot;</span><span class="p">]</span>  <span class="c"># Export these symbols for use as other extension&#39;s dependencies.</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-48">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-48">&#182;</a>
+              </div>
+              <h3>Application-Level Callbacks</h3>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-49">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-49">&#182;</a>
+              </div>
+              
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Registering core return value handlers.&quot;</span><span class="p">)</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-54">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-54">&#182;</a>
+              </div>
+              <p>This prepares the mimetypes registry, and adds values typically missing from it.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="n">init</span><span class="p">()</span>
+		<span class="n">add_type</span><span class="p">(</span><span class="s">&#39;text/x-yaml&#39;</span><span class="p">,</span> <span class="s">&#39;yml&#39;</span><span class="p">)</span>
+		<span class="n">add_type</span><span class="p">(</span><span class="s">&#39;text/x-yaml&#39;</span><span class="p">,</span> <span class="s">&#39;yaml&#39;</span><span class="p">)</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-59">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-59">&#182;</a>
+              </div>
+              <p>Register the core views supported by the base framework.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="n">register</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">register</span>
+		<span class="n">register</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_none</span><span class="p">)</span>
+		<span class="n">register</span><span class="p">(</span><span class="n">Response</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_response</span><span class="p">)</span>
+		<span class="n">register</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_binary</span><span class="p">)</span>
+		<span class="n">register</span><span class="p">(</span><span class="nb">unicode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_text</span><span class="p">)</span>
+		<span class="n">register</span><span class="p">(</span><span class="n">IOBase</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_file</span><span class="p">)</span>
+		<span class="n">register</span><span class="p">(</span><span class="n">Generator</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_generator</span><span class="p">)</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-68">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-68">&#182;</a>
+              </div>
+              <h3>Request-Level Callbacks</h3>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-69">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-69">&#182;</a>
+              </div>
+              <p>Add the usual suspects to the context.</p>
+<p>This adds <code>request</code>, <code>response</code>, and <code>path</code> to the <code>RequestContext</code> instance.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">prepare</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+		
+		<span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Preparing request context.&quot;</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="nb">id</span><span class="p">(</span><span class="n">context</span><span class="p">)))</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-80">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-80">&#182;</a>
+              </div>
+              <p>Bridge in WebOb <code>Request</code> and <code>Response</code> objects.
+ Extensions shouldn't rely on these, using <code>environ</code> where possible instead.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="n">context</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">environ</span><span class="p">)</span>
+		<span class="n">context</span><span class="o">.</span><span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">context</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-84">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-84">&#182;</a>
+              </div>
+              <p>Record the initial path representing the point where a front-end web server bridged to us.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="n">context</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;web.base&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">script_name</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-87">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-87">&#182;</a>
+              </div>
+              <p>Track the remaining (unprocessed) path elements.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="n">context</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remainder</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">path_info</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remainder</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">context</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remainder</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+			<span class="k">del</span> <span class="n">context</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remainder</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-92">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-92">&#182;</a>
+              </div>
+              <p>Track the "breadcrumb list" of dispatch through distinct controllers.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="n">context</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="p">[]</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-94">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-94">&#182;</a>
+              </div>
+              <p>Called as dispatch descends into a tier.</p>
+<p>The base extension uses this to maintain the "current url".</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">dispatch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">consumed</span><span class="p">,</span> <span class="n">handler</span><span class="p">,</span> <span class="n">is_endpoint</span><span class="p">):</span>
+		
+		<span class="n">request</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">request</span>
+		
+		<span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Handling dispatch event.&quot;</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+					<span class="n">request</span> <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="n">context</span><span class="p">),</span>
+					<span class="n">consumed</span> <span class="o">=</span> <span class="n">consumed</span><span class="p">,</span>
+					<span class="n">handler</span> <span class="o">=</span> <span class="n">safe_name</span><span class="p">(</span><span class="n">handler</span><span class="p">),</span>
+					<span class="n">endpoint</span> <span class="o">=</span> <span class="n">is_endpoint</span>
+				<span class="p">))</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-111">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-111">&#182;</a>
+              </div>
+              <p>The leading path element (leading slash) requires special treatment.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="k">if</span> <span class="ow">not</span> <span class="n">consumed</span> <span class="ow">and</span> <span class="n">context</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">path_info_peek</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+			<span class="n">consumed</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">]</span>
+		
+		<span class="k">if</span> <span class="n">consumed</span><span class="p">:</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-116">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-116">&#182;</a>
+              </div>
+              <p>Migrate path elements consumed from the <code>PATH_INFO</code> to <code>SCRIPT_NAME</code> WSGI environment variables.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>			<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">consumed</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+				<span class="n">consumed</span> <span class="o">=</span> <span class="n">consumed</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
+			
+			<span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">consumed</span><span class="p">:</span>
+				<span class="k">if</span> <span class="n">element</span> <span class="o">==</span> <span class="n">context</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">path_info_peek</span><span class="p">():</span>
+					<span class="n">context</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">path_info_pop</span><span class="p">()</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-124">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-124">&#182;</a>
+              </div>
+              <p>Update the breadcrumb list.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="n">context</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">handler</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">script_name</span><span class="p">))</span>
+		
+		<span class="k">if</span> <span class="n">consumed</span><span class="p">:</span>  <span class="c"># Lastly, update the remaining path element list.</span>
+			<span class="n">request</span><span class="o">.</span><span class="n">remainder</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">remainder</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">consumed</span><span class="p">):]</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-130">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-130">&#182;</a>
+              </div>
+              <h3>Views</h3>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-131">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-131">&#182;</a>
+              </div>
+              <p>Render empty responses.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">render_none</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">result</span><span class="p">):</span>
+		<span class="n">context</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">length</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="n">context</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">body</span> <span class="o">=</span> <span class="n">b</span><span class="s">&#39;&#39;</span>
+		<span class="k">return</span> <span class="bp">True</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-137">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-137">&#182;</a>
+              </div>
+              <p>Allow direct returning of WebOb <code>Response</code> instances.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">render_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">result</span><span class="p">):</span>
+		<span class="n">context</span><span class="o">.</span><span class="n">response</span> <span class="o">=</span> <span class="n">result</span>
+		<span class="k">return</span> <span class="bp">True</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-142">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-142">&#182;</a>
+              </div>
+              <p>Return binary responses unmodified.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">render_binary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">result</span><span class="p">):</span>
+		<span class="n">context</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">app_iter</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">((</span><span class="n">result</span><span class="p">,</span> <span class="p">))</span>  <span class="c"># This wraps the binary string in a WSGI body iterable.</span>
+		<span class="k">return</span> <span class="bp">True</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-147">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-147">&#182;</a>
+              </div>
+              <p>Return textual responses, encoding as needed.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">render_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">result</span><span class="p">):</span>
+		<span class="n">context</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">result</span>
+		<span class="k">return</span> <span class="bp">True</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-152">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-152">&#182;</a>
+              </div>
+              <p>Perform appropriate metadata wrangling for returned open file handles.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">render_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">result</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Processing file-like object.&quot;</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="nb">id</span><span class="p">(</span><span class="n">context</span><span class="p">),</span> <span class="n">result</span><span class="o">=</span><span class="nb">repr</span><span class="p">(</span><span class="n">result</span><span class="p">)))</span>
+		
+		<span class="n">response</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">(</span>
+				<span class="n">conditional_response</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span>
+			<span class="p">)</span>
+		
+		<span class="n">modified</span> <span class="o">=</span> <span class="n">mktime</span><span class="p">(</span><span class="n">gmtime</span><span class="p">(</span><span class="n">getmtime</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">name</span><span class="p">)))</span>
+		
+		<span class="n">response</span><span class="o">.</span><span class="n">last_modified</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">modified</span><span class="p">)</span>
+		<span class="n">response</span><span class="o">.</span><span class="n">cache_control</span> <span class="o">=</span> <span class="s">&#39;public&#39;</span>
+		<span class="n">ct</span><span class="p">,</span> <span class="n">ce</span> <span class="o">=</span> <span class="n">guess_type</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">ct</span><span class="p">:</span> <span class="n">ct</span> <span class="o">=</span> <span class="s">&#39;application/octet-stream&#39;</span>
+		<span class="n">response</span><span class="o">.</span><span class="n">content_type</span><span class="p">,</span> <span class="n">response</span><span class="o">.</span><span class="n">content_encoding</span> <span class="o">=</span> <span class="n">ct</span><span class="p">,</span> <span class="n">ce</span>
+		<span class="n">response</span><span class="o">.</span><span class="n">etag</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">modified</span><span class="p">)</span>
+		
+		<span class="n">result</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>  <span class="c"># Seek to the end of the file.</span>
+		<span class="n">response</span><span class="o">.</span><span class="n">content_length</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
+		
+		<span class="n">result</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  <span class="c"># Seek back to the start of the file.</span>
+		<span class="n">response</span><span class="o">.</span><span class="n">body_file</span> <span class="o">=</span> <span class="n">result</span>
+		
+		<span class="k">return</span> <span class="bp">True</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-178">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-178">&#182;</a>
+              </div>
+              <p>Attempt to serve generator responses through stream encoding.</p>
+<p>This allows for direct use of cinje template functions, which are generators, as returned views.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">render_generator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">result</span><span class="p">):</span>
+		<span class="n">context</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">encoding</span> <span class="o">=</span> <span class="s">&#39;utf8&#39;</span>
+		<span class="n">context</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">app_iter</span> <span class="o">=</span> <span class="p">(</span>
+				<span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf8&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">unicode</span><span class="p">)</span> <span class="k">else</span> <span class="n">i</span><span class="p">)</span>  <span class="c"># Stream encode unicode chunks.</span>
+				<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">result</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>  <span class="c"># Skip None values.</span>
+			<span class="p">)</span>
+		<span class="k">return</span> <span class="bp">True</span>
+</pre></div>
+
+            </td>
+          </tr>
+      </tbody>
+    </table>
+    <footer>
+      Generated by <b><a href="http://mccutchen.github.com/dycco/">Dycco</a></b>.
+      Last updated <b>18 Apr 2016</b>.
+    </footer>
+  </div>
+</body>
+</html>

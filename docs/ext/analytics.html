@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>analytics.py</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" href="dycco.css">
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <table cellpadding="0" cellspacing="0">
+      <thead>
+        <tr>
+          <th class="docs">
+            <h1>analytics.py</h1>
+          </th>
+          <th class="code">
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr id="section-2">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Record basic performance statistics.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-5">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <h2>Imports</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">unicode_literals</span>
+
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="kn">from</span> <span class="nn">web.core.compat</span> <span class="kn">import</span> <span class="nb">unicode</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-14">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <h2>Module Globals</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="n">log</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="s">&#39;logging&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-19">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <h2>Extension</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-20">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <p>Record performance statistics about each request, and potentially a lot more.</p>
+<p>By default this extension adds a <code>X-Generation-Time</code> header to all responses and logs the generation time at the
+<code>debug</code> level.  You can disable either by passing <code>header=None</code> or <code>level=None</code>, or specify an alternate logging
+level by passing in the name of the level.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="k">class</span> <span class="nc">AnalyticsExtension</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+	
+	<span class="n">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;header&#39;</span><span class="p">,</span> <span class="s">&#39;log&#39;</span><span class="p">)</span>
+	
+	<span class="n">first</span> <span class="o">=</span> <span class="bp">True</span>  <span class="c"># We need this processing to happen as early as possible.</span>
+	<span class="n">provides</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;analytics&#39;</span><span class="p">]</span>  <span class="c"># Expose this symbol for other extensions to depend upon.</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-33">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-33">&#182;</a>
+              </div>
+              <p>Executed to configure the extension.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="s">&#39;X-Generation-Time&#39;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s">&#39;debug&#39;</span><span class="p">):</span>
+		
+		<span class="nb">super</span><span class="p">(</span><span class="n">AnalyticsExtension</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-39">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-39">&#182;</a>
+              </div>
+              <p>Record settings.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="bp">self</span><span class="o">.</span><span class="n">header</span> <span class="o">=</span> <span class="n">header</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span> <span class="k">if</span> <span class="n">level</span> <span class="k">else</span> <span class="bp">None</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-43">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-43">&#182;</a>
+              </div>
+              <h3>Request-Local Callabacks</h3>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-44">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-44">&#182;</a>
+              </div>
+              <p>Executed during request set-up.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">prepare</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+		
+		<span class="n">context</span><span class="o">.</span><span class="n">_start_time</span> <span class="o">=</span> <span class="bp">None</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-49">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-49">&#182;</a>
+              </div>
+              <p>Executed after all extension prepare methods have been called, prior to dispatch.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">before</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+		
+		<span class="n">context</span><span class="o">.</span><span class="n">_start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-54">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-54">&#182;</a>
+              </div>
+              <p>Executed after dispatch has returned and the response populated, prior to anything being sent to the client.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">after</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">exc</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+		
+		<span class="n">duration</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">context</span><span class="o">.</span><span class="n">_start_time</span>
+		<span class="n">delta</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-61">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-61">&#182;</a>
+              </div>
+              <p>Default response augmentation.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="p">:</span>
+			<span class="n">context</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="p">]</span> <span class="o">=</span> <span class="n">delta</span>
+		
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s">&quot;Response generated in &quot;</span> <span class="o">+</span> <span class="n">delta</span> <span class="o">+</span> <span class="s">&quot; seconds.&quot;</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+					<span class="n">duration</span> <span class="o">=</span> <span class="n">duration</span><span class="p">,</span>
+					<span class="n">request</span> <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+				<span class="p">))</span>
+</pre></div>
+
+            </td>
+          </tr>
+      </tbody>
+    </table>
+    <footer>
+      Generated by <b><a href="http://mccutchen.github.com/dycco/">Dycco</a></b>.
+      Last updated <b>18 Apr 2016</b>.
+    </footer>
+  </div>
+</body>
+</html>

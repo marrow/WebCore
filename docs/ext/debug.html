@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>debug.py</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" href="dycco.css">
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <table cellpadding="0" cellspacing="0">
+      <thead>
+        <tr>
+          <th class="docs">
+            <h1>debug.py</h1>
+          </th>
+          <th class="code">
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr id="section-2">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Web-based REPL shell and interactive debugger extension.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-5">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <h2>Imports</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">unicode_literals</span>
+
+<span class="kn">from</span> <span class="nn">webob.exc</span> <span class="kn">import</span> <span class="n">HTTPNotFound</span>
+<span class="kn">from</span> <span class="nn">backlash</span> <span class="kn">import</span> <span class="n">DebuggedApplication</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-13">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <h2>Module Globals</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="n">log</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="s">&#39;logging&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-18">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <h2>Controller Endpoint Utility</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-19">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <p>Attach a console to your web application at an arbitrary location.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="k">class</span> <span class="nc">Console</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+	
+	<span class="n">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;debugger&#39;</span><span class="p">,</span> <span class="s">&#39;request&#39;</span><span class="p">)</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-24">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-24">&#182;</a>
+              </div>
+              
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">debugger</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;debugger&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">request</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-28">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-28">&#182;</a>
+              </div>
+              
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">debugger</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">HTTPNotFound</span><span class="p">()</span>
+		
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">debugger</span><span class="o">.</span><span class="n">display_console</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-36">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-36">&#182;</a>
+              </div>
+              <h2>Extension</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-37">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-37">&#182;</a>
+              </div>
+              <p>Enable an interactive exception debugger and interactive console.</p>
+<p>Possible configuration includes:</p>
+<pre><code>    * `path` -- the path to the interactive console, defaults to: `/__console__`
+    * `verbose` -- show ordinarily hidden stack frames, defaults to: `False`
+</code></pre>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="k">class</span> <span class="nc">DebugExtension</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+	
+	<span class="n">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;path&#39;</span><span class="p">,</span> <span class="s">&#39;verbose&#39;</span><span class="p">)</span>
+	
+	<span class="n">provides</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;debugger&#39;</span><span class="p">,</span> <span class="s">&#39;console&#39;</span><span class="p">]</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-50">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-50">&#182;</a>
+              </div>
+              
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s">&quot;/__console__&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Initializing debugger extension.&quot;</span><span class="p">)</span>
+		
+		<span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+		
+		<span class="nb">super</span><span class="p">(</span><span class="n">DebugExtension</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-59">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-59">&#182;</a>
+              </div>
+              <p>Add variables to the console context.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">init_console</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="nb">dict</span><span class="p">()</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-63">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-63">&#182;</a>
+              </div>
+              <p>Add variables to the debugger context.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">init_debugger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">environ</span><span class="p">):</span>
+		<span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">context</span><span class="o">=</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;context&#39;</span><span class="p">))</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-67">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-67">&#182;</a>
+              </div>
+              <p>Executed to wrap the application in middleware.</p>
+<p>The first argument is the application context, not request context.</p>
+<p>Accepts a WSGI application as the second argument and must likewise return a WSGI app.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">app</span><span class="p">):</span>
+		
+		<span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Wrapping application in debugger middleware.&quot;</span><span class="p">)</span>
+		
+		<span class="n">app</span> <span class="o">=</span> <span class="n">DebuggedApplication</span><span class="p">(</span>
+				<span class="n">app</span><span class="p">,</span>
+				<span class="n">evalex</span> <span class="o">=</span> <span class="n">__debug__</span><span class="p">,</span>  <span class="c"># In production mode, this is a security no-no.</span>
+				<span class="n">show_hidden_frames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span>
+				<span class="n">console_init_func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_console</span><span class="p">,</span>
+				<span class="n">context_injectors</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">init_debugger</span><span class="p">],</span>
+			<span class="p">)</span>
+		
+		<span class="n">context</span><span class="o">.</span><span class="n">debugger</span> <span class="o">=</span> <span class="n">app</span>
+		
+		<span class="k">return</span> <span class="n">app</span>
+</pre></div>
+
+            </td>
+          </tr>
+      </tbody>
+    </table>
+    <footer>
+      Generated by <b><a href="http://mccutchen.github.com/dycco/">Dycco</a></b>.
+      Last updated <b>18 Apr 2016</b>.
+    </footer>
+  </div>
+</body>
+</html>

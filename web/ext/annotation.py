@@ -1,11 +1,17 @@
 # encoding: utf-8
 
+"""Python 3 function annotation typecasting support."""
+
+# ## Imports
+
 from __future__ import unicode_literals
 
 from inspect import ismethod, getfullargspec
 
 from web.core.compat import items
 
+
+# ## Extension
 
 class AnnotationExtension(object):
 	"""Utilize Python 3 function annotations as a method to filter arguments coming in from the web.
@@ -35,7 +41,9 @@ class AnnotationExtension(object):
 	
 	__slots__ = tuple()
 	
-	provides = ['annotation', 'cast', 'typecast']
+	provides = ['annotation', 'cast', 'typecast']  # Export these symbols for other extensions to depend upon.
+	
+	# ### Request-Local Callbacks
 	
 	def mutate(self, context, handler, args, kw):
 		"""Inspect and potentially mutate the given handler's arguments.
@@ -63,6 +71,10 @@ class AnnotationExtension(object):
 				kw[key] = annotations[key](value)
 	
 	def transform(self, context, handler, result):
+		"""Transform the value returned by the controller endpoint.
+		
+		This extension transforms returned values if the endpoint has a return type annotation.
+		"""
 		handler = handler.__func__ if hasattr(handler, '__func__') else handler
 		annotation = getattr(handler, '__annotations__', {}).get('return', None)
 		

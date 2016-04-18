@@ -1,15 +1,21 @@
 # encoding: utf-8
 
+"""Web-based REPL shell and interactive debugger extension."""
+
+# ## Imports
+
 from __future__ import unicode_literals
 
 from webob.exc import HTTPNotFound
-from backlash import DebuggedApplication, TraceErrorsMiddleware, TraceSlowRequestsMiddleware
+from backlash import DebuggedApplication
 
-from web.core import local
 
+# ## Module Globals
 
 log = __import__('logging').getLogger(__name__)
 
+
+# ## Controller Endpoint Utility
 
 class Console(object):
 	"""Attach a console to your web application at an arbitrary location."""
@@ -27,13 +33,15 @@ class Console(object):
 		return self.debugger.display_console(self.request)
 
 
+# ## Extension
+
 class DebugExtension(object):
 	"""Enable an interactive exception debugger and interactive console.
 	
 	Possible configuration includes:
 	
-		* path -- the path to the interactive console, defaults to: /__console__
-		* verbose -- show ordinarily hidden stack frames, defaults to: False
+		* `path` -- the path to the interactive console, defaults to: `/__console__`
+		* `verbose` -- show ordinarily hidden stack frames, defaults to: `False`
 	"""
 	
 	__slots__ = ('path', 'verbose')
@@ -50,9 +58,11 @@ class DebugExtension(object):
 		super(DebugExtension, self).__init__()
 	
 	def init_console(self):
+		"""Add variables to the console context."""
 		return dict()
 	
 	def init_debugger(self, environ):
+		"""Add variables to the debugger context."""
 		return dict(context=environ.get('context'))
 	
 	def __call__(self, context, app):
