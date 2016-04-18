@@ -2,9 +2,9 @@
 
 from __future__ import unicode_literals
 
-from inspect import ismethod
+from inspect import ismethod, getfullargspec
 
-from inspect import getfullargspec
+from .compat import items
 
 
 class AnnotationExtension(object):
@@ -58,7 +58,7 @@ class AnnotationExtension(object):
 				args[i] = annotations[key](value)
 		
 		# Convert keyword arguments
-		for key, value in list(kw.items()):
+		for key, value in list(items(kw)):
 			if key in annotations:
 				kw[key] = annotations[key](value)
 	

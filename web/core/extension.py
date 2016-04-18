@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 
 from marrow.package.host import ExtensionManager
 
+from .compat import items
 from .context import Context
 
 
@@ -94,7 +95,7 @@ class WebExtensions(ExtensionManager):
 		signals['transform'].reverse()
 		signals['middleware'].reverse()
 		
-		self.signal = Context(**{k: tuple(v) for k, v in signals.items()})  # Packaged up, ready to go.
+		self.signal = Context(**{k: tuple(v) for k, v in items(signals)})  # Packaged up, ready to go.
 		self.signal['pre'] = tuple(signals['prepare'] + signals['before'])  # Save a chain() on each request.
 		
 		super(WebExtensions, self).__init__('web.extension')

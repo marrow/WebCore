@@ -8,12 +8,10 @@ Similar in purpose to [`six`](https://warehouse.python.org/project/six/).
 # ## Imports
 
 import sys
-import json
 
 
 # ## Version Detection
 
-py2 = sys.version_info < (3, )
 py3 = sys.version_info > (3, )
 pypy = hasattr(sys, 'pypy_version_info')
 
@@ -21,24 +19,16 @@ pypy = hasattr(sys, 'pypy_version_info')
 # ## Builtins Compatibility
 
 if py3:
-	native = str
 	unicode = str
 	str = bytes
 	basestring = unicode
-	keys = dict.keys
-	values = dict.values
 	items = dict.items
-	zip = zip
 else:
-	native = str
 	unicode = unicode
 	str = str
 	basestring = (str, unicode)
 	range = xrange
-	keys = dict.iterkeys
-	values = dict.itervalues
 	items = dict.iteritems
-	from itertools import izip as zip
 
 # ## Ordered Dictionaries
 
