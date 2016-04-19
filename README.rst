@@ -362,7 +362,11 @@ Version History
 Version 2.0
 -----------
 
-* Modern rewrite for ultimate minamalism and Python 2 & 3 + Pypy cross-support.
+* A complete modernization rewrite of WebCore, from the ground up.
+* Features multiple extension interfaces to extend registered view handlers and provide a uniform callback mechanism.
+* Standard usage makes use of no superglobals or "thread locals", instead relying on a context object collaboratively
+  populated by extensions.
+* WebCore's former "dialect" system is now dispatch.
 
 
 License
