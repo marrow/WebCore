@@ -257,7 +257,7 @@ class Application(object):
 			result = e
 		
 		# Execute return value transformation callbacks.
-		for ext in signals.transform: result = ext(context, result)
+		for ext in signals.transform: result = ext(context, endpoint, result)
 		
 		return result
 	
