@@ -76,11 +76,16 @@ setup(
 			"Programming Language :: Python :: 2",
 			"Programming Language :: Python :: 2.7",
 			"Programming Language :: Python :: 3",
+			"Programming Language :: Python :: 3.2",
 			"Programming Language :: Python :: 3.3",
 			"Programming Language :: Python :: 3.4",
+			"Programming Language :: Python :: 3.5",
 			"Programming Language :: Python :: Implementation :: CPython",
 			"Programming Language :: Python :: Implementation :: PyPy",
+			"Topic :: Internet :: WWW/HTTP :: Dynamic Content",
 			"Topic :: Internet :: WWW/HTTP :: WSGI",
+			"Topic :: Software Development :: Libraries",
+			"Topic :: Software Development :: Libraries :: Application Frameworks",
 			"Topic :: Software Development :: Libraries :: Python Modules",
 		],
 	
@@ -164,9 +169,17 @@ setup(
 				],
 			
 			# Extras similar to Gentoo USE flags.
+			
+			# Dispatch Mechanisms
 			'object': ['web.dispatch.object'],
 			'route': ['web.dispatch.route'],
 			'traversal': ['web.dispatch.traversal'],
+			
+			# General Extras
+			'cli': ['web.command'],  # Command-line interface.
+			'template': ['web.template', 'cinje'],  # Recommended template engine.
+			'database': ['web.db', 'pymongo'],  # Recommended database engine.
+			'asset': ['webassets'],  # Recommended static asset management.
 			
 			# Plugin dependencies.
 			'waitress': ['waitress'],
