@@ -37,4 +37,9 @@ class DispatchBase(TestCase):
 		results = list(self.view("hi"))
 		assert len(results) == 1
 		assert results[0] is cb
+	
+	def test_repr(self):
+		assert repr(self.view) == "WebViews(0)"
+		self.view.register(dict, self.mock_view)
+		assert repr(self.view) == "WebViews(1)"
 
