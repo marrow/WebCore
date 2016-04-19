@@ -9,7 +9,7 @@ from web.core.compat import unicode
 from web.core.view import WebViews
 
 
-class DispatchBase(TestCase):
+class TestWebViews(TestCase):
 	def setUp(self):
 		self._ctx = Context(
 				request = Request.blank('/foo/bar'),
