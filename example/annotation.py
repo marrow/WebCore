@@ -2,6 +2,8 @@
 
 """Python 3 function annotation and AnnotationExtension example."""
 
+from json import dumps
+
 
 class Root:
 	def __init__(self, context):
@@ -10,7 +12,7 @@ class Root:
 	def tmpl(self) -> 'mako:./template.html':
 		return dict()
 	
-	def mul(self, a: int = None, b: int = None) -> 'json:':
+	def mul(self, a: int = None, b: int = None) -> 'json':
 		"""Multiply two values together and return the result via JSON.
 		
 		Python 3 function annotations are used to ensure that the arguments are integers. This requires the
@@ -27,9 +29,11 @@ class Root:
 		request body or query string arguments.  (Security note: any data in the request body takes presidence over
 		query string arguments!)
 		
-		If your editor has difficulty syntax highlighting this file, you may be interested in:
+		You can easily test these on the command line using cURL:
 		
-			https://github.com/davidbonnet/python.tmbundle
+			curl http://localhost:8080/mul/27/42  # HTTP GET
+			
+			curl -d a=27 -d b=42 http://localhost:8080/mul  # HTTP POST
 		"""
 		
 		if not a or not b:
@@ -38,10 +42,29 @@ class Root:
 		return dict(answer=a * b)
 
 
+class SampleExtension:
+	"""Here's an example of how to catch an annotation like this as a view handler."""
+	
+	def start(self, context):
+		context.view.register(tuple, self.render_json)
+	
+	def render_json(self, context, result):
+		# Bail out if this isn't a 2-tuple, or isn't intended for JSON serialization.
+		# This is an informal protocol shared with the more complete `web.template` package and possibly others.
+		if len(result) != 2 or result[0] != 'json':
+			return
+		
+		resp = context.response
+		resp.content_type = 'application/json'
+		resp.encoding = 'utf-8'
+		resp.text = dumps(result[1])
+		
+		return True
+
+
 if __name__ == '__main__':
 	from web.core import Application
-	from web.ext.template import TemplateExtension
 	from web.ext.annotation import AnnotationExtension
 	
-	Application(Root, extensions=[TemplateExtension(), AnnotationExtension()]).serve('wsgiref')
+	Application(Root, extensions=[SampleExtension(), AnnotationExtension()]).serve('wsgiref')
 
