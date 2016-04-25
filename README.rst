@@ -99,7 +99,7 @@ The available extras are:
 - ``production`` -- install recommended production-time packages; currently this only installs the ``flup`` FastCGI
   server bridge.
 
-The default choices for disatch are allowed as extras:
+The default choices for dispatch are allowed as extras:
 
 - ``object`` -- install object dispatch
 
