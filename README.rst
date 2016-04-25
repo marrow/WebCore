@@ -371,7 +371,8 @@ Version 2.0
 Version 2.0.1
 -------------
 
-* Fixed argument specification for ``transform`` extension callbacks, fixing ``AnnotationExtension`` usage.
+* Corrected argument specification for ``transform`` extension callbacks, fixing ``AnnotationExtension`` usage as per
+  `#163 <https://github.com/marrow/WebCore/issues/163>`_..
 * Additional source-level documentation and expanded examples.
 * An excessively large number of additional WSGI server adapters; now supported are: `waitress
   <http://s.webcore.io/aIou>`_, `tornado <http://s.webcore.io/aIaN>`_, `fcgi <http://s.webcore.io/fhVY>`_,
