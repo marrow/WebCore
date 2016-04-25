@@ -371,6 +371,11 @@ Version 2.0
 Version 2.0.1
 -------------
 
+- Thanks Pypi.
+
+Version 2.0.2
+-------------
+
 - Corrected argument specification for ``transform`` extension callbacks, fixing ``AnnotationExtension`` usage as per
   `#163 <https://github.com/marrow/WebCore/issues/163>`_.
 - Additional source-level documentation and expanded examples.
@@ -447,12 +452,12 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
     :target: https://github.com/marrow/WebCore/issues
     :alt: Github Issues
 
-.. |ghsince| image:: https://img.shields.io/github/commits-since/marrow/WebCore/2.0.1.svg
+.. |ghsince| image:: https://img.shields.io/github/commits-since/marrow/WebCore/2.0.2.svg
     :target: https://github.com/marrow/WebCore/commits/develop
     :alt: Changes since last release.
 
 .. |ghtag| image:: https://img.shields.io/github/tag/marrow/WebCore.svg
-    :target: https://github.com/marrow/WebCore/tree/2.0.1
+    :target: https://github.com/marrow/WebCore/tree/2.0.2
     :alt: Latest Github tagged release.
 
 .. |latestversion| image:: http://img.shields.io/pypi/v/WebCore.svg?style=flat
