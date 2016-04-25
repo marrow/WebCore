@@ -368,6 +368,19 @@ Version 2.0
   populated by extensions.
 * WebCore's former "dialect" system is now dispatch.
 
+Version 2.0.1
+-------------
+
+* Corrected argument specification for ``transform`` extension callbacks, fixing ``AnnotationExtension`` usage as per
+  `#163 <https://github.com/marrow/WebCore/issues/163>`_..
+* Additional source-level documentation and expanded examples.
+* An excessively large number of additional WSGI server adapters; now supported are: `waitress
+  <http://s.webcore.io/aIou>`_, `tornado <http://s.webcore.io/aIaN>`_, `fcgi <http://s.webcore.io/fhVY>`_,
+  `cherrypy <http://s.webcore.io/aIoF>`_, `appengine <http://s.webcore.io/aIic>`_, `paste <http://s.webcore.io/aIdT>`_,
+  `eventlet <http://s.webcore.io/aIaa>`_, `gevent <http://s.webcore.io/aIpU>`_, `diesel <http://s.webcore.io/aIg2>`_,
+  and `bjoern <http://s.webcore.io/aIne>`_. Each is available as an ``extras_require`` by the same name which will
+  pull in the required third-party dependency.
+
 
 License
 =======

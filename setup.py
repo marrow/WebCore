@@ -88,6 +88,24 @@ setup(
 			"Topic :: Software Development :: Libraries :: Application Frameworks",
 			"Topic :: Software Development :: Libraries :: Python Modules",
 		],
+	# As yet unsupported by setuptools.
+	#document_names = {
+	#		"description": "README.rst",
+	#		"license": "LICENSE.txt",
+	#	},
+	#contacts = [
+	#		{"name": "Alice Bevan-McGregor", "email": "alice@gothcandy.com", "role": "author"},
+	#	],
+	#project_urls = {
+	#		"Documentation": "http://pythonhosted.org/WebCore/",
+	#		"Home": "https://github.com/marrow/WebCore/",
+	#		"Repository": "https://github.com/marrow/WebCore/",
+	#		"Tracker": "https://github.com/marrow/WebCore/issues",
+	#	},
+	#environments = [
+	#		"python_version >= '3.2'",
+	#		"'3.0' > python_version >= '2.7'",
+	#	],
 	
 	# ### Code Discovery
 	

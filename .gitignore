@@ -6,6 +6,7 @@
 dist
 build
 eggs
+.eggs
 parts
 bin
 var
@@ -32,3 +33,4 @@ coverage.xml
 # Extras
 thirdparty/
 htmlcov/
+.ropeproject
