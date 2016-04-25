@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>stream2.py</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" href="dycco.css">
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <table cellpadding="0" cellspacing="0">
+      <thead>
+        <tr>
+          <th class="docs">
+            <h1>stream2.py</h1>
+          </th>
+          <th class="code">
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr id="section-2">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="kn">from</span> <span class="nn">webob</span> <span class="kn">import</span> <span class="n">Response</span>
+<span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">randint</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+<span class="kn">from</span> <span class="nn">waitress</span> <span class="kn">import</span> <span class="n">serve</span>
+<span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="kn">import</span> <span class="n">ThreadPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span><span class="p">,</span> <span class="n">TimeoutError</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-9">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="k">def</span> <span class="nf">mul</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+	<span class="n">sleep</span><span class="p">(</span><span class="mf">0.125</span><span class="p">)</span>
+	<span class="k">return</span> <span class="p">(</span><span class="s">&#39;text/plain&#39;</span><span class="p">,</span> <span class="s">&quot;{0} * {1} = {2}</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span><span class="p">))</span>
+
+
+<span class="n">executor</span> <span class="o">=</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-17">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p>Multipart AJAX request example.</p>
+<p>See: http://test.getify.com/mpAjax/description.html</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">environ</span><span class="p">,</span> <span class="n">start_response</span><span class="p">):</span>
+	
+	<span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">()</span>
+	
+	<span class="n">parts</span> <span class="o">=</span> <span class="p">[]</span>
+	
+	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">12</span><span class="p">):</span>
+		<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">12</span><span class="p">):</span>
+			<span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">mul</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">))</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-31">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-31">&#182;</a>
+              </div>
+              
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">stream</span><span class="p">(</span><span class="n">parts</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="k">for</span> <span class="n">future</span> <span class="ow">in</span> <span class="n">as_completed</span><span class="p">(</span><span class="n">parts</span><span class="p">,</span> <span class="n">timeout</span><span class="p">):</span>
+				<span class="n">mime</span><span class="p">,</span> <span class="n">result</span> <span class="o">=</span> <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+				<span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf8&#39;</span><span class="p">)</span>
+				
+				<span class="k">yield</span> <span class="s">&quot;!!!!!!=_NextPart_{num}</span><span class="se">\n</span><span class="s">Content-Type: {mime}</span><span class="se">\n</span><span class="s">Content-Length: {length}</span><span class="se">\n\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+						<span class="n">num</span> <span class="o">=</span> <span class="n">randint</span><span class="p">(</span><span class="mi">100000000</span><span class="p">,</span> <span class="mi">999999999</span><span class="p">),</span>
+						<span class="n">mime</span> <span class="o">=</span> <span class="n">mime</span><span class="p">,</span>
+						<span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+					<span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf8&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">result</span>
+		
+		<span class="k">except</span> <span class="n">TimeoutError</span><span class="p">:</span>
+			<span class="k">for</span> <span class="n">future</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">:</span>
+				<span class="n">future</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
+	
+	<span class="n">response</span><span class="o">.</span><span class="n">content_length</span> <span class="o">=</span> <span class="bp">None</span>
+	<span class="n">response</span><span class="o">.</span><span class="n">app_iter</span> <span class="o">=</span> <span class="n">stream</span><span class="p">(</span><span class="n">parts</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)</span>
+	
+	<span class="k">return</span> <span class="n">response</span><span class="p">(</span><span class="n">environ</span><span class="p">,</span> <span class="n">start_response</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+	<span class="n">serve</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s">&#39;127.0.0.1&#39;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">8080</span><span class="p">,</span> <span class="n">threads</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</pre></div>
+
+            </td>
+          </tr>
+      </tbody>
+    </table>
+    <footer>
+      Generated by <b><a href="http://mccutchen.github.com/dycco/">Dycco</a></b>.
+      Last updated <b>25 Apr 2016</b>.
+    </footer>
+  </div>
+</body>
+</html>

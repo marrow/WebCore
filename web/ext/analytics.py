@@ -1,5 +1,9 @@
 # encoding: utf-8
 
+"""Record basic performance statistics."""
+
+# ## Imports
+
 from __future__ import unicode_literals
 
 import time
@@ -7,8 +11,12 @@ import time
 from web.core.compat import unicode
 
 
+# ## Module Globals
+
 log = __import__('logging').getLogger(__name__)
 
+
+# ## Extension
 
 class AnalyticsExtension(object):
 	"""Record performance statistics about each request, and potentially a lot more.
@@ -20,9 +28,8 @@ class AnalyticsExtension(object):
 	
 	__slots__ = ('header', 'log')
 	
-	first = True
-	uses = ['inspect']
-	provides = ['analytics']
+	first = True  # We need this processing to happen as early as possible.
+	provides = ['analytics']  # Expose this symbol for other extensions to depend upon.
 	
 	def __init__(self, header='X-Generation-Time', level='debug'):
 		"""Executed to configure the extension."""
@@ -32,6 +39,8 @@ class AnalyticsExtension(object):
 		# Record settings.
 		self.header = header
 		self.log = getattr(log, level) if level else None
+	
+	# ### Request-Local Callabacks
 	
 	def prepare(self, context):
 		"""Executed during request set-up."""

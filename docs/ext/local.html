@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>local.py</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" href="dycco.css">
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <table cellpadding="0" cellspacing="0">
+      <thead>
+        <tr>
+          <th class="docs">
+            <h1>local.py</h1>
+          </th>
+          <th class="code">
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr id="section-3">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <h2>Imports</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">unicode_literals</span>
+
+<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">local</span>
+
+<span class="kn">from</span> <span class="nn">marrow.package.loader</span> <span class="kn">import</span> <span class="n">traverse</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-12">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <h2>Module Globals</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-14">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>Standard logger object.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="n">log</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="s">&#39;logging&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-18">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <h2>Extension</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-19">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <p>Provide the current context as a thread local global.</p>
+<p>This provides a convienent "superglobal" variable where you can store per-thread data.</p>
+<p>While the context itself is cleaned up after each call, any data you add won't be.  These are not request-locals.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="k">class</span> <span class="nc">ThreadLocalExtension</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+	
+	<span class="n">first</span> <span class="o">=</span> <span class="bp">True</span>
+	<span class="n">provides</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;local&#39;</span><span class="p">,</span> <span class="s">&#39;threadlocal&#39;</span><span class="p">]</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-30">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-30">&#182;</a>
+              </div>
+              <p>Initialize thread local storage for the context.</p>
+<p>By default the <code>local</code> object in the <code>web.core</code> package will be populated as a <code>threading.local</code> pool. The
+context, during a request, can then be accessed as <code>web.core.local.context</code>. Your own extensions can add
+additional arbitrary data to this pool.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="s">&#39;web.core:local&#39;</span><span class="p">):</span>
+		
+		<span class="nb">super</span><span class="p">(</span><span class="n">ThreadLocalExtension</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+		
+		<span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Initalizing ThreadLocal extension.&quot;</span><span class="p">)</span>
+		
+		<span class="bp">self</span><span class="o">.</span><span class="n">where</span> <span class="o">=</span> <span class="n">where</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">local</span> <span class="o">=</span> <span class="bp">None</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">preserve</span> <span class="o">=</span> <span class="bp">False</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-47">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-47">&#182;</a>
+              </div>
+              
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">_lookup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="n">module</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">where</span><span class="o">.</span><span class="n">rpartition</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)</span>
+		<span class="n">module</span> <span class="o">=</span> <span class="n">traverse</span><span class="p">(</span><span class="nb">__import__</span><span class="p">(</span><span class="n">module</span><span class="p">),</span> <span class="s">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]),</span> <span class="n">separator</span><span class="o">=</span><span class="s">&#39;.&#39;</span><span class="p">)</span>
+		
+		<span class="k">return</span> <span class="n">module</span><span class="p">,</span> <span class="n">name</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-53">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-53">&#182;</a>
+              </div>
+              
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+		<span class="n">module</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lookup</span><span class="p">()</span>
+		
+		<span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Preparing thread local storage and assigning main thread application context.&quot;</span><span class="p">)</span>
+		
+		<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">local</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">preserve</span> <span class="o">=</span> <span class="bp">True</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">local</span> <span class="o">=</span> <span class="n">local</span><span class="p">()</span>
+			<span class="nb">setattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="p">)</span>
+		
+		<span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">context</span> <span class="o">=</span> <span class="n">context</span>  <span class="c"># Main thread application context.</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-68">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-68">&#182;</a>
+              </div>
+              
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">local</span> <span class="o">=</span> <span class="bp">None</span>
+		
+		<span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Cleaning up thread local storage.&quot;</span><span class="p">)</span>
+		
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">preserve</span><span class="p">:</span>
+			<span class="n">module</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lookup</span><span class="p">()</span>
+			<span class="nb">delattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-78">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-78">&#182;</a>
+              </div>
+              
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">prepare</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Assigning thread local request context.&quot;</span><span class="p">)</span>
+		
+		<span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">context</span> <span class="o">=</span> <span class="n">context</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-84">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-84">&#182;</a>
+              </div>
+              
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">after</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Cleaning up thread local request context.&quot;</span><span class="p">)</span>
+		
+		<span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">context</span>
+</pre></div>
+
+            </td>
+          </tr>
+      </tbody>
+    </table>
+    <footer>
+      Generated by <b><a href="http://mccutchen.github.com/dycco/">Dycco</a></b>.
+      Last updated <b>25 Apr 2016</b>.
+    </footer>
+  </div>
+</body>
+</html>

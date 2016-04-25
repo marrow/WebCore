@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>application.py</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" href="dycco.css">
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <table cellpadding="0" cellspacing="0">
+      <thead>
+        <tr>
+          <th class="docs">
+            <h1>application.py</h1>
+          </th>
+          <th class="code">
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr id="section-2">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Primary WSGI application and framework entry point.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-5">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <h2>Imports</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">unicode_literals</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">logging.config</span>
+
+<span class="kn">from</span> <span class="nn">inspect</span> <span class="kn">import</span> <span class="n">isroutine</span><span class="p">,</span> <span class="n">isfunction</span><span class="p">,</span> <span class="n">ismethod</span><span class="p">,</span> <span class="n">getcallargs</span>
+<span class="kn">from</span> <span class="nn">webob.exc</span> <span class="kn">import</span> <span class="n">HTTPException</span><span class="p">,</span> <span class="n">HTTPNotFound</span>
+<span class="kn">from</span> <span class="nn">marrow.package.loader</span> <span class="kn">import</span> <span class="n">load</span>
+
+<span class="kn">from</span> <span class="nn">.context</span> <span class="kn">import</span> <span class="n">Context</span>
+<span class="kn">from</span> <span class="nn">.dispatch</span> <span class="kn">import</span> <span class="n">WebDispatchers</span>
+<span class="kn">from</span> <span class="nn">.extension</span> <span class="kn">import</span> <span class="n">WebExtensions</span>
+<span class="kn">from</span> <span class="nn">.view</span> <span class="kn">import</span> <span class="n">WebViews</span>
+<span class="kn">from</span> <span class="nn">..ext.base</span> <span class="kn">import</span> <span class="n">BaseExtension</span>
+
+<span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
+	<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">safe_name</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-26">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-26">&#182;</a>
+              </div>
+              <h2>Module Globals</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-28">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-28">&#182;</a>
+              </div>
+              <p>A standard Python logger object.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="n">log</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="s">&#39;logging&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-32">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-32">&#182;</a>
+              </div>
+              <h2>WSGI Application</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-33">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-33">&#182;</a>
+              </div>
+              <p>The WebCore WSGI application.</p>
+<p>This glues together a few components:</p>
+<ul>
+<li>Loading and preparation the Application configuration.</li>
+<li>Simple or verbose logging configuration.</li>
+<li>Collection and execution of <code>web.extension</code> callbacks.</li>
+<li>WSGI middleware wrapping.</li>
+<li>The final WSGI application handling requests.</li>
+</ul>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="k">class</span> <span class="nc">Application</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+	
+	<span class="n">__slots__</span> <span class="o">=</span> <span class="p">(</span>
+			<span class="s">&#39;config&#39;</span><span class="p">,</span>  <span class="c"># Application configuration.</span>
+			<span class="s">&#39;feature&#39;</span><span class="p">,</span>  <span class="c"># Feature tag announcement; populated by the `provides` of active extensions.</span>
+			
+			<span class="s">&#39;__context&#39;</span><span class="p">,</span>  <span class="c"># Application context instance.</span>
+			<span class="s">&#39;RequestContext&#39;</span><span class="p">,</span>  <span class="c"># Per-request context class.</span>
+			<span class="s">&#39;__call__&#39;</span><span class="p">,</span>  <span class="c"># WSGI request handler.  Dynamically assigned.</span>
+		<span class="p">)</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-54">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-54">&#182;</a>
+              </div>
+              <p>Construct the initial ApplicationContext, populate, and prepare the WSGI stack.</p>
+<p>No actions other than configuration should happen during construction.</p>
+<p>Current configuration is limited to three arguments:</p>
+<ul>
+<li><code>root</code> -- the object to use as the starting point of dispatch on each request</li>
+<li><code>logging</code> -- either <code>None</code> to indicate WebCore should not manipulate the logging configuration (the
+        default), a string representing the logging level to globally configure (such as <code>"debug"</code>), or a
+        dictionary configuration to pass to the Python standard <code>logging.dictConfig()</code> process.</li>
+<li><code>extensions</code> -- a list of configured extension instances, ignoring <code>BaseExtension</code> which is automatically
+        added to the extension set.</li>
+</ul>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">):</span>
+		
+		<span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configure</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>  <span class="c"># Prepare the configuration.</span>
+		
+		<span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Preparing WebCore application.&quot;</span><span class="p">)</span>
+		
+		<span class="k">if</span> <span class="n">isfunction</span><span class="p">(</span><span class="n">root</span><span class="p">):</span>  <span class="c"># We need to armour against this turning into a bound method of the context.</span>
+			<span class="n">root</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-78">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-78">&#182;</a>
+              </div>
+              <p>This construts a basic <code>ApplicationContext</code> containing a few of the passed-in values.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="n">context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__context</span> <span class="o">=</span> <span class="n">Context</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="n">root</span><span class="p">)</span><span class="o">.</span><span class="n">_promote</span><span class="p">(</span><span class="s">&#39;ApplicationContext&#39;</span><span class="p">)</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-81">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-81">&#182;</a>
+              </div>
+              <p>These can't really be deferred to extensions themselves, for fairly obvious chicken/egg reasons.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="n">exts</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">extension</span> <span class="o">=</span> <span class="n">WebExtensions</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>  <span class="c"># Load extension registry and prepare callbacks.</span>
+		<span class="n">context</span><span class="o">.</span><span class="n">dispatch</span> <span class="o">=</span> <span class="n">WebDispatchers</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>  <span class="c"># Load dispatch registry.</span>
+		<span class="n">context</span><span class="o">.</span><span class="n">view</span> <span class="o">=</span> <span class="n">WebViews</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>  <span class="c"># Load the view registry.</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-86">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-86">&#182;</a>
+              </div>
+              <p>Execute extension startup callbacks; this is the appropriate time to attach descriptors to the context.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">exts</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">start</span><span class="p">:</span> <span class="n">ext</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-90">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-90">&#182;</a>
+              </div>
+              <p>At this point the context should have been populated with any descriptor protocol additions. Promote the
+ <code>ApplicationContext</code> instance to a <code>RequestContext</code> class for use during the request/response cycle.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="bp">self</span><span class="o">.</span><span class="n">RequestContext</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">_promote</span><span class="p">(</span><span class="s">&#39;RequestContext&#39;</span><span class="p">,</span> <span class="n">instantiate</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-93">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-93">&#182;</a>
+              </div>
+              <p>Handle WSGI middleware wrapping by extensions and point our <strong>call</strong> at the result.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="n">app</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">application</span>
+		<span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">exts</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">middleware</span><span class="p">:</span> <span class="n">app</span> <span class="o">=</span> <span class="n">ext</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">app</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">__call__</span> <span class="o">=</span> <span class="n">app</span>
+		
+		<span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>  <span class="c"># Mostly useful for timing calculations.</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;WebCore application prepared.&quot;</span><span class="p">)</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-100">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-100">&#182;</a>
+              </div>
+              <p>Prepare the incoming configuration and ensure certain expected values are present.</p>
+<p>For example, this ensures BaseExtension is included in the extension list, and populates the logging config.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">_configure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+		<span class="n">config</span> <span class="o">=</span> <span class="n">config</span> <span class="ow">or</span> <span class="nb">dict</span><span class="p">()</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-108">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-108">&#182;</a>
+              </div>
+              <p>We really need this to be there.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="k">if</span> <span class="s">&#39;extensions&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;extensions&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-111">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-111">&#182;</a>
+              </div>
+              <p>Always make sure the BaseExtension is present since request/response objects are handy.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="n">config</span><span class="p">[</span><span class="s">&#39;extensions&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">BaseExtension</span><span class="p">())</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-114">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-114">&#182;</a>
+              </div>
+              <p>Tests are skipped on these as we have no particular need to test Python's own logging mechanism.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="n">level</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;logging&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;level&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">level</span><span class="p">:</span>  <span class="c"># pragma: no cover</span>
+			<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">level</span><span class="o">.</span><span class="n">upper</span><span class="p">()))</span>
+		<span class="k">elif</span> <span class="s">&#39;logging&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>  <span class="c"># pragma: no cover</span>
+			<span class="n">logging</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dictConfig</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;logging&#39;</span><span class="p">])</span>
+		
+		<span class="k">return</span> <span class="n">config</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-124">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-124">&#182;</a>
+              </div>
+              <p>This is impractical to test due to the blocking nature of starting a web server interface.
+ Individual adapters are hand-tested for basic operation prior to release.</p>
+<p>Initiate a web server service to serve this application.</p>
+<p>You can always use the Application instance as a bare WSGI application, of course.  This method is provided as
+a convienence.</p>
+<p>Pass in the name of the service you wish to use, and any additional configuration options appropriate for that
+service.  Almost all services accept <code>host</code> and <code>port</code> options, some also allow you to specify an on-disk
+<code>socket</code>.  By default all web servers will listen to <code>127.0.0.1</code> (loopback only) on port 8080.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">serve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">service</span><span class="o">=</span><span class="s">&#39;auto&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>  <span class="c"># pragma: no cover</span>
+		
+		<span class="n">service</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">service</span><span class="p">,</span> <span class="s">&#39;web.server&#39;</span><span class="p">)</span>  <span class="c"># We don&#39;t bother with a full registry for these one-time lookups.</span>
+		
+		<span class="k">try</span><span class="p">:</span>
+			<span class="n">service</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span>
+		<span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>  <span class="c"># We catch this as SIG_TERM or ^C are basically the only ways to stop most servers.</span>
+			<span class="k">pass</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-143">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-143">&#182;</a>
+              </div>
+              <p>Notify extensions that the service has returned and we are exiting.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__context</span><span class="o">.</span><span class="n">extension</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">stop</span><span class="p">:</span> <span class="n">ext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__context</span><span class="p">)</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-145">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-145">&#182;</a>
+              </div>
+              <p>Extract usable args and kwargs from the given request object.</p>
+<p>Candidate for promotion to an extension callback. Two approaches come to mind:</p>
+<ul>
+<li>Simple (fast) last-defined-wins.</li>
+<li>Slower "list if defined multiple times".
+        * Optionally merging GET and POST instead of POST overriding.
+        * Optionally PHP-style with [] to denote array elements explicitly.</li>
+</ul>
+<p>We currently go for the latter without merging or PHP-ness.</p>
+<p>TODO: Investigate WebOb's request.urlvars and request.urlargs:
+        https://github.com/Pylons/webob/blob/master/webob/request.py#L566-L646</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">_extract_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+		
+		<span class="n">args</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">remainder</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">args</span> <span class="ow">and</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span> <span class="k">del</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c"># Trim the result of a leading `/`.</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-164">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-164">&#182;</a>
+              </div>
+              
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="k">def</span> <span class="nf">process_kwargs</span><span class="p">(</span><span class="n">src</span><span class="p">):</span>
+			<span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+			
+			<span class="k">for</span> <span class="n">name_</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">src</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+				<span class="k">if</span> <span class="n">name_</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="n">name_</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
+					<span class="n">kwargs</span><span class="p">[</span><span class="n">name_</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">kwargs</span><span class="p">[</span><span class="n">name_</span><span class="p">],</span> <span class="n">value</span><span class="p">]</span>
+				<span class="k">elif</span> <span class="n">name_</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+					<span class="n">kwargs</span><span class="p">[</span><span class="n">name_</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="n">kwargs</span><span class="p">[</span><span class="n">name_</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+			
+			<span class="k">return</span> <span class="n">kwargs</span>
+		
+		<span class="n">kwargs</span> <span class="o">=</span> <span class="n">process_kwargs</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="p">)</span>
+		<span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">process_kwargs</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">))</span>
+		
+		<span class="k">return</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span>
+	
+	<span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>  <span class="c"># This method only exists in development. Really; thus the use of name mangling.</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-183">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-183">&#182;</a>
+              </div>
+              
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="k">def</span> <span class="nf">__validate_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">endpoint</span><span class="p">,</span> <span class="n">bound</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">):</span>
+			<span class="k">try</span><span class="p">:</span>
+				<span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">endpoint</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isroutine</span><span class="p">(</span><span class="n">endpoint</span><span class="p">):</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-187">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-187">&#182;</a>
+              </div>
+              <p>Callable Instance</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>					<span class="n">getcallargs</span><span class="p">(</span><span class="n">endpoint</span><span class="o">.</span><span class="n">__call__</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+				<span class="k">elif</span> <span class="n">bound</span><span class="p">:</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-190">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-190">&#182;</a>
+              </div>
+              <p>Instance Method</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>					<span class="n">getcallargs</span><span class="p">(</span><span class="n">endpoint</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+				<span class="k">else</span><span class="p">:</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-193">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-193">&#182;</a>
+              </div>
+              <p>Unbound Method or Function</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>					<span class="n">getcallargs</span><span class="p">(</span><span class="n">endpoint</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+			
+			<span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-199">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-199">&#182;</a>
+              </div>
+              <p>If the argument specification doesn't match, the handler can't process this request.
+ This is one policy. Another possibility is more computationally expensive and would pass only
+ valid arguments, silently dropping invalid ones. This can be implemented as a mutate handler.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>				<span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">extra</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+						<span class="n">request</span> <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="n">context</span><span class="p">),</span>
+						<span class="n">endpoint</span> <span class="o">=</span> <span class="n">safe_name</span><span class="p">(</span><span class="n">endpoint</span><span class="p">),</span>
+						<span class="n">endpoint_args</span> <span class="o">=</span> <span class="n">args</span><span class="p">,</span>
+						<span class="n">endpoint_kw</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">,</span>
+					<span class="p">))</span>
+				
+				<span class="k">return</span> <span class="n">HTTPNotFound</span><span class="p">(</span><span class="s">&quot;Incorrect endpoint arguments: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-208">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-208">&#182;</a>
+              </div>
+              
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">_execute_endpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">endpoint</span><span class="p">,</span> <span class="n">signals</span><span class="p">):</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">endpoint</span><span class="p">):</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-212">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-212">&#182;</a>
+              </div>
+              <p>Endpoints don't have to be functions.
+ They can instead point to what a function would return for view lookup.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>			
+			<span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
+				<span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Static endpoint located.&quot;</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+						<span class="n">request</span> <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="n">context</span><span class="p">),</span>
+						<span class="n">endpoint</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">endpoint</span><span class="p">),</span>
+					<span class="p">))</span>
+			
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-220">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-220">&#182;</a>
+              </div>
+              <p>Use the result directly, as if it were the result of calling a function or method.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>			<span class="k">return</span> <span class="n">endpoint</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-224">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-224">&#182;</a>
+              </div>
+              <p>Our endpoint API states that endpoints recieve as positional parameters all remaining path elements, and
+ as keyword arguments a combination of GET and POST variables with POST taking precedence.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_arguments</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-228">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-228">&#182;</a>
+              </div>
+              <p>Instance methods were handed the context at class construction time via dispatch.
+ The <code>not isroutine</code> bit here catches callable instances, a la "index.html" handling.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="n">bound</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">isroutine</span><span class="p">(</span><span class="n">endpoint</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">ismethod</span><span class="p">(</span><span class="n">endpoint</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">endpoint</span><span class="p">,</span> <span class="s">&#39;__self__&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-231">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-231">&#182;</a>
+              </div>
+              <p>Allow argument transformation; args and kwargs can be manipulated inline.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">signals</span><span class="o">.</span><span class="n">mutate</span><span class="p">:</span> <span class="n">ext</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">endpoint</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+		
+		<span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Callable endpoint located.&quot;</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+					<span class="n">request</span> <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="n">context</span><span class="p">),</span>
+					<span class="n">endpoint</span> <span class="o">=</span> <span class="n">safe_name</span><span class="p">(</span><span class="n">endpoint</span><span class="p">),</span>
+					<span class="n">endpoint_args</span> <span class="o">=</span> <span class="n">args</span><span class="p">,</span>
+					<span class="n">endpoint_kw</span> <span class="o">=</span> <span class="n">kwargs</span>
+				<span class="p">))</span>
+			
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-243">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-243">&#182;</a>
+              </div>
+              <p>Make sure the handler can actually accept these arguments when running in development mode.
+ Passing invalid arguments would 500 Internal Server Error on us due to the TypeError exception bubbling up.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>			<span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__validate_arguments</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">endpoint</span><span class="p">,</span> <span class="n">bound</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+			
+			<span class="k">if</span> <span class="n">result</span><span class="p">:</span>  <span class="c"># Bail if validation returned any truthy value.</span>
+				<span class="k">return</span> <span class="n">result</span>
+		
+		<span class="k">try</span><span class="p">:</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-250">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-250">&#182;</a>
+              </div>
+              <p>Actually call the endpoint.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>			<span class="k">if</span> <span class="n">bound</span><span class="p">:</span>
+				<span class="n">result</span> <span class="o">=</span> <span class="n">endpoint</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">result</span> <span class="o">=</span> <span class="n">endpoint</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+		
+		<span class="k">except</span> <span class="n">HTTPException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+			<span class="n">result</span> <span class="o">=</span> <span class="n">e</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-259">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-259">&#182;</a>
+              </div>
+              <p>Execute return value transformation callbacks.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">signals</span><span class="o">.</span><span class="n">transform</span><span class="p">:</span> <span class="n">result</span> <span class="o">=</span> <span class="n">ext</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">endpoint</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
+		
+		<span class="k">return</span> <span class="n">result</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-263">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-263">&#182;</a>
+              </div>
+              <p>Process a single WSGI request/response cycle.</p>
+<p>This is the WSGI handler for WebCore.  Depending on the presence of extensions providing WSGI middleware,
+the <code>__call__</code> attribute of the Application instance will either become this, or become the outermost
+middleware callable.</p>
+<p>Most apps won't utilize middleware, the extension interface is preferred for most operations in WebCore.
+They allow for code injection at various intermediary steps in the processing of a request and response.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">application</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">environ</span><span class="p">,</span> <span class="n">start_response</span><span class="p">):</span>
+		
+		<span class="n">context</span> <span class="o">=</span> <span class="n">environ</span><span class="p">[</span><span class="s">&#39;wc.context&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">RequestContext</span><span class="p">(</span><span class="n">environ</span><span class="o">=</span><span class="n">environ</span><span class="p">)</span>
+		<span class="n">signals</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">extension</span><span class="o">.</span><span class="n">signal</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-278">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-278">&#182;</a>
+              </div>
+              <p>Announce the start of a request cycle. This executes <code>prepare</code> and <code>before</code> callbacks in the correct order.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">signals</span><span class="o">.</span><span class="n">pre</span><span class="p">:</span> <span class="n">ext</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-281">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-281">&#182;</a>
+              </div>
+              <p>Identify the endpoint for this request.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="n">is_endpoint</span><span class="p">,</span> <span class="n">handler</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">dispatch</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;PATH_INFO&#39;</span><span class="p">])</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-284">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-284">&#182;</a>
+              </div>
+              <p>If no endpoint could be resolved, that's a 404.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="k">if</span> <span class="ow">not</span> <span class="n">is_endpoint</span><span class="p">:</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-286">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-286">&#182;</a>
+              </div>
+              <p>We can't just set the handler to the exception class or instance, because both are callable.</p>
+<p>An endpoint that returns a 404 Not Found error on dispatch failure.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>			<span class="k">def</span> <span class="nf">handler</span><span class="p">(</span><span class="n">_ctx</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>  <span class="c"># Yes, this works.  We&#39;re just assigning this code obj. to a label.  :3</span>
+				<span class="k">return</span> <span class="n">HTTPNotFound</span><span class="p">(</span><span class="s">&quot;Dispatch failed.&quot;</span> <span class="k">if</span> <span class="n">__debug__</span> <span class="k">else</span> <span class="bp">None</span><span class="p">)</span>  <span class="c"># Not an exceptional event, so don&#39;t raise.</span>
+		
+		<span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute_endpoint</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">handler</span><span class="p">,</span> <span class="n">signals</span><span class="p">)</span>  <span class="c"># Process the endpoint.</span>
+		
+				
+		<span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Result prepared, identifying view handler.&quot;</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+					<span class="n">request</span> <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="n">context</span><span class="p">),</span>
+					<span class="n">result</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+				<span class="p">))</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-300">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-300">&#182;</a>
+              </div>
+              <p>Identify a view capable of handling this result.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="k">for</span> <span class="n">view</span> <span class="ow">in</span> <span class="n">context</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
+			<span class="k">if</span> <span class="n">view</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">result</span><span class="p">):</span> <span class="k">break</span>
+		<span class="k">else</span><span class="p">:</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-304">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-304">&#182;</a>
+              </div>
+              <p>We've run off the bottom of the list of possible views.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>			<span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;No view could be found to handle: &quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">result</span><span class="p">)))</span>
+		
+		<span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;View identified, populating response.&quot;</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+					<span class="n">request</span> <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="n">context</span><span class="p">),</span>
+					<span class="n">view</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">view</span><span class="p">),</span>
+				<span class="p">))</span>
+		
+		<span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">signals</span><span class="o">.</span><span class="n">after</span><span class="p">:</span> <span class="n">ext</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+		
+		<span class="k">return</span> <span class="n">context</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">conditional_response_app</span><span class="p">(</span><span class="n">environ</span><span class="p">,</span> <span class="n">start_response</span><span class="p">)</span>
+</pre></div>
+
+            </td>
+          </tr>
+      </tbody>
+    </table>
+    <footer>
+      Generated by <b><a href="http://mccutchen.github.com/dycco/">Dycco</a></b>.
+      Last updated <b>25 Apr 2016</b>.
+    </footer>
+  </div>
+</body>
+</html>

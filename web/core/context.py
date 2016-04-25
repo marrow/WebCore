@@ -1,9 +1,15 @@
 # encoding: utf-8
 
+"""A `MutableMapping` subclass for use as a request-local context object."""
+
+# ## Imports
+
 from __future__ import unicode_literals
 
 from collections import MutableMapping
 
+
+# ## Mapping Class
 
 class Context(MutableMapping):
 	"""An attribute access dictionary, of a kind.
@@ -31,17 +37,23 @@ class Context(MutableMapping):
 		return cls
 	
 	def __init__(self, **kw):
+		"""Construct a new Context instance.
+		
+		All keyword arguments are applied to the instance as attributes through direct assignment to `__dict__`.
+		"""
 		self.__dict__.update(kw)
 		super(Context, self).__init__()
 	
 	def __len__(self):
+		"""Get a list of the public data attributes."""
 		return len([i for i in (set(dir(self)) - self._STANDARD_ATTRS) if i[0] != '_'])
 	
 	def __iter__(self):
-		"""Iterate all valid attributes/keys."""
+		"""Iterate all valid (public) attributes/keys."""
 		return (i for i in (set(dir(self)) - self._STANDARD_ATTRS) if i[0] != '_')
 	
 	def __getitem__(self, name):
+		"""Retrieve an attribute through dictionary access."""
 		try:
 			return getattr(self, name)
 		except AttributeError:
@@ -51,9 +63,11 @@ class Context(MutableMapping):
 		raise KeyError(name)
 	
 	def __setitem__(self, name, value):
+		"""Assign an attribute through dictionary access."""
 		setattr(self, name, value)
 	
 	def __delitem__(self, name):
+		"""Delete an attribute through dictionary access."""
 		try:
 			return delattr(self, name)
 		except AttributeError:
@@ -62,5 +76,7 @@ class Context(MutableMapping):
 		# We do this here to avoid Python 3's nested exception support.
 		raise KeyError(name)
 
+# We generally want to exclude "default object attributes" from the context's list of attributes.
+# This auto-detects the basic set of them for exclusion from iteration in the above methods.
 Context._STANDARD_ATTRS = set(dir(Context()))
 

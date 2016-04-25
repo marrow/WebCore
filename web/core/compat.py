@@ -2,59 +2,47 @@
 
 """Compatibility helpers to bridge the differences between Python 2 and Python 3.
 
-Similar in purpose to [`six`](https://warehouse.python.org/project/six/).
+Similar in purpose to [`six`](https://warehouse.python.org/project/six/). Not generally intended to be used by
+third-party software, these are subject to change at any time. Only symbols exported via `__all__` are safe to use.
 """
 
 # ## Imports
 
 import sys
-import json
+
+
+# ## Module Exports
+
+__all__ = ['py3', 'pypy', 'unicode', 'str']
 
 
 # ## Version Detection
 
-py2 = sys.version_info < (3, )
 py3 = sys.version_info > (3, )
 pypy = hasattr(sys, 'pypy_version_info')
 
 
 # ## Builtins Compatibility
 
-if py3:  # pragma: no cover
-	native = str
+# Use of the `items` shortcut here must be very, very careful to only apply it to actual bare dictionaries.
+
+if py3:
 	unicode = str
 	str = bytes
-	basestring = unicode
-	keys = dict.keys
-	values = dict.values
 	items = dict.items
-	zip = zip
-else:  # pragma: no cover
-	native = str
+else:
 	unicode = unicode
 	str = str
-	basestring = (str, unicode)
-	range = xrange
-	keys = dict.iterkeys
-	values = dict.itervalues
 	items = dict.iteritems
-	from itertools import izip as zip
-
-# ## Ordered Dictionaries
-
-try:  # pragma: no cover
-	from collections import OrderedDict as odict
-except ImportError:  # pragma: no cover
-	from ordereddict import OrderedDict as odict
 
 
 # ## File-Like String Handling
 
-try:  # pragma: no cover
-	try:  # pragma: no cover
+try:
+	try:
 		from cStringIO import StringIO
-	except ImportError:  # pragma: no cover
+	except ImportError:
 		from StringIO import StringIO
-except ImportError:  # pragma: no cover
+except ImportError:
 	from io import StringIO
 

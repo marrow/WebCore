@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>stdlib.py</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" href="dycco.css">
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <table cellpadding="0" cellspacing="0">
+      <thead>
+        <tr>
+          <th class="docs">
+            <h1>stdlib.py</h1>
+          </th>
+          <th class="code">
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr id="section-2">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Python-standard reference servers for development use.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-5">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <h2>Imports</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">print_function</span>
+
+<span class="kn">from</span> <span class="nn">wsgiref.handlers</span> <span class="kn">import</span> <span class="n">CGIHandler</span>
+<span class="kn">from</span> <span class="nn">wsgiref.simple_server</span> <span class="kn">import</span> <span class="n">make_server</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-13">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <h2>Production Warning</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-15">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>We let people know it's a bad idea to use these in production.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="k">if</span> <span class="ow">not</span> <span class="n">__debug__</span><span class="p">:</span>
+	<span class="kn">import</span> <span class="nn">warnings</span>
+	<span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Use of standard library reference servers in production is discouraged.&quot;</span><span class="p">,</span> <span class="ne">RuntimeWarning</span><span class="p">)</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-21">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <h2>Server Adapters</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-22">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <p>Python-standard WSGI-HTTP server for testing purposes.</p>
+<p>The additional work performed here is to match the default startup output of "waitress".</p>
+<p>This is not a production quality interface and will be have badly under load.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="k">def</span> <span class="nf">simple</span><span class="p">(</span><span class="n">application</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s">&#39;127.0.0.1&#39;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">8080</span><span class="p">):</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-31">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-31">&#182;</a>
+              </div>
+              <p>Try to be handy as many terminals allow clicking links.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">print</span><span class="p">(</span><span class="s">&quot;serving on http://{0}:{1}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">))</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-34">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-34">&#182;</a>
+              </div>
+              <p>Bind and launch the server; this is a blocking operation.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="n">make_server</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">port</span><span class="p">),</span> <span class="n">application</span><span class="p">)</span><span class="o">.</span><span class="n">serve_forever</span><span class="p">()</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-37">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-37">&#182;</a>
+              </div>
+              <p>Python-standard WSGI-CGI server for testing purposes.</p>
+<p>This is not a production quality interface and will behave badly under load. Python-as-CGI is not a very good way
+to deploy any application. (Startup/shutdown on every request is a PHP problem.) This <em>can</em> be useful as a
+diagnostic tool in development, however.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="k">def</span> <span class="nf">cgi</span><span class="p">(</span><span class="n">application</span><span class="p">):</span>
+	
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">__debug__</span><span class="p">:</span>
+		<span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Interactive debugging and other persistence-based processes will not work.&quot;</span><span class="p">)</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-49">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-49">&#182;</a>
+              </div>
+              <p>Instantiate the handler and begin bridging the application.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="n">CGIHandler</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">application</span><span class="p">)</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-52">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-52">&#182;</a>
+              </div>
+              <p>A specialized version of the reference WSGI-CGI server to adapt to Microsoft IIS quirks.</p>
+<p>This is not a production quality interface and will behave badly under load.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="k">def</span> <span class="nf">iiscgi</span><span class="p">(</span><span class="n">application</span><span class="p">):</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="kn">from</span> <span class="nn">wsgiref.handlers</span> <span class="kn">import</span> <span class="n">IISCGIHandler</span>
+	<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+		<span class="k">print</span><span class="p">(</span><span class="s">&quot;Python 3.2 or newer is required.&quot;</span><span class="p">)</span>
+	
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">__debug__</span><span class="p">:</span>
+		<span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Interactive debugging and other persistence-based processes will not work.&quot;</span><span class="p">)</span>
+	
+	<span class="n">IISCGIHandler</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">application</span><span class="p">)</span>
+</pre></div>
+
+            </td>
+          </tr>
+      </tbody>
+    </table>
+    <footer>
+      Generated by <b><a href="http://mccutchen.github.com/dycco/">Dycco</a></b>.
+      Last updated <b>25 Apr 2016</b>.
+    </footer>
+  </div>
+</body>
+</html>

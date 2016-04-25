@@ -1,5 +1,9 @@
 # encoding: utf-8
 
+"""Primary WSGI application and framework entry point."""
+
+# ## Imports
+
 from __future__ import unicode_literals
 
 import logging
@@ -19,8 +23,13 @@ if __debug__:
 	from .util import safe_name
 
 
+# ## Module Globals
+
+# A standard Python logger object.
 log = __import__('logging').getLogger(__name__)
 
+
+# ## WSGI Application
 
 class Application(object):
 	"""The WebCore WSGI application.
@@ -46,15 +55,16 @@ class Application(object):
 	def __init__(self, root, **config):
 		"""Construct the initial ApplicationContext, populate, and prepare the WSGI stack.
 		
-		No actions other than configuration should happen during construction or during extension "start" callbacks.
+		No actions other than configuration should happen during construction.
 		
-		Current configuration is limited to two arguments:
+		Current configuration is limited to three arguments:
 		
-			* `logging` -- either None to indicate WebCore should not manipulate the logging configuration (the
-				default), a string representing the logging level to globally configure (such as "debug"), or a
-				dictionary configuraiton to pass to the Python standard `logging.dictConfig` process.
-			* `extensions` -- a list of configured Extension instances, ignoring BaseExtension which is automatically
-				added to the extension set.
+		* `root` -- the object to use as the starting point of dispatch on each request
+		* `logging` -- either `None` to indicate WebCore should not manipulate the logging configuration (the
+			default), a string representing the logging level to globally configure (such as `"debug"`), or a
+			dictionary configuration to pass to the Python standard `logging.dictConfig()` process.
+		* `extensions` -- a list of configured extension instances, ignoring `BaseExtension` which is automatically
+			added to the extension set.
 		"""
 		
 		self.config = self._configure(config)  # Prepare the configuration.
@@ -65,7 +75,7 @@ class Application(object):
 		if isfunction(root):  # We need to armour against this turning into a bound method of the context.
 			root = staticmethod(root)
 		
-		# This construts a basic ApplicationContext containing a few of the passed-in values.
+		# This construts a basic `ApplicationContext` containing a few of the passed-in values.
 		context = self.__context = Context(app=self, root=root)._promote('ApplicationContext')
 		
 		# These can't really be deferred to extensions themselves, for fairly obvious chicken/egg reasons.
@@ -76,8 +86,8 @@ class Application(object):
 		# Execute extension startup callbacks; this is the appropriate time to attach descriptors to the context.
 		for ext in exts.signal.start: ext(context)
 		
-		# At this point the context should have been populated with any descriptor protocol additions.
-		# Promote the ApplicationContext instance to a RequestContext class for use during the request/response cycle.
+		# At this point the context should have been populated with any descriptor protocol additions. Promote the
+		# `ApplicationContext` instance to a `RequestContext` class for use during the request/response cycle.
 		self.RequestContext = context._promote('RequestContext', instantiate=False)
 		
 		# Handle WSGI middleware wrapping by extensions and point our __call__ at the result.
@@ -247,7 +257,7 @@ class Application(object):
 			result = e
 		
 		# Execute return value transformation callbacks.
-		for ext in signals.transform: result = ext(context, result)
+		for ext in signals.transform: result = ext(context, endpoint, result)
 		
 		return result
 	
@@ -303,3 +313,4 @@ class Application(object):
 		for ext in signals.after: ext(context)
 		
 		return context.response.conditional_response_app(environ, start_response)
+

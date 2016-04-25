@@ -10,7 +10,30 @@ WebCore
 
 ..
 
-    |latestversion| |downloads| |masterstatus| |mastercover| |issuecount|
+    |latestversion| |ghtag| |downloads| |masterstatus| |mastercover| |masterreq| |ghwatch| |ghstar|
+
+
+1. `What is WebCore?`_
+
+2. `Installation`_
+
+   1. `Dependencies and Extras`_
+
+   2. `Development Version`_
+
+3. `Basic Concepts`_
+
+   1. `Application`_
+
+   2. `Context`_
+
+   3. `Controllers, Endpoints, Dispatch, Oh My!`_
+
+4. `Plugins and Namespaces`_
+
+5. `Version History`_
+
+6. `License`_
 
 
 What is WebCore?
@@ -95,12 +118,12 @@ You can also name a supported server bridge as an extra.  Currently available br
 Development Version
 -------------------
 
-    |developstatus| |developcover|
+|developstatus| |developcover| |ghsince| |issuecount| |ghfork|
 
 Development takes place on `GitHub <https://github.com/>`_ in the
 `WebCore <https://github.com/marrow/WebCore/>`_ project.  Issue tracking, documentation, and downloads
 are provided there. Development chat (both development of WebCore and chat for users using WebCore to develop their
-own solutions) is graciously provided by `Freenode <ircs://chat.freenode.net:6697/#webcore` in the ``#webcore``
+own solutions) is graciously provided by `Freenode <ircs://chat.freenode.net:6697/#webcore>`_ in the ``#webcore``
 channel.
 
 Installing the current development version requires `Git <http://git-scm.com/>`_, a distributed source code management
@@ -339,7 +362,24 @@ Version History
 Version 2.0
 -----------
 
-* Modern rewrite for ultimate minamalism and Python 2 & 3 + Pypy cross-support.
+* A complete modernization rewrite of WebCore, from the ground up.
+* Features multiple extension interfaces to extend registered view handlers and provide a uniform callback mechanism.
+* Standard usage makes use of no superglobals or "thread locals", instead relying on a context object collaboratively
+  populated by extensions.
+* WebCore's former "dialect" system is now dispatch.
+
+Version 2.0.1
+-------------
+
+* Corrected argument specification for ``transform`` extension callbacks, fixing ``AnnotationExtension`` usage as per
+  `#163 <https://github.com/marrow/WebCore/issues/163>`_..
+* Additional source-level documentation and expanded examples.
+* An excessively large number of additional WSGI server adapters; now supported are: `waitress
+  <http://s.webcore.io/aIou>`_, `tornado <http://s.webcore.io/aIaN>`_, `fcgi <http://s.webcore.io/fhVY>`_,
+  `cherrypy <http://s.webcore.io/aIoF>`_, `appengine <http://s.webcore.io/aIic>`_, `paste <http://s.webcore.io/aIdT>`_,
+  `eventlet <http://s.webcore.io/aIaa>`_, `gevent <http://s.webcore.io/aIpU>`_, `diesel <http://s.webcore.io/aIg2>`_,
+  and `bjoern <http://s.webcore.io/aIne>`_. Each is available as an ``extras_require`` by the same name which will
+  pull in the required third-party dependency.
 
 
 License
@@ -366,33 +406,62 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER I
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
+
+.. |ghwatch| image:: https://img.shields.io/github/watchers/marrow/WebCore.svg?style=social&label=Watch
+    :target: https://github.com/marrow/WebCore/subscription
+    :alt: Subscribe to project activity on Github.
+
+.. |ghstar| image:: https://img.shields.io/github/stars/marrow/WebCore.svg?style=social&label=Star
+    :target: https://github.com/marrow/WebCore/subscription
+    :alt: Star this project on Github.
+
+.. |ghfork| image:: https://img.shields.io/github/forks/marrow/WebCore.svg?style=social&label=Fork
+    :target: https://github.com/marrow/WebCore/fork
+    :alt: Fork this project on Github.
+
 .. |masterstatus| image:: http://img.shields.io/travis/marrow/WebCore/master.svg?style=flat
-    :target: https://travis-ci.org/marrow/WebCore
-    :alt: Release Build Status
-
-.. |developstatus| image:: http://img.shields.io/travis/marrow/WebCore/develop.svg?style=flat
-    :target: https://travis-ci.org/marrow/WebCore
-    :alt: Development Build Status
-
-.. |latestversion| image:: http://img.shields.io/pypi/v/WebCore.svg?style=flat
-    :target: https://pypi.python.org/pypi/WebCore
-    :alt: Latest Version
-
-.. |downloads| image:: http://img.shields.io/pypi/dw/WebCore.svg?style=flat
-    :target: https://pypi.python.org/pypi/WebCore
-    :alt: Downloads per Week
+    :target: https://travis-ci.org/marrow/WebCore/branches
+    :alt: Release build status.
 
 .. |mastercover| image:: http://img.shields.io/codecov/c/github/marrow/WebCore/master.svg?style=flat
     :target: https://codecov.io/github/marrow/WebCore?branch=master
-    :alt: Release Test Coverage
+    :alt: Release test coverage.
+
+.. |masterreq| image:: https://img.shields.io/requires/github/marrow/WebCore.svg
+    :target: https://requires.io/github/marrow/WebCore/requirements/?branch=master
+    :alt: Status of release dependencies.
+
+.. |developstatus| image:: http://img.shields.io/travis/marrow/WebCore/develop.svg?style=flat
+    :target: https://travis-ci.org/marrow/WebCore/branches
+    :alt: Development build status.
 
 .. |developcover| image:: http://img.shields.io/codecov/c/github/marrow/WebCore/develop.svg?style=flat
     :target: https://codecov.io/github/marrow/WebCore?branch=develop
-    :alt: Development Test Coverage
+    :alt: Development test coverage.
 
-.. |issuecount| image:: http://img.shields.io/github/issues/marrow/WebCore.svg?style=flat
+.. |developreq| image:: https://img.shields.io/requires/github/marrow/WebCore.svg
+    :target: https://requires.io/github/marrow/WebCore/requirements/?branch=develop
+    :alt: Status of development dependencies.
+
+.. |issuecount| image:: http://img.shields.io/github/issues-raw/marrow/WebCore.svg?style=flat
     :target: https://github.com/marrow/WebCore/issues
     :alt: Github Issues
+
+.. |ghsince| image:: https://img.shields.io/github/commits-since/marrow/WebCore/2.0.0.svg
+    :target: https://github.com/marrow/WebCore/commits/develop
+    :alt: Changes since last release.
+
+.. |ghtag| image:: https://img.shields.io/github/tag/marrow/WebCore.svg
+    :target: https://github.com/marrow/WebCore/tree/1.0
+    :alt: Latest Github tagged release.
+
+.. |latestversion| image:: http://img.shields.io/pypi/v/WebCore.svg?style=flat
+    :target: https://pypi.python.org/pypi/WebCore
+    :alt: Latest released version.
+
+.. |downloads| image:: http://img.shields.io/pypi/dw/WebCore.svg?style=flat
+    :target: https://pypi.python.org/pypi/WebCore
+    :alt: Downloads per week.
 
 .. |cake| image:: http://img.shields.io/badge/cake-lie-1b87fb.svg?style=flat
 

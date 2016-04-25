@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>annotation.py</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" href="dycco.css">
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <table cellpadding="0" cellspacing="0">
+      <thead>
+        <tr>
+          <th class="docs">
+            <h1>annotation.py</h1>
+          </th>
+          <th class="code">
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr id="section-2">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Python 3 function annotation typecasting support.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-5">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <h2>Imports</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">unicode_literals</span>
+
+<span class="kn">from</span> <span class="nn">inspect</span> <span class="kn">import</span> <span class="n">ismethod</span><span class="p">,</span> <span class="n">getfullargspec</span>
+
+<span class="kn">from</span> <span class="nn">web.core.compat</span> <span class="kn">import</span> <span class="n">items</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-14">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <h2>Extension</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-15">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>Utilize Python 3 function annotations as a method to filter arguments coming in from the web.</p>
+<p>Argument annotations are treated as callbacks to execute, passing in the unicode value coming in from the web and
+swapping it with the value returned by the callback. This allows for trivial typecasting to most built-in Python
+types such as <code>int</code>, <code>float</code>, etc., as well as creative use such as <code>','.split</code> to automatically split a comma-
+separated value. One can of course also write custom callbacks, notably ones that raise <code>HTTPException</code>
+subclasses to not appear as an Internal Server Error.</p>
+<p>For example:</p>
+<pre><code>    def multiply(a: int, b: int):
+            return str(a * b)
+</code></pre>
+<p>This extension also performs a utility wrapping of returned values in the form of a 2-tuple of the return
+annotation itself and the value returned by the callable endpoint. This integrates well with the view registered
+by the <code>web.template</code> package to define a template at the head of the function, returning data for the template
+to consume:</p>
+<pre><code>    def hello(name="world"): -&gt; 'mako:hello.html'
+            return dict(name=name)
+</code></pre>
+<p>If your editor has difficulty syntax highlighting such annotations, check for a Python 3 compatible update to your
+editor's syntax definitions.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="k">class</span> <span class="nc">AnnotationExtension</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+	
+	<span class="n">__slots__</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">()</span>
+	
+	<span class="n">provides</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;annotation&#39;</span><span class="p">,</span> <span class="s">&#39;cast&#39;</span><span class="p">,</span> <span class="s">&#39;typecast&#39;</span><span class="p">]</span>  <span class="c"># Export these symbols for other extensions to depend upon.</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-46">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-46">&#182;</a>
+              </div>
+              <h3>Request-Local Callbacks</h3>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-47">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-47">&#182;</a>
+              </div>
+              <p>Inspect and potentially mutate the given handler's arguments.</p>
+<p>The args list and kw dictionary may be freely modified, though invalid arguments to the handler will fail.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">mutate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">handler</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kw</span><span class="p">):</span>
+		<span class="n">annotations</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">handler</span><span class="o">.</span><span class="n">__func__</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">handler</span><span class="p">,</span> <span class="s">&#39;__func__&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">handler</span><span class="p">,</span> <span class="s">&#39;__annotations__&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">annotations</span><span class="p">:</span>
+			<span class="k">return</span>
+		
+		<span class="n">argspec</span> <span class="o">=</span> <span class="n">getfullargspec</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+		<span class="n">arglist</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">argspec</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+		
+		<span class="k">if</span> <span class="n">ismethod</span><span class="p">(</span><span class="n">handler</span><span class="p">):</span>
+			<span class="k">del</span> <span class="n">arglist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+		
+		<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">)):</span>
+			<span class="n">key</span> <span class="o">=</span> <span class="n">arglist</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+			<span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">annotations</span><span class="p">:</span>
+				<span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">annotations</span><span class="p">[</span><span class="n">key</span><span class="p">](</span><span class="n">value</span><span class="p">)</span>
+		
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-68">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-68">&#182;</a>
+              </div>
+              <p>Convert keyword arguments</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">items</span><span class="p">(</span><span class="n">kw</span><span class="p">)):</span>
+			<span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">annotations</span><span class="p">:</span>
+				<span class="n">kw</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">annotations</span><span class="p">[</span><span class="n">key</span><span class="p">](</span><span class="n">value</span><span class="p">)</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-72">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-72">&#182;</a>
+              </div>
+              <p>Transform the value returned by the controller endpoint.</p>
+<p>This extension transforms returned values if the endpoint has a return type annotation.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">handler</span><span class="p">,</span> <span class="n">result</span><span class="p">):</span>
+		<span class="n">handler</span> <span class="o">=</span> <span class="n">handler</span><span class="o">.</span><span class="n">__func__</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">handler</span><span class="p">,</span> <span class="s">&#39;__func__&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">handler</span>
+		<span class="n">annotation</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">handler</span><span class="p">,</span> <span class="s">&#39;__annotations__&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;return&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+		
+		<span class="k">if</span> <span class="n">annotation</span><span class="p">:</span>
+			<span class="k">return</span> <span class="p">(</span><span class="n">annotation</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
+		
+		<span class="k">return</span> <span class="n">result</span>
+</pre></div>
+
+            </td>
+          </tr>
+      </tbody>
+    </table>
+    <footer>
+      Generated by <b><a href="http://mccutchen.github.com/dycco/">Dycco</a></b>.
+      Last updated <b>25 Apr 2016</b>.
+    </footer>
+  </div>
+</body>
+</html>

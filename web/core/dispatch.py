@@ -1,5 +1,7 @@
 # encoding: utf-8
 
+# ## Imports
+
 from __future__ import unicode_literals
 
 from collections import deque
@@ -7,8 +9,13 @@ from inspect import isclass
 from marrow.package.host import PluginManager
 
 
+# ## Module Globals
+
+# A standard logger object.
 log = __import__('logging').getLogger(__name__)
 
+
+# ## Dispatch Plugin Manager
 
 class WebDispatchers(PluginManager):
 	"""WebCore dispatch protocol adapter.
@@ -19,15 +26,15 @@ class WebDispatchers(PluginManager):
 	The allowable controller structures offered by individual methods of dispatch is documented in the relevant
 	dispatch project. Examples of dispatch include:
 	
-		* Object Dispatch: https://github.com/marrow/web.dispatch.object
-		* Registered Routes: https://github.com/marrow/web.dispatch.route
-		* Traversal: https://github.com/marrow/web.dispatch.traversal
+	* Object Dispatch: https://github.com/marrow/web.dispatch.object
+	* Registered Routes: https://github.com/marrow/web.dispatch.route
+	* Traversal: https://github.com/marrow/web.dispatch.traversal
 	
 	Others may exist, and dispatch middleware may be available to perform more complex behaviours. The default
 	dispatcher if not otherwise configured is object dispatch.
 	"""
 	
-	__isabstractmethod__ = False  # Jerry, it's a weird bug, Jerry.
+	__isabstractmethod__ = False  # Work around an issue in modern (3.4+) Python due to our instances being callable.
 	
 	def __init__(self, ctx):
 		"""Dispatch registry constructor.
@@ -123,3 +130,4 @@ class WebDispatchers(PluginManager):
 			log.debug("Loaded dispatcher.", extra=dict(dispatcher=repr(dispatcher)))
 		
 		return dispatcher
+

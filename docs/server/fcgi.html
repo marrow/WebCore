@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>fcgi.py</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" href="dycco.css">
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <table cellpadding="0" cellspacing="0">
+      <thead>
+        <tr>
+          <th class="docs">
+            <h1>fcgi.py</h1>
+          </th>
+          <th class="code">
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr id="section-2">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>A production quality flup-based FastCGI server.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-5">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <h2>Imports</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">print_function</span>
+
+<span class="k">try</span><span class="p">:</span>
+	<span class="kn">from</span> <span class="nn">flup.server.fcgi</span> <span class="kn">import</span> <span class="n">WSGIServer</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+	<span class="k">print</span><span class="p">(</span><span class="s">&quot;You must install a &#39;flup&#39; package such as &#39;flup6&#39; to use FastCGI support.&quot;</span><span class="p">)</span>
+	<span class="k">raise</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-16">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <h2>Server Adapter</h2>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-17">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p>Basic FastCGI support via flup.</p>
+<p>This web server has many, many options. Please see the Flup project documentation for details.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="k">def</span> <span class="nf">serve</span><span class="p">(</span><span class="n">application</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s">&#39;127.0.0.1&#39;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">8080</span><span class="p">,</span> <span class="n">socket</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-24">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-24">&#182;</a>
+              </div>
+              <p>Allow either on-disk socket (recommended) or TCP/IP socket use.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">if</span> <span class="ow">not</span> <span class="n">socket</span><span class="p">:</span>
+		<span class="n">bindAddress</span> <span class="o">=</span> <span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">port</span><span class="p">))</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">bindAddress</span> <span class="o">=</span> <span class="n">socket</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-30">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-30">&#182;</a>
+              </div>
+              <p>Bind and start the blocking web server interface.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="n">WSGIServer</span><span class="p">(</span><span class="n">application</span><span class="p">,</span> <span class="n">bindAddress</span><span class="o">=</span><span class="n">bindAddress</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+
+            </td>
+          </tr>
+      </tbody>
+    </table>
+    <footer>
+      Generated by <b><a href="http://mccutchen.github.com/dycco/">Dycco</a></b>.
+      Last updated <b>25 Apr 2016</b>.
+    </footer>
+  </div>
+</body>
+</html>
