@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>annotation.py</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" href="dycco.css">
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <table cellpadding="0" cellspacing="0">
+      <thead>
+        <tr>
+          <th class="docs">
+            <h1>annotation.py</h1>
+          </th>
+          <th class="code">
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr id="section-2">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Python 3 function annotation and AnnotationExtension example.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-4">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="kn">from</span> <span class="nn">json</span> <span class="kn">import</span> <span class="n">dumps</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-7">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="k">class</span> <span class="nc">Root</span><span class="p">:</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-8">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_ctx</span> <span class="o">=</span> <span class="n">context</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-11">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">tmpl</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s">&#39;mako:./template.html&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="nb">dict</span><span class="p">()</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-14">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>Multiply two values together and return the result via JSON.</p>
+<p>Python 3 function annotations are used to ensure that the arguments are integers. This requires the
+functionality of <code>web.ext.annotation:AnnotationExtension</code>.</p>
+<p>There are several ways to execute this method:</p>
+<ul>
+<li>POST http://localhost:8080/mul</li>
+<li>GET http://localhost:8080/mul?a=27&amp;b=42</li>
+<li>GET http://localhost:8080/mul/27/42</li>
+</ul>
+<p>The latter relies on the fact we can't descend past a callable method so the remaining path elements are
+used as positional arguments, whereas the others rely on keyword argument assignment from a form-encoded
+request body or query string arguments.  (Security note: any data in the request body takes presidence over
+query string arguments!)</p>
+<p>You can easily test these on the command line using cURL:</p>
+<pre><code>    curl http://localhost:8080/mul/27/42  # HTTP GET
+
+    curl -d a=27 -d b=42 http://localhost:8080/mul  # HTTP POST
+</code></pre>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">mul</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="bp">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s">&#39;json&#39;</span><span class="p">:</span>
+		
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">a</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">b</span><span class="p">:</span>
+			<span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s">&quot;Pass arguments a and b to multiply them together!&quot;</span><span class="p">)</span>
+		
+		<span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">answer</span><span class="o">=</span><span class="n">a</span> <span class="o">*</span> <span class="n">b</span><span class="p">)</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-44">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-44">&#182;</a>
+              </div>
+              <p>Here's an example of how to catch an annotation like this as a view handler.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre><span class="k">class</span> <span class="nc">SampleExtension</span><span class="p">:</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-47">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-47">&#182;</a>
+              </div>
+              
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+		<span class="n">context</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_json</span><span class="p">)</span>
+	
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-50">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-50">&#182;</a>
+              </div>
+              
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>	<span class="k">def</span> <span class="nf">render_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">result</span><span class="p">):</span>
+</pre></div>
+
+            </td>
+          </tr>
+          <tr id="section-53">
+            <td class="docs">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-53">&#182;</a>
+              </div>
+              <p>Bail out if this isn't a 2-tuple, or isn't intended for JSON serialization.
+ This is an informal protocol shared with the more complete <code>web.template</code> package and possibly others.</p>
+            </td>
+            <td class="code">
+              <div class="highlight"><pre>		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;json&#39;</span><span class="p">:</span>
+			<span class="k">return</span>
+		
+		<span class="n">resp</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">response</span>
+		<span class="n">resp</span><span class="o">.</span><span class="n">content_type</span> <span class="o">=</span> <span class="s">&#39;application/json&#39;</span>
+		<span class="n">resp</span><span class="o">.</span><span class="n">encoding</span> <span class="o">=</span> <span class="s">&#39;utf-8&#39;</span>
+		<span class="n">resp</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">dumps</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+		
+		<span class="k">return</span> <span class="bp">True</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+	<span class="kn">from</span> <span class="nn">web.core</span> <span class="kn">import</span> <span class="n">Application</span>
+	<span class="kn">from</span> <span class="nn">web.ext.annotation</span> <span class="kn">import</span> <span class="n">AnnotationExtension</span>
+	
+	<span class="n">Application</span><span class="p">(</span><span class="n">Root</span><span class="p">,</span> <span class="n">extensions</span><span class="o">=</span><span class="p">[</span><span class="n">SampleExtension</span><span class="p">(),</span> <span class="n">AnnotationExtension</span><span class="p">()])</span><span class="o">.</span><span class="n">serve</span><span class="p">(</span><span class="s">&#39;wsgiref&#39;</span><span class="p">)</span>
+</pre></div>
+
+            </td>
+          </tr>
+      </tbody>
+    </table>
+    <footer>
+      Generated by <b><a href="http://mccutchen.github.com/dycco/">Dycco</a></b>.
+      Last updated <b>25 Apr 2016</b>.
+    </footer>
+  </div>
+</body>
+</html>

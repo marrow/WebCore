@@ -30,7 +30,7 @@
 third-party software, these are subject to change at any time. Only symbols exported via <code>__all__</code> are safe to use.</p>
             </td>
             <td class="code">
-              <div class="highlight"><pre><span></span>
+              <div class="highlight"><pre>
 </pre></div>
 
             </td>
@@ -43,7 +43,7 @@ third-party software, these are subject to change at any time. Only symbols expo
               <h2>Imports</h2>
             </td>
             <td class="code">
-              <div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
+              <div class="highlight"><pre><span class="kn">import</span> <span class="nn">sys</span>
 </pre></div>
 
             </td>
@@ -56,7 +56,7 @@ third-party software, these are subject to change at any time. Only symbols expo
               <h2>Module Exports</h2>
             </td>
             <td class="code">
-              <div class="highlight"><pre><span></span><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;py3&#39;</span><span class="p">,</span> <span class="s1">&#39;pypy&#39;</span><span class="p">,</span> <span class="s1">&#39;unicode&#39;</span><span class="p">,</span> <span class="s1">&#39;str&#39;</span><span class="p">]</span>
+              <div class="highlight"><pre><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;py3&#39;</span><span class="p">,</span> <span class="s">&#39;pypy&#39;</span><span class="p">,</span> <span class="s">&#39;unicode&#39;</span><span class="p">,</span> <span class="s">&#39;str&#39;</span><span class="p">]</span>
 </pre></div>
 
             </td>
@@ -69,8 +69,8 @@ third-party software, these are subject to change at any time. Only symbols expo
               <h2>Version Detection</h2>
             </td>
             <td class="code">
-              <div class="highlight"><pre><span></span><span class="n">py3</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&gt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="p">)</span>
-<span class="n">pypy</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">sys</span><span class="p">,</span> <span class="s1">&#39;pypy_version_info&#39;</span><span class="p">)</span>
+              <div class="highlight"><pre><span class="n">py3</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&gt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="p">)</span>
+<span class="n">pypy</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">sys</span><span class="p">,</span> <span class="s">&#39;pypy_version_info&#39;</span><span class="p">)</span>
 </pre></div>
 
             </td>
@@ -83,7 +83,7 @@ third-party software, these are subject to change at any time. Only symbols expo
               <h2>Builtins Compatibility</h2>
             </td>
             <td class="code">
-              <div class="highlight"><pre><span></span>
+              <div class="highlight"><pre>
 </pre></div>
 
             </td>
@@ -96,7 +96,7 @@ third-party software, these are subject to change at any time. Only symbols expo
               <p>Use of the <code>items</code> shortcut here must be very, very careful to only apply it to actual bare dictionaries.</p>
             </td>
             <td class="code">
-              <div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">py3</span><span class="p">:</span>
+              <div class="highlight"><pre><span class="k">if</span> <span class="n">py3</span><span class="p">:</span>
 	<span class="nb">unicode</span> <span class="o">=</span> <span class="nb">str</span>
 	<span class="nb">str</span> <span class="o">=</span> <span class="nb">bytes</span>
 	<span class="n">items</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">items</span>
@@ -116,7 +116,7 @@ third-party software, these are subject to change at any time. Only symbols expo
               <h2>File-Like String Handling</h2>
             </td>
             <td class="code">
-              <div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
+              <div class="highlight"><pre><span class="k">try</span><span class="p">:</span>
 	<span class="k">try</span><span class="p">:</span>
 		<span class="kn">from</span> <span class="nn">cStringIO</span> <span class="kn">import</span> <span class="n">StringIO</span>
 	<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
@@ -131,7 +131,7 @@ third-party software, these are subject to change at any time. Only symbols expo
     </table>
     <footer>
       Generated by <b><a href="http://mccutchen.github.com/dycco/">Dycco</a></b>.
-      Last updated <b>19 Apr 2016</b>.
+      Last updated <b>25 Apr 2016</b>.
     </footer>
   </div>
 </body>
