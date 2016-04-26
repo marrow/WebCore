@@ -142,6 +142,16 @@ class Extension(object):
 		"""Transform outgoing values prior to view lookup."""
 		pass
 	
+	def done(self, context):
+		"""Executed after the entire response has completed generating.
+		
+		This might seem to duplicate the purpose of `after`; the distinction is with iterable or generator WSGI bodies
+		whose processing is deferred until after WebCore has returned. This callback will be executed once iteration
+		of the body is complete whereas `after` is executed prior to iteration of the body, but after endpoint
+		execution.
+		"""
+		pass
+	
 	def interactive(self):
 		"""Populate an interactive shell."""
 		return dict()

@@ -312,5 +312,13 @@ class Application(object):
 		
 		for ext in signals.after: ext(context)
 		
-		return context.response.conditional_response_app(environ, start_response)
+		def capture_done(response):
+			for chunk in response:
+				yield chunk
+			
+			for ext in signals.done: ext(context)
+		
+		# This is really long due to the fact we don't want to capture the response too early.
+		# We need anything up to this point to be able to simply replace `context.response` if needed.
+		return capture_done(context.response.conditional_response_app(environ, start_response))
 
