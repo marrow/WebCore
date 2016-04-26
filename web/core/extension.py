@@ -66,6 +66,7 @@ class WebExtensions(ExtensionManager):
 			'after',  # Executed after dispatch has returned and the response populated.
 			'mutate',  # Inspect and potentially mutate arguments to the handler prior to execution.
 			'transform',  # Transform the result returned by the handler and apply it to the response.
+			'done',  # Executed after the response has been consumed by the client.
 			'middleware',  # Executed to allow WSGI middleware wrapping.
 		)
 	
@@ -98,6 +99,7 @@ class WebExtensions(ExtensionManager):
 		# Certain operations act as a stack, i.e. "before" are executed in dependency order, but "after" are executed
 		# in reverse dependency order.  This is also the case with "mutate" (incoming) and "transform" (outgoing).
 		signals['after'].reverse()
+		signals['done'].reverse()
 		signals['transform'].reverse()
 		signals['middleware'].reverse()
 		
