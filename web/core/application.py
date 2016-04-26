@@ -314,7 +314,7 @@ class Application(object):
 		
 		def capture_done(response):
 			for chunk in response:
-				yield response
+				yield chunk
 			
 			for ext in signals.done: ext(context)
 		
