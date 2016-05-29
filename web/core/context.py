@@ -80,3 +80,63 @@ class Context(MutableMapping):
 # This auto-detects the basic set of them for exclusion from iteration in the above methods.
 Context._STANDARD_ATTRS = set(dir(Context()))
 
+
+
+class ContextGroup(MutableMapping):
+	"""A managed group of related context additions.
+	
+	This proxies most attribute access through to the "default" group member.
+	
+	Because of the possibility of conflicts, all attributes are accessible through dict-like subscripting.
+	
+	Register new group members through dict-like subscript assignment as attribute assignment is passed through to the
+	default handler if assigned.
+	"""
+	
+	default = None
+	
+	def __init__(self, default=None, **kw):
+		self.default = default
+		self.__dict__.update(kw)
+	
+	def __len__(self):
+		return len(self.__dict__)
+	
+	def __getitem__(self, name):
+		try:
+			return getattr(self, name)
+		except AttributeError:
+			pass
+		
+		raise KeyError()
+	
+	def __setitem__(self, name, value):
+		self.__dict__[name] = value
+	
+	def __delitem__(self, name):
+		del self.__dict__[name]
+	
+	def __getattr__(self, name):
+		# TODO: This might need to simulate the descriptor protocol.
+		if not self.default:
+			raise AttributeError("No default group member defined.")
+		
+		getattr(self.default, name)
+	
+	def __setattr__(self, name, value):
+		if self.default:
+			return setattr(default, name, value)
+		
+		self.__dict__[name] = value
+	
+	def __delattr__(self, name):
+		if self.default:
+			return delattr(self.default, name)
+		
+		try:
+			del self.__dict__[name]
+		except KeyError:
+			pass
+		
+		raise AttributeError()
+
