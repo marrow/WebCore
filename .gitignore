@@ -1,36 +1,29 @@
 *.py[co]
 
-# Packages
-*.egg
-*.egg-info
-dist
-build
-eggs
+# Packaging
 .eggs
-parts
+.packaging
+
+# Virtual Environment Pseudo-Chroot
 bin
+lib
+usr
 var
-sdist
-develop-eggs
-.installed.cfg
+include
+share
+tmp
 
-# Installer logs
-pip-log.txt
-
-# Unit test / coverage reports
-.coverage
+# Unit Test / Coverage Reports
 coverage.xml
+.coverage
 .tox
 .cagoule.db
 .cache/
-
-# Translations
-*.mo
+htmlcov/
 
 # Mac
 .DS_Store
 
-# Extras
-thirdparty/
-htmlcov/
+# Completion Integration
 .ropeproject
+
