@@ -82,7 +82,7 @@ Context._STANDARD_ATTRS = set(dir(Context()))
 
 
 
-class ContextGroup(MutableMapping):
+class ContextGroup(Context):
 	"""A managed group of related context additions.
 	
 	This proxies most attribute access through to the "default" group member.
@@ -93,14 +93,17 @@ class ContextGroup(MutableMapping):
 	default handler if assigned.
 	"""
 	
-	default = None
-	
 	def __init__(self, default=None, **kw):
-		self.default = default
+		if default is not None:
+			self.default = default
+
 		self.__dict__.update(kw)
 	
 	def __len__(self):
 		return len(self.__dict__)
+	
+	def __iter__(self):
+		return iter(set(dir(self)) - set(dir(MutableMapping)))
 	
 	def __getitem__(self, name):
 		try:
@@ -118,19 +121,19 @@ class ContextGroup(MutableMapping):
 	
 	def __getattr__(self, name):
 		# TODO: This might need to simulate the descriptor protocol.
-		if not self.default:
+		if 'default' not in dir(self):
 			raise AttributeError("No default group member defined.")
 		
 		getattr(self.default, name)
 	
 	def __setattr__(self, name, value):
-		if self.default:
-			return setattr(default, name, value)
+		if 'default' in dir(self):
+			return setattr(self.default, name, value)
 		
 		self.__dict__[name] = value
 	
 	def __delattr__(self, name):
-		if self.default:
+		if 'default' in dir(self):
 			return delattr(self.default, name)
 		
 		try:
