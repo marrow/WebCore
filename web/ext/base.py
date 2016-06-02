@@ -132,7 +132,7 @@ class BaseExtension(object):
 	def render_none(self, context, result):
 		"""Render empty responses."""
 		context.response.body = b''
-		del context.response.length
+		del context.response.content_length
 		return True
 	
 	def render_response(self, context, result):
