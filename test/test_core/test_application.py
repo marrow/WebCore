@@ -51,7 +51,7 @@ class TestDefaulViews(object):
 		app = Application(empty_endpoint)
 		response = Request.blank('/').get_response(app)
 		assert response.text == ""
-		assert response.content_length == 0
+		assert response.content_length == None  # Actually blank responses have no length.
 	
 	def test_response(self):
 		app = Application(response_endpoint)
