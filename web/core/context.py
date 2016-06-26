@@ -96,14 +96,20 @@ class ContextGroup(Context):
 	def __init__(self, default=None, **kw):
 		if default is not None:
 			self.default = default
-
-		self.__dict__.update(kw)
+			default.__name__ = 'default'
+		
+		for name in kw:
+			kw[name].__name__ = name
+			self.__dict__[name] = kw[name]
+	
+	def __repr__(self):
+		return "{0.__class__.__name__}({1})".format(self, ', '.join(sorted(self)))
 	
 	def __len__(self):
 		return len(self.__dict__)
 	
 	def __iter__(self):
-		return iter(set(dir(self)) - set(dir(MutableMapping)))
+		return iter(set(dir(self)) - self._STANDARD_ATTRS)
 	
 	def __getitem__(self, name):
 		try:
@@ -121,10 +127,10 @@ class ContextGroup(Context):
 	
 	def __getattr__(self, name):
 		# TODO: This might need to simulate the descriptor protocol.
-		if 'default' not in dir(self):
+		if not hasattr(self, 'default'):
 			raise AttributeError("No default group member defined.")
 		
-		getattr(self.default, name)
+		return getattr(self.default, name)
 	
 	def __setattr__(self, name, value):
 		if 'default' in dir(self):
@@ -142,4 +148,6 @@ class ContextGroup(Context):
 			pass
 		
 		raise AttributeError()
+
+ContextGroup._STANDARD_ATTRS = set(dir(ContextGroup()))
 
