@@ -95,12 +95,12 @@ class ContextMatch(Predicate):
 	SENTINEL = object()  # A singleton used internally for comparison.
 	
 	def __init__(self, grant, attribute, *values, **kw):
-		default = kw.pop(default, None)
+		default = kw.pop('default', None)
 		
 		if kw:  # This is the only keyword argument we accept.
 			raise TypeError()
 		
-		assert grant in (True, False), "The `grant` argument must be True (allow) or False (deny).`
+		assert grant in (True, False), "The `grant` argument must be True (allow) or False (deny).`"
 		
 		self.grant = grant  # True if we grant access, False if we deny access.
 		self.attribute = attribute  # The attribute to retrieve, i.e. "user.admin", or "
@@ -138,7 +138,7 @@ class ContextIn(ContextMatch):
 			return self.default
 		
 		try:
-			result = any(i in value for i in self.values)
+			return any(i in value for i in self.values)
 		except TypeError:
 			return self.default
 
