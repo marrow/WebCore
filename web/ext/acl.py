@@ -15,6 +15,7 @@ predicates match is to deny, in most instances.
 from __future__ import unicode_literals
 
 from webob.exc import HTTPNotAuthorized
+from marrow.package.loader import traverse
 
 from web.core.util import safe_name
 
@@ -22,6 +23,124 @@ from web.core.util import safe_name
 # ## Module Globals
 
 log = __import__('logging').getLogger(__name__)
+
+
+# ## Simple Predicates
+
+class Predicate(object):
+	def __init__(self):
+		raise NotImplementedError()
+	
+	def __call__(self, context):
+		raise NotImplementedError()
+
+
+def Not(Predicate):
+	"""Invert the meaning of another predicate."""
+	
+	__slots__ = ('predicate', )
+	
+	def __init__(self, predicate):
+		self.predicate = predicate
+	
+	def __call__(self, context):
+		result = self.predicate(context)
+		
+		if result is None:
+			return
+		
+		return not result
+
+
+class All(Predicate):
+	"""Authorizes an action only if all predicates authorize the action."""
+	
+	__slots__ = ('predicates', )
+	
+	def __init__(self, *predicates):
+		self.predicates = predicates
+	
+	def __call__(self, context):
+		return all(predicate(context) for predicate in self.predicates)
+
+
+class Any(Predicate):
+	"""Authorize an action if any predicate authorizes the action."""
+	
+	__slots__ = ('predicates', )
+	
+	def __init__(self, *predicates):
+		self.predicates = predicates
+	
+	def __call__(self, context):
+		return any(predicate(context) for predicate in self.predicates)
+
+
+class ContextMatch(Predicate):
+	"""Match a variable from the context to one of a set of candidate values.
+	
+	As per most non-base predicates, this accepts a `grant` value determining if a match should be considered success
+	(`True`) or not (`False`), then the attribute to attempt to look up, which may be deep or contain array
+	references (see the `traverse` function from the `marrow.package.loader` package), and one or more values to
+	consider as a match. In the event the attribute can not be loaded, the `default` (which must be passed as a
+	keyword argument) will be used, `None` by default.
+	
+	Examples might include:
+	
+	local = ContextMatch(True, 'request.remote_addr', '127.0.0.1')
+	admin = ContextMatch(True, 'user.admin', True)
+	"""
+	
+	__slots__ = ('grant', 'attribute', 'values', 'default')
+	SENTINEL = object()  # A singleton used internally for comparison.
+	
+	def __init__(self, grant, attribute, *values, **kw):
+		default = kw.pop(default, None)
+		
+		if kw:  # This is the only keyword argument we accept.
+			raise TypeError()
+		
+		assert grant in (True, False), "The `grant` argument must be True (allow) or False (deny).`
+		
+		self.grant = grant  # True if we grant access, False if we deny access.
+		self.attribute = attribute  # The attribute to retrieve, i.e. "user.admin", or "
+		self.values = values
+		self.default = default
+	
+	def __call__(self, context):
+		try:
+			value = traverse(context, self.attribute, self.SENTINEL)  # Retrieve the value.
+		except LookupError:
+			value = self.SENTINEL
+		
+		if value is self.SENTINEL:
+			return self.default
+		
+		result = any(i == value for i in self.values)  # We do this rather than "in" to support equality comparison.
+		return self.grant if result else not self.grant
+
+
+class ContextIn(ContextMatch):
+	"""Match a variable from the context containing one or more values.
+	
+	Similar to ContextMatch, except matches the values being "in" the target variable rather than comparing equality.
+	"""
+	
+	__slots__ = ('grant', 'attribute', 'values', 'default')
+	
+	def __call__(self, context):
+		try:
+			value = traverse(context, self.attribute, self.SENTINEL)  # Retrieve the value.
+		except LookupError:
+			value = self.SENTINEL
+		
+		if value is self.SENTINEL:
+			return self.default
+		
+		try:
+			result = any(i in value for i in self.values)
+		except TypeError:
+			return self.default
 
 
 # ## Extension
