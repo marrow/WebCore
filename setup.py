@@ -146,6 +146,7 @@ setup(
 					'typecast = web.ext.annotation:AnnotationExtension',  # Legacy reference.
 					'local = web.ext.local:ThreadLocalExtension',  # Preferred use/needs reference.
 					'threadlocal = web.ext.local:ThreadLocalExtension',  # Legacy reference.
+					'assets = web.ext.assets:WebAssetsExtension',  # WebAssets integration.
 				],
 			
 			# #### WSGI Server Adapters
