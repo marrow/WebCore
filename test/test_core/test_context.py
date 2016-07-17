@@ -2,10 +2,10 @@
 
 import pytest
 
-from web.core.context import Context
+from web.core.context import Context, ContextGroup
 
 
-def test_basic_operations():
+def test_basic_context_operations():
 	sample = Context(foo=1, bar=2, _baz=3)
 	
 	assert sorted(sample) == ['bar', 'foo']
@@ -20,5 +20,11 @@ def test_basic_operations():
 	with pytest.raises(KeyError):
 		del sample['bar']
 
+
+def test_context_group_basics():
+	group = ContextGroup()
+	assert repr(group) == "ContextGroup()"
+	assert len(group) == 0
+	assert list(group) == []
 
 
