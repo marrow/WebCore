@@ -271,7 +271,7 @@ class Application(object):
 		Most apps won't utilize middleware, the extension interface is preferred for most operations in WebCore.
 		They allow for code injection at various intermediary steps in the processing of a request and response.
 		"""
-		
+		#__import__('pudb').set_trace()
 		context = environ['wc.context'] = self.RequestContext(environ=environ)
 		signals = context.extension.signal
 		
@@ -294,7 +294,7 @@ class Application(object):
 		if __debug__:
 			log.debug("Result prepared, identifying view handler.", extra=dict(
 					request = id(context),
-					result = repr(result)
+					result = safe_name(type(result))
 				))
 		
 		# Identify a view capable of handling this result.
