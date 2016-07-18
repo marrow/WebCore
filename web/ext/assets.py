@@ -60,26 +60,6 @@ else:
 __all__ = ['Bundle', 'WebAssetsExtension']
 
 
-
-
-
-
-
-
-def boolean(value, truthy=frozenset(('t', 'true', 'y', 'yes', 'on', '1'))):
-	if not isinstance(value, (str, unicode)):
-		return value
-	
-	return value.strip().lower() in truthy
-
-
-def text(value):
-	if isinstance(value, str):
-		return value.decode('utf-8')
-	
-	return value
-
-
 class PackageResolver(Resolver):
 	def search_for_source(self, ctx, item):
 		package, _, path = item.rpartition(':')
@@ -100,7 +80,6 @@ class PackageResolver(Resolver):
 
 class Environment(Environment):
 	resolver_class = PackageResolver
-
 
 
 class BundleRegistry(PluginManager):
@@ -150,7 +129,6 @@ class BundleRegistry(PluginManager):
 			if candidate.startswith(name + '.'):
 				self.__dict__[name] = BundleRegistry(self._ctx, self._env, ((self._prefix + '.') if self._prefix else '') + name)
 				return self.__dict__[name]
-
 
 
 class WebAssetsExtension(object):
@@ -246,6 +224,6 @@ class WebAssetsExtension(object):
 					base.add(context.bundle[i])
 				else:
 					base.add(i)
-
+		
 		context.asset = base  # Intent: context.asset.add(context.bundle.jquery)
 
