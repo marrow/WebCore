@@ -155,14 +155,12 @@ class BaseExtension(object):
 		if __debug__:
 			log.debug("Processing file-like object.", extra=dict(request=id(context), result=repr(result)))
 		
-		response = context.response = Response(
-				conditional_response = True,
-			)
+		response = context.response
+		response.conditional_response = True
 		
 		modified = mktime(gmtime(getmtime(result.name)))
 		
 		response.last_modified = datetime.fromtimestamp(modified)
-		response.cache_control = 'public'
 		ct, ce = guess_type(result.name)
 		if not ct: ct = 'application/octet-stream'
 		response.content_type, response.content_encoding = ct, ce
