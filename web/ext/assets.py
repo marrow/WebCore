@@ -11,6 +11,7 @@ try:
 	from webassets import Bundle
 	from webassets.env import Environment, Resolver
 	from webassets.loaders import YAMLLoader
+	from webassets.filter import Filter, register_filter
 
 except ImportError:
 	raise ImportError('You must install the "webassets" package to use this extension.')
@@ -18,7 +19,50 @@ except ImportError:
 from web.core.compat import str, unicode
 
 
+# Conditionally register additional WebAssets filters, if the packages are installed.
+
+try:
+	from dukpy.webassets import BabelJS
+except ImportError:
+	pass
+else:
+	register_filter(BabelJS)
+
+
+try:
+	from metapensiero.pj.api import _calc_file_names, translates
+except ImportError:
+	pass
+else:
+	@register_filter
+	class JavaScripthon(Filter):
+		name = 'javascripthon'
+		
+		_options = {}
+		
+		def __init__(self, stage3=False):
+			"""To enable async features, set stage3 to True."""
+			self.stage3 = stage3
+		
+		def unique(self):
+			return (self.stage3, )
+		
+		def input(self, _in, out, source_path, output_path, **kw):
+			src_text = _in.read()
+			dst_filename, map_filename, src_relpath, map_relpath = _calc_file_names(source_path, output_path, None)
+			
+			js_text, src_map = translates(src_text, True, src_relpath, enable_es6=True,
+					enable_stage3=self.stage3)
+			
+			out.write(js_text)
+
+
 __all__ = ['Bundle', 'WebAssetsExtension']
+
+
+
+
+
 
 
 
@@ -63,13 +107,16 @@ class BundleRegistry(PluginManager):
 	"""A registry of named bundles manually registered and registered via `web.asset` entry_point namespace.
 	"""
 	
-	def __init__(self, ctx, prefix=None):
+	def __init__(self, ctx, env, prefix=None):
 		self._ctx = ctx
+		self._env = env
 		self._prefix = prefix
 		super(BundleRegistry, self).__init__('web.asset')
 	
 	def register(self, name, plugin):
 		"""Strip prefix from the plugin name, if we're using prefixes."""
+		
+		plugin.env = self._env
 		
 		if not self._prefix:
 			return super(BundleRegistry, self).register(name, plugin)
@@ -101,13 +148,13 @@ class BundleRegistry(PluginManager):
 		# Last, handle prefixes. These will be used least.
 		for candidate in names:
 			if candidate.startswith(name + '.'):
-				self.__dict__[name] = BundleRegistry(self._ctx, ((self._prefix + '.') if self._prefix else '') + name)
+				self.__dict__[name] = BundleRegistry(self._ctx, self._env, ((self._prefix + '.') if self._prefix else '') + name)
 				return self.__dict__[name]
 
 
 
 class WebAssetsExtension(object):
-	def __init__(self, target, bundles=None, url='/', path=None, debug=not __debug__, live=__debug__, bust=None,
+	def __init__(self, target, url='/', bundles=None, path=None, debug=not __debug__, live=__debug__, bust=None,
 			scheme='hash', manifest=None, cache=True, age=31536000, **kw):
 		"""Configure WebAssets.
 		
@@ -188,8 +235,17 @@ class WebAssetsExtension(object):
 		self._environment = Environment(target, url, **kw)
 	
 	def start(self, context):
-		context.bundle = BundleRegistry(context)
+		context.bundle = BundleRegistry(context, self._environment)
 	
 	def prepare(self, context):
-		context.asset = set(self._base) if self._base else set()  # Intent: context.asset.add(context.bundle.jquery)
+		base = set()
+		
+		if self._base:
+			for i in self._base:
+				if isinstance(i, (str, unicode)):
+					base.add(context.bundle[i])
+				else:
+					base.add(i)
+
+		context.asset = base  # Intent: context.asset.add(context.bundle.jquery)
 
