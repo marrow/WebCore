@@ -37,7 +37,7 @@ else:
 	@register_filter
 	class JavaScripthon(Filter):
 		name = 'javascripthon'
-		
+		max_debug_level = None
 		_options = {}
 		
 		def __init__(self, stage3=False):
@@ -132,7 +132,7 @@ class BundleRegistry(PluginManager):
 
 
 class WebAssetsExtension(object):
-	def __init__(self, target, url='/', bundles=None, path=None, debug=not __debug__, live=__debug__, bust=None,
+	def __init__(self, target, url='/', bundles=None, path=None, debug=__debug__, live=__debug__, bust=None,
 			scheme='hash', manifest=None, cache=True, age=31536000, **kw):
 		"""Configure WebAssets.
 		
