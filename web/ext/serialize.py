@@ -6,11 +6,15 @@
 
 from __future__ import unicode_literals
 
-import json
-
-from collections import Mapping
+from collections import Mapping, OrderedDict as odict
 
 from web.core.context import Context
+
+
+try:
+	from bson import json_util as json
+except ImportError:
+	import json
 
 try:
 	import yaml
@@ -46,15 +50,15 @@ class SerializationExtension(object):
 	
 	def __init__(self):
 		self.provides = set(self.provides)  # We conditionally add the other options.
-		self.mapping = {'json': json, 'application/json': json}  # Always present.
+		self.mapping = odict({'json': json, 'application/json': json})  # Always present.
 		
-		if yaml:
-			self.mapping['application/x-yaml'] = self.mapping['yaml'] = yaml
-			self.provides.add('yaml')
+		# if yaml:
+		# 	self.mapping['application/x-yaml'] = self.mapping['yaml'] = yaml
+		# 	self.provides.add('yaml')
 		
-		if bencode:
-			self.mapping['application/x-bencode'] = self.mapping['bencode'] = bencode
-			self.provides.add('bencode')
+		# if bencode:
+		# 	self.mapping['application/x-bencode'] = self.mapping['bencode'] = bencode
+		# 	self.provides.add('bencode')
 	
 	# ### Application-Level Callbacks
 	
@@ -62,9 +66,10 @@ class SerializationExtension(object):
 		if __debug__:
 			log.debug("Registering serialization return value handlers.")
 		
-		context.serializer = Context(self.mapping)
+		context.serializer = Context()
+		context.serializer.__dict__ = self.mapping
 		
-		# Register the core views supported by the base framework.
+		# Register the serialization views supported by this extension.
 		context.view.register(list, self.render_serialization)
 		context.view.register(Mapping, self.render_serialization)
 	
@@ -78,6 +83,7 @@ class SerializationExtension(object):
 		match = context.request.accept.best_match(serial.keys(), default_match='application/json')
 		
 		resp.charset = 'utf-8'
+		resp.content_type = match
 		resp.text = serial[match].dumps(result)
 		
 		return True
