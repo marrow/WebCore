@@ -22,15 +22,28 @@ from os.path import getmtime
 from time import mktime, gmtime
 from datetime import datetime
 from mimetypes import init, add_type, guess_type
+from collections import namedtuple
 from webob import Request, Response
 
-from web.core.compat import str, unicode
+from web.core.compat import str, unicode, Path
 from web.core.util import safe_name
 
 
 # ## Module Globals
 
 log = __import__('logging').getLogger(__name__)
+
+
+# ## Helper Classes
+
+Crumb = namedtuple('Breadcrumb', ('handler', 'path'))
+
+
+class Bread(list):
+	@property
+	def current(self):
+		return self[-1].path
+
 
 
 # ## Extension
@@ -90,7 +103,7 @@ class BaseExtension(object):
 			del context.request.remainder[0]
 		
 		# Track the "breadcrumb list" of dispatch through distinct controllers.
-		context.path = []
+		context.path = Bread()
 	
 	def dispatch(self, context, consumed, handler, is_endpoint):
 		"""Called as dispatch descends into a tier.
@@ -122,7 +135,7 @@ class BaseExtension(object):
 					context.request.path_info_pop()
 		
 		# Update the breadcrumb list.
-		context.path.append((handler, request.script_name))
+		context.path.append(Crumb(handler, Path(request.script_name)))
 		
 		if consumed:  # Lastly, update the remaining path element list.
 			request.remainder = request.remainder[len(consumed):]

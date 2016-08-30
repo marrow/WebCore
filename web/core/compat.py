@@ -46,3 +46,11 @@ try:
 except ImportError:
 	from io import StringIO
 
+
+# ## Python Standard Library Backports
+
+try:
+	from pathlib import PurePosixPath as Path
+except ImportError:
+	from pathlib2 import PurePosixPath as Path
+
