@@ -6,6 +6,7 @@
 
 from __future__ import unicode_literals
 
+from time import time
 import logging
 import logging.config
 
@@ -153,7 +154,7 @@ class Application(object):
 			* Optionally merging GET and POST instead of POST overriding.
 			* Optionally PHP-style with [] to denote array elements explicitly.
 		
-		We currently go for the latter without merging or PHP-ness.
+		We currently go for the latter without merging or PHP-ness. Additionally, we can parse JSON bodies.
 		
 		TODO: Investigate WebOb's request.urlvars and request.urlargs:
 			https://github.com/Pylons/webob/blob/master/webob/request.py#L566-L646
@@ -161,7 +162,7 @@ class Application(object):
 		
 		args = list(request.remainder)
 		if args and args[0] == '': del args[0]  # Trim the result of a leading `/`.
-	
+		
 		def process_kwargs(src):
 			kwargs = dict()
 			
@@ -177,6 +178,9 @@ class Application(object):
 		
 		kwargs = process_kwargs(request.GET)
 		kwargs.update(process_kwargs(request.POST))
+		
+		if request.content_type == 'application/json' and request.body:
+			kwargs.update(request.json)
 		
 		return args, kwargs
 	
