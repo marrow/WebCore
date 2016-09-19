@@ -100,5 +100,5 @@ class Root(object):
 if __name__ == '__main__':
 	from web.core.application import Application
 	
-	Application(Root, logging={'level': 'debug'})
+	Application(Root, logging={'level': 'info'}).serve('waitress', threads=15)
 
