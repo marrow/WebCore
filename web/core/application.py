@@ -220,16 +220,20 @@ class Application(object):
 		# Identify the endpoint for this request.
 		is_endpoint, handler = context.dispatch(context, context.root, context.environ['PATH_INFO'])
 		
-		# If no endpoint could be resolved, that's a 404.
-		if not is_endpoint:
-			# We can't just set the handler to the exception class or instance, because both are callable.
-			def handler(_ctx, *args, **kw):  # Yes, this works.  We're just assigning this code obj. to a label.  :3
-				"""An endpoint that returns a 404 Not Found error on dispatch failure."""
-				return HTTPNotFound("Dispatch failed." if __debug__ else None)  # Not an exceptional event, so don't raise.
-		
-		result = self._execute_endpoint(context, handler, signals)  # Process the endpoint.
-		
+		if is_endpoint:
+			try:
+				result = self._execute_endpoint(context, handler, signals)  # Process the endpoint.
+			except Exception as e:
+				log.exception("Caught exception attempting to execute the endpoint.")
+				result = context.response = HTTPInternalServerError(str(e) if __debug__ else "Please see the logs.")
 				
+				if 'debugger' in context.extension.feature:
+					for ext in signals.after: ext(context)  # Allow signals to clean up early.
+					raise
+		
+		else:  # If no endpoint could be resolved, that's a 404.
+			result = HTTPNotFound("Dispatch failed." if __debug__ else None)
+		
 		if __debug__:
 			log.debug("Result prepared, identifying view handler.", extra=dict(
 					request = id(context),
