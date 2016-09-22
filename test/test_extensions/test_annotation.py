@@ -5,22 +5,21 @@ import pytest
 from web.core.compat import py3
 from web.core.context import Context
 
+
 pytestmark = pytest.mark.skipif(not py3, reason="Python 3 required for annotation support.")
 endpoint = None  # Correct mistaken linter.
+Endpoint = None  # Correct mistaken linter.
+
 
 if py3:
 	from web.ext.annotation import AnnotationExtension
 	
 	# This trick hides the syntax error from Python 2.
 	exec("def endpoint(a: int, b: int) -> 'int': return a * b")
+	exec("class Endpoint:\n\tdef endpoint(a: int, b: int): return a * b")
 
 
 def bare_endpoint(a, b): return a * b
-
-
-Endpoint = None  # Correct mistaken linter.
-
-exec("class Endpoint:\n\tdef endpoint(a: int, b: int): return a * b")
 
 
 def test_annotation_extension():
