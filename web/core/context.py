@@ -127,7 +127,7 @@ class ContextGroup(Context):
 	
 	def __getattr__(self, name):
 		if 'default' not in dir(self):
-			raise AttributeError("No default group member defined.")
+			raise AttributeError()
 		
 		return getattr(self.default, name)
 	
