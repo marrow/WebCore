@@ -13,10 +13,6 @@ python:
   - "3.4"
   - "3.5"
 
-env:
-  - PYTHONOPTIMIZE=
-  - PYTHONOPTIMIZE=1
-
 install:
   - travis_retry pip install --upgrade setuptools pip pytest pytest-cov codecov
   - pip install -e '.[development]'
