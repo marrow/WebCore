@@ -7,8 +7,8 @@ from web.core.context import Context
 
 pytestmark = pytest.mark.skipif(not py3, reason="Python 3 required for annotation support.")
 
-
-from web.ext.annotation import AnnotationExtension
+if py3:
+	from web.ext.annotation import AnnotationExtension
 
 endpoint = None  # Correct mistaken linter.
 
