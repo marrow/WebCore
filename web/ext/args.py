@@ -71,12 +71,14 @@ class ArgumentExtension(object):
 				container[int(name)] = value
 				continue
 			
-			if name not in container:
-				container[name] = value
+			if name in container:
+				if not isinstance(container[name], list):
+					container[name] = [container[name]]
+				
+				container[name].append(value)
 				continue
 			
-			container[name] = [container[name]]
-			container[name].append(value)
+			container[name] = value
 	
 	@staticmethod
 	def _process_rich_kwargs(source, kwargs):
