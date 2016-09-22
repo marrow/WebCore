@@ -93,6 +93,8 @@ class ContextGroup(Context):
 	default handler if assigned.
 	"""
 	
+	default = None
+	
 	def __init__(self, default=None, **kw):
 		if default is not None:
 			self.default = default
@@ -126,19 +128,19 @@ class ContextGroup(Context):
 		del self.__dict__[name]
 	
 	def __getattr__(self, name):
-		if 'default' not in dir(self):
+		if self.default is None:
 			raise AttributeError()
 		
 		return getattr(self.default, name)
 	
 	def __setattr__(self, name, value):
-		if 'default' in dir(self) and self.default is not None:
+		if self.default is not None:
 			return setattr(self.default, name, value)
 		
 		self.__dict__[name] = value
 	
 	def __delattr__(self, name):
-		if 'default' in dir(self) and self.default is not None:
+		if self.default is not None:
 			return delattr(self.default, name)
 		
 		self.__dict__[name] = None
