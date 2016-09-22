@@ -59,3 +59,18 @@ def test_context_group_initial_arguments():
 	assert len(group) == 2
 	assert set(group) == {'foo', 'bar'}
 
+
+def test_context_group_default():
+	inner = ContextGroup()
+	group = ContextGroup(inner)
+	
+	thing = group.foo = Thing()
+	assert inner.foo is thing
+	assert group.foo is thing
+	del group.foo
+	
+	assert 'foo' not in inner, list(inner)
+	assert 'foo' not in group, group.foo
+
+
+
