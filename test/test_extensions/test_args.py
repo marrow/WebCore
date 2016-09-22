@@ -24,7 +24,7 @@ class MockController(object):
 		raise HTTPNotModified()
 	
 	def rich(self, data):
-		return json.dumps(data)
+		return json.dumps({'result': data})
 
 
 class TestArgumentAndExceptionHandling(TestCase):
@@ -49,16 +49,16 @@ class TestArgumentAndExceptionHandling(TestCase):
 		assert self.do('/endpoint/4/3/9').status_int == 404
 	
 	def test_array_basic(self):
-		assert self.do('/rich?data=1&data=2').json == ['1', '2']
+		assert self.do('/rich?data=1&data=2').json['result'] == ['1', '2']
 	
 	def test_explicit_array(self):
-		assert self.do('/rich?data[]=1').json == ['1']
-		assert self.do('/rich?data[]=1&data[]=2').json == ['1', '2']
+		assert self.do('/rich?data[]=1').json['result'] == ['1']
+		assert self.do('/rich?data[]=1&data[]=2').json['result'] == ['1', '2']
 	
 	def test_indexed_array(self):
-		assert self.do('/rich?data.3=3&data.1=1&data.2=2').json == ['1', '2', '3']
+		assert self.do('/rich?data.3=3&data.1=1&data.2=2').json['result'] == ['1', '2', '3']
 	
 	def test_dictionary(self):
-		assert self.do('/rich?data.foo=3&data.bar=1&data.baz=2').json == {'bar': '1', 'baz': '2', 'foo': '3'}
+		assert self.do('/rich?data.bar=1&data.baz=2').json['result'] == {'bar': '1', 'baz': '2'}
 
 
