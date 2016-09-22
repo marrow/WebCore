@@ -14,7 +14,7 @@ python:
   - "3.5"
 
 env:
-  - PYTHONOPTIMIZE=0
+  - PYTHONOPTIMIZE=
   - PYTHONOPTIMIZE=1
 
 install:
