@@ -17,9 +17,15 @@ env:
   - PYTHONOPTIMIZE=0
   - PYTHONOPTIMIZE=1
 
-install: travis_retry .travis/install.sh
+install:
+    travis_retry pip install --upgrade setuptools pip pytest pytest-cov codecov
+    pip install -e '.[development]'
 
-script: .travis/run.sh
+script:
+    python setup.py test
+
+after_script:
+    bash <(curl -s https://codecov.io/bash)
 
 notifications:
   irc:

@@ -13,8 +13,6 @@ try:
 except ImportError:
 	from setuptools import setup, find_packages
 
-from setuptools.command.test import test as TestCommand
-
 
 if sys.version_info < (2, 7):
 	raise SystemExit("Python 2.7 or later is required.")
@@ -24,28 +22,12 @@ elif sys.version_info > (3, 0) and sys.version_info < (3, 2):
 version = description = url = author = author_email = ""  # Silence linter warnings.
 exec(open(os.path.join("web", "core", "release.py")).read())  # Actually populate those values.
 
-
-class PyTest(TestCommand):
-	__slots__ = ('test_args', 'test_suite')
-	
-	def finalize_options(self):
-		TestCommand.finalize_options(self)
-		
-		self.test_args = []
-		self.test_suite = True
-	
-	def run_tests(self):
-		import pytest
-		sys.exit(pytest.main(self.test_args))
-
-
 here = os.path.abspath(os.path.dirname(__file__))
 
 tests_require = [
 		'pytest',  # test collector and extensible runner
 		'pytest-cov',  # coverage reporting
 		'pytest-flakes',  # syntax validation
-		'pytest-spec',  # output formatting
 		'web.dispatch.object',  # dispatch tests
 		'backlash',  # debug tests
 	]
@@ -118,9 +100,6 @@ setup(
 			'web.server',  # front-end WSGI bridges
 		],
 	zip_safe = True,
-	cmdclass = dict(
-			test = PyTest,
-		),
 	
 	# ### Plugin Registration
 	
@@ -176,6 +155,9 @@ setup(
 	
 	# ## Installation Dependencies
 	
+	setup_requires = [
+			'pytest-runner',
+		] if {'pytest', 'test', 'ptr'}.intersection(sys.argv) else [],
 	install_requires = [
 			'marrow.package<2.0',  # dynamic execution and plugin management
 			'WebOb',  # HTTP request and response objects, and HTTP status code exceptions

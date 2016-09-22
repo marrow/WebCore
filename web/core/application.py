@@ -225,9 +225,10 @@ class Application(object):
 				result = self._execute_endpoint(context, handler, signals)  # Process the endpoint.
 			except Exception as e:
 				log.exception("Caught exception attempting to execute the endpoint.")
-				result = context.response = HTTPInternalServerError(str(e) if __debug__ else "Please see the logs.")
+				result = HTTPInternalServerError(str(e) if __debug__ else "Please see the logs.")
 				
 				if 'debugger' in context.extension.feature:
+					context.response = result
 					for ext in signals.after: ext(context)  # Allow signals to clean up early.
 					raise
 		
