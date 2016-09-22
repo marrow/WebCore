@@ -55,7 +55,8 @@ class ArgumentExtension(object):
 				for target, following in zip(parts[:-1], parts[1:]):
 					if following.isnumeric():  # Prepare any use of numeric IDs.
 						container.setdefault(target, [{}])
-						ordered_arrays.append(container[target])
+						if container[target] not in ordered_arrays:
+							ordered_arrays.append(container[target])
 						container = container[target][0]
 						continue
 					
@@ -79,6 +80,11 @@ class ArgumentExtension(object):
 				continue
 			
 			container[name] = value
+		
+		for container in ordered_arrays:
+			elements = container[0]
+			container.clear()
+			container.extend(value for name, value in sorted(elements.items()))
 	
 	@staticmethod
 	def _process_rich_kwargs(source, kwargs):
@@ -173,11 +179,7 @@ class RemainderArgsExtension(ArgumentExtension):
 		if not context.request.remainder:
 			return
 		
-		olen = len(args)
 		args.extend(context.request.remainder)
-		
-		if args and args[olen] == '':
-			del args[olen]  # Remove any leading slash.
 
 
 class QueryStringArgsExtension(ArgumentExtension):

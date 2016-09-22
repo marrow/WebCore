@@ -2,6 +2,7 @@
 
 from __future__ import unicode_literals
 
+import json
 from unittest import TestCase
 from webob import Request
 from webob.exc import HTTPNotModified
@@ -17,11 +18,13 @@ class MockController(object):
 		return str(int(a) * int(b))
 	
 	def sum(self, v):
-		print(repr(v))
 		return str(sum(int(i) for i in v))
 	
 	def notmod(self):
 		raise HTTPNotModified()
+	
+	def rich(self, data):
+		return json.dumps(data)
 
 
 class TestArgumentAndExceptionHandling(TestCase):
@@ -42,7 +45,20 @@ class TestArgumentAndExceptionHandling(TestCase):
 	def test_httpexception_catch(self):
 		assert self.do('/notmod').status_int == 304
 	
-	if __debug__:
-		def test_catch_mismatch(self):
-			assert self.do('/endpoint/4/3/9').status_int == 404
+	def test_catch_mismatch(self):
+		assert self.do('/endpoint/4/3/9').status_int == 404
+	
+	def test_array_basic(self):
+		assert self.do('/rich?data=1&data=2').json == ['1', '2']
+	
+	def test_explicit_array(self):
+		assert self.do('/rich?data[]=1').json == ['1']
+		assert self.do('/rich?data[]=1&data[]=2').json == ['1', '2']
+	
+	def test_indexed_array(self):
+		assert self.do('/rich?data.3=3&data.1=1&data.2=2').json == ['1', '2', '3']
+	
+	def test_dictionary(self):
+		assert self.do('/rich?data.foo=3&data.bar=1&data.baz=2').json == {'bar': '1', 'baz': '2', 'foo': '3'}
+
 
