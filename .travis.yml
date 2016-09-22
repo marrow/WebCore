@@ -18,8 +18,8 @@ env:
   - PYTHONOPTIMIZE=1
 
 install:
-    travis_retry pip install --upgrade setuptools pip pytest pytest-cov codecov
-    pip install -e '.[development]'
+  - travis_retry pip install --upgrade setuptools pip pytest pytest-cov codecov
+  - pip install -e '.[development]'
 
 script:
     python setup.py test
