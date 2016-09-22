@@ -25,7 +25,7 @@ def test_debug_extension_console():
 	
 	response = req.get_response(app)
 	
-	assert 'CONSOLE_MODE = true' in response.text
+	assert 'debugger.js' in response.text
 
 
 def test_debug_extension_catches():
