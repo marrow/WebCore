@@ -5,10 +5,7 @@ import pytest
 from web.core.compat import py3
 from web.core.context import Context
 
-
-if not py3:
-	pytest.skip("Python 3 required for annotation support.")
-	raise ImportError("Python 3 only.")
+pytestmark = pytest.mark.skipif(not py3, reason="Python 3 required for annotation support.")
 
 
 from web.ext.annotation import AnnotationExtension
