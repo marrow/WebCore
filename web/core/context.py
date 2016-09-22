@@ -101,15 +101,17 @@ class ContextGroup(Context):
 		for name in kw:
 			kw[name].__name__ = name
 			self.__dict__[name] = kw[name]
+		
+		self['_removed'] = set()
 	
-	def __repr__(self):
+	def __repr__(self): 
 		return "{0.__class__.__name__}({1})".format(self, ', '.join(sorted(self)))
 	
 	def __len__(self):
-		return len(self.__dict__)
+		return len(self.__dict__) - len(self._removed) - 1
 	
 	def __iter__(self):
-		return iter(set(dir(self)) - self._STANDARD_ATTRS)
+		return iter(set(dir(self)) - self._STANDARD_ATTRS - {'_removed'} - self._removed)
 	
 	def __getitem__(self, name):
 		try:
@@ -133,21 +135,18 @@ class ContextGroup(Context):
 		return getattr(self.default, name)
 	
 	def __setattr__(self, name, value):
-		if 'default' in dir(self):
+		if 'default' in dir(self) and self.default:
 			return setattr(self.default, name, value)
 		
 		self.__dict__[name] = value
+		self._removed.discard(name)
 	
 	def __delattr__(self, name):
 		if 'default' in dir(self):
 			return delattr(self.default, name)
 		
-		try:
-			del self.__dict__[name]
-		except KeyError:
-			pass
-		
-		raise AttributeError()
+		self.__dict__[name] = None
+		self._removed.add(name)
 
 ContextGroup._STANDARD_ATTRS = set(dir(ContextGroup()))
 
