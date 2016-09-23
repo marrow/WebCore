@@ -7,9 +7,13 @@ from unittest import TestCase
 from webob import Request
 
 from web.core.application import Application
-from web.core.context import Context
-from web.ext.acl import Predicate, Not, All, Any, ContextMatch, ContextIn, ACLExtension
+# from web.core.context import Context
+from web.ext.acl import Predicate #, Not, All, Any, ContextMatch, ContextIn, ACLExtension
 
+
+
+class MockController:
+	pass
 
 
 class TestPredicateBehaviour(TestCase):
