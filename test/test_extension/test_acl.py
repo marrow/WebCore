@@ -101,7 +101,7 @@ class TestAllPredicate(TestCase):
 			assert All(always, never, canary)() is False
 
 
-def TestAnyPredicate(TestCase):
+class TestAnyPredicate(TestCase):
 	def test_any_nop(self):
 		with must_be_called(3) as nop:
 			assert Any(nop, nop, nop)('fnord') is None
@@ -109,27 +109,21 @@ def TestAnyPredicate(TestCase):
 	def test_any_truthy(self):
 		assert Any(always, always, always)() is True
 		
-		with must_be_called(2) as nop:
-			assert Any(always, nop, nop)() is True
-	
-	def test_any_falsy(self):
-		assert Any(always, never, always)() is False
-		
 		with must_not_be_called() as canary:
-			assert Any(never, canary, canary)() is False
+			assert Any(always, canary, canary)() is True
 		
 		with must_not_be_called() as canary:
 			with must_be_called(1) as nop:
-				assert Any(nop, never, canary)() is False
+				assert Any(nop, always, canary)() is True
+	
+	def test_any_falsy(self):
+		assert Any(never, never, never)() is False
 		
-		with must_not_be_called() as canary:
-			assert Any(always, never, canary)() is False
+		with must_be_called(2) as nop:
+			assert Any(never, nop, nop)() is False
 		
 		with must_be_called(2) as nop:
 			assert Any(nop, nop, never)() is False
-		
-		with must_not_be_called() as canary:
-			assert Any(always, never, canary)() is False
 
 
 class TestContextMatchPredicate(TestCase):
