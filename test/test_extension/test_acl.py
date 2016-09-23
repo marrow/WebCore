@@ -9,12 +9,12 @@ from webob import Request
 
 from web.core.application import Application
 # from web.core.context import Context
-from web.ext.acl import Predicate, always, never, Not, All, Any #, ContextMatch, ContextIn, ACLExtension
+from web.ext.acl import Predicate, always, never
+from web.ext.acl import Not, First, All, Any
+# from web.ext.acl import ContextMatch, ContextIn, ACLExtension
 
 
-def nop(context=None):
-	pass
-
+# # Support Machinery
 
 @contextmanager
 def must_be_called(n=None):
@@ -39,6 +39,7 @@ def must_be_called(n=None):
 
 @contextmanager
 def must_not_be_called():
+	"""Ensure the target function is never called."""
 	called = []
 	
 	def must_not_call(context=None):
@@ -52,6 +53,8 @@ def must_not_be_called():
 class MockController:
 	pass
 
+
+# # Tests
 
 class TestBasicPredicateBehaviour(TestCase):
 	def test_bare_predicate_fails(self):
@@ -67,7 +70,34 @@ class TestBasicPredicateBehaviour(TestCase):
 	def test_not(self):
 		assert Not(always)() is False
 		assert Not(never)() is True
-		assert Not(nop)(27) is None
+		
+		with must_be_called(1) as nop:
+			assert Not(nop)(27) is None
+
+
+class TestFirstPredicate(TestCase):
+	def test_first_nop(self):
+		with must_be_called(3) as nop:
+			assert First(nop, nop, nop)('fnord') is None
+	
+	def test_first_truthy(self):
+		assert First(always, always, always)() is True
+		
+		with must_be_called(2) as nop:
+			assert First(nop, nop, always)() is True
+		
+		with must_not_be_called() as canary:
+			assert First(always, canary, canary)() is True
+	
+	def test_first_falsy(self):
+		assert First(never, never, never)() is False
+		
+		with must_be_called(2) as nop:
+			assert First(nop, nop, never)() is False
+		
+		with must_not_be_called() as canary:
+			assert First(never, canary, canary)() is False
+
 
 
 class TestAllPredicate(TestCase):

@@ -73,6 +73,24 @@ class Never(Predicate):
 never = Never()  # Convienent singleton to use.
 
 
+class First(Predicate):
+	"""Authorizes or denies an action on the first non-veto predicate."""
+	
+	__slots__ = ('predicates', )
+	
+	def __init__(self, *predicates):
+		self.predicates = predicates
+	
+	def __call__(self, context=None):
+		for predicate in self.predicates:
+			result = predicate(context) if context else predicate()
+			
+			if result is None:  # Abstain
+				continue
+			
+			return bool(result)
+
+
 class All(Predicate):
 	"""Authorizes an action only if all predicates authorize the action.
 	
