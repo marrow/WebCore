@@ -1,7 +1,7 @@
 *.py[co]
 
 # Packaging
-.eggs
+*.egg-info
 .packaging
 
 # Virtual Environment Pseudo-Chroot
