@@ -23,7 +23,10 @@ class MockController(object):
 	def notmod(self):
 		raise HTTPNotModified()
 	
-	def rich(self, data):
+	def rich(self, data=None):
+		if not data:
+			return
+		
 		return json.dumps({'result': data})
 
 
@@ -34,6 +37,7 @@ class TestArgumentAndExceptionHandling(TestCase):
 		if data:
 			req.content_type = 'application/json'
 			req.json = data
+			data.pop('_remove', None)
 		return req.get_response(app)
 	
 	def test_positional(self):
@@ -65,7 +69,8 @@ class TestArgumentAndExceptionHandling(TestCase):
 		assert self.do('/rich?data.bar=1&data.baz=2').json['result'] == {'bar': '1', 'baz': '2'}
 	
 	def test_json_body(self):
-		print(self.do('/rich', data={'foo': 1, 'bar': 2}))
-		print(self.do('/rich', data={'foo': 1, 'bar': 2}).text)
 		assert self.do('/rich', data={'foo': 1, 'bar': 2}).json['result'] == {'foo': 1, 'bar': 2}
+	
+	def test_empty_body(self):
+		assert self.do('/rich', _remove=True).text == ""
 

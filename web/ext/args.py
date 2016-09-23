@@ -143,22 +143,16 @@ class ContextArgsExtension(ArgumentExtension):
 	first = True
 	provides = {'args.context'}
 	
-	def __init__(self, when='unbound'):
+	def __init__(self, always=False):
 		"""Configure the conditions under which the context is added to endpoint positional arguments.
 		
-		The `when` argument indicates one of:
-		
-		`always`: Always add the context to the positional parameters list.
-		`unbound`: Add the context to the list when calling method of a class we did not instantiate, or a non-method.
-		`never`: Choose this if you never want the context passed to endpoints directly, e.g. to simulate WebCore 1.
+		When `always` is truthy the context is always included, otherwise it's only included for callables that are
+		not bound methods.
 		"""
-		self.when = when
+		self.always = always
 	
 	def mutate(self, context, endpoint, args, kw):
-		if self.when == 'never':
-			return
-		
-		if self.when == 'unbound':
+		if not self.always:
 			# Instance methods were handed the context at class construction time via dispatch.
 			# The `not isroutine` bit here catches callable instances, a la "index.html" handling.
 			if not isroutine(endpoint) or (ismethod(endpoint) and getattr(endpoint, '__self__', None) is not None):
