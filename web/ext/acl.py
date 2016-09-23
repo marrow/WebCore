@@ -30,11 +30,11 @@ log = __import__('logging').getLogger(__name__)
 class Predicate(object):
 	__slots__ = ()
 	
-	def __call__(self, context):
+	def __call__(self, context=None):
 		raise NotImplementedError()
 
 
-def Not(Predicate):
+class Not(Predicate):
 	"""Invert the meaning of another predicate."""
 	
 	__slots__ = ('predicate', )
@@ -42,8 +42,8 @@ def Not(Predicate):
 	def __init__(self, predicate):
 		self.predicate = predicate
 	
-	def __call__(self, context):
-		result = self.predicate(context)
+	def __call__(self, context=None):
+		result = self.predicate(context) if context else self.predicate()
 		
 		if result is None:
 			return
@@ -56,7 +56,7 @@ class Always(Predicate):
 	
 	__slots__ = ()
 	
-	def __call__(self, context):
+	def __call__(self, context=None):
 		return True
 
 always = Always()  # Convienent singleton to use.
@@ -67,34 +67,65 @@ class Never(Predicate):
 	
 	__slots__ = ()
 	
-	def __call__(self, context):
+	def __call__(self, context=None):
 		return False
 
 never = Never()  # Convienent singleton to use.
 
 
 class All(Predicate):
-	"""Authorizes an action only if all predicates authorize the action."""
+	"""Authorizes an action only if all predicates authorize the action.
+	
+	Returns `False` on first failure, `True` if all voting predicates returned `True`, `None` otherwise.
+	"""
 	
 	__slots__ = ('predicates', )
 	
 	def __init__(self, *predicates):
 		self.predicates = predicates
 	
-	def __call__(self, context):
-		return all(predicate(context) for predicate in self.predicates)
+	def __call__(self, context=None):
+		if context:
+			results = (predicate(context) for predicate in self.predicates)
+		else:
+			results = (predicate() for predicate in self.predicates)
+		
+		vote = None
+		
+		for result in results:
+			if result is None:  # Abstain
+				continue
+			
+			if not bool(result):  # Exit Early
+				return False
+			
+			vote = True
+		
+		return vote
 
 
 class Any(Predicate):
-	"""Authorize an action if any predicate authorizes the action."""
+	"""Authorize an action if any predicate authorizes the action.
+	
+	Returns `True` on first success, `False` on first failure, `None` otherwise.
+	"""
 	
 	__slots__ = ('predicates', )
 	
 	def __init__(self, *predicates):
 		self.predicates = predicates
 	
-	def __call__(self, context):
-		return any(predicate(context) for predicate in self.predicates)
+	def __call__(self, context=None):
+		if context:
+			results = (predicate(context) for predicate in self.predicates)
+		else:
+			results = (predicate() for predicate in self.predicates)
+		
+		for result in results:
+			if result is None:  # Abstain
+				continue
+			
+			return bool(result)
 
 
 class ContextMatch(Predicate):
