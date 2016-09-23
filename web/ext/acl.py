@@ -107,7 +107,7 @@ class All(Predicate):
 class Any(Predicate):
 	"""Authorize an action if any predicate authorizes the action.
 	
-	Returns `True` on first success, `False` on first failure, `None` otherwise.
+	Returns `True` on first success, `False` if all voting predicates returned `False`, `None` otherwise.
 	"""
 	
 	__slots__ = ('predicates', )
@@ -121,11 +121,18 @@ class Any(Predicate):
 		else:
 			results = (predicate() for predicate in self.predicates)
 		
+		vote = None
+		
 		for result in results:
 			if result is None:  # Abstain
 				continue
 			
-			return bool(result)
+			if bool(result):
+				return True
+			
+			vote = False
+		
+		return vote
 
 
 class ContextMatch(Predicate):
