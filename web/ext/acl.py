@@ -164,8 +164,8 @@ class ContextMatch(Predicate):
 	
 	Examples might include:
 	
-	local = ContextMatch(True, 'request.remote_addr', '127.0.0.1')
 	admin = ContextMatch(True, 'user.admin', True)
+	local = ContextMatch(True, 'request.remote_addr', '127.0.0.1', '::1')
 	"""
 	
 	__slots__ = ('grant', 'attribute', 'values', 'default')
@@ -174,13 +174,21 @@ class ContextMatch(Predicate):
 	def __init__(self, grant, attribute, *values, **kw):
 		default = kw.pop('default', None)
 		
-		if kw:  # This is the only keyword argument we accept.
-			raise TypeError()
-		
-		assert grant in (True, False), "The `grant` argument must be True (allow) or False (deny).`"
+		if __debug__:
+			if kw:  # This is the only keyword argument we accept.
+				raise TypeError("Unknown keyword arguments: " + ", ".join(sorted(kw)))
+			
+			if not values:
+				raise TypeError("You must supply one or more values to compare against.")
+			
+			if grant not in (True, False):
+				raise ValueError("The `grant` argument must be `True` (allow) or `False` (deny).")
+			
+			if default not in (None, True, False):
+				raise ValueError("The default may either be `True` (allow), `False` (deny), or `None` (abstain).")
 		
 		self.grant = grant  # True if we grant access, False if we deny access.
-		self.attribute = attribute  # The attribute to retrieve, i.e. "user.admin", or "
+		self.attribute = attribute  # The attribute to retrieve, i.e. "user.admin"
 		self.values = values
 		self.default = default
 	
@@ -194,13 +202,15 @@ class ContextMatch(Predicate):
 			return self.default
 		
 		result = any(i == value for i in self.values)  # We do this rather than "in" to support equality comparison.
-		return self.grant if result else not self.grant
+		
+		return self.grant if result else None
 
 
 class ContextIn(ContextMatch):
 	"""Match a variable from the context containing one or more values.
 	
 	Similar to ContextMatch, except matches the values being "in" the target variable rather than comparing equality.
+	
 	"""
 	
 	__slots__ = ('grant', 'attribute', 'values', 'default')

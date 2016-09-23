@@ -8,10 +8,10 @@ from contextlib import contextmanager
 from webob import Request
 
 from web.core.application import Application
-# from web.core.context import Context
+from web.core.context import Context
 from web.ext.acl import Predicate, always, never
 from web.ext.acl import Not, First, All, Any
-# from web.ext.acl import ContextMatch, ContextIn, ACLExtension
+from web.ext.acl import ContextMatch #, ContextIn, ACLExtension
 
 
 # # Support Machinery
@@ -48,6 +48,18 @@ def must_not_be_called():
 	yield must_not_call
 	
 	assert len(called) == 0, "Predicate that must not be called, was."
+
+
+@pytest.fixture
+def context():
+	"""Sometimes, you just need an empty context."""
+	yield Context()
+
+
+@pytest.fixture
+def admin():
+	"""The "administrative user" example for ContextMatch."""
+	yield ContextMatch(True, 'user.admin', True)
 
 
 class MockController:
@@ -97,7 +109,6 @@ class TestFirstPredicate(TestCase):
 		
 		with must_not_be_called() as canary:
 			assert First(never, canary, canary)() is False
-
 
 
 class TestAllPredicate(TestCase):
@@ -156,8 +167,52 @@ class TestAnyPredicate(TestCase):
 			assert Any(nop, nop, never)() is False
 
 
-class TestContextMatchPredicate(TestCase):
-	pass
+class TestContextMatchPredicate(object):
+	local_request = Request.blank('/', remote_addr='127.0.0.1')
+	
+	def test_bad_arguments(self):
+		with pytest.raises(TypeError):
+			ContextMatch(True, 'foo', 27, foo=27)
+		
+		with pytest.raises(TypeError):
+			ContextMatch(True, 'foo')
+		
+		with pytest.raises(ValueError):
+			ContextMatch('foo', 'bar', 27)
+		
+		with pytest.raises(ValueError):
+			ContextMatch(True, 'foo', 27, default='bar')
+	
+	def test_admin_example_with_no_user(self, admin, context):
+		assert admin(context) is None
+	
+	def test_admin_example_user_with_no_admin_field(self, admin, context):
+		context.user = Context()
+		assert admin(context) is None
+	
+	def test_admin_example_user_who_is_not_admin(self, admin, context):
+		context.user = Context(admin=False)
+		assert admin(context) is None
+	
+	def test_admin_example_user_who_is_admin(self, admin, context):
+		context.user = Context(admin=True)
+		assert admin(context) is True
+	
+	
+	'''
+	
+	def test_admin_example_(self):
+		admin = ContextMatch(True, 'user.admin', True)
+		context = Context()
+		
+		assert admin(context) is None
+	
+	def test_remote_addr_example(self):
+		local = ContextMatch(True, 'request.remote_addr', '127.0.0.1')
+		local_context = Context(request=local_request)
+		
+		assert admin(context) is None
+	'''
 
 
 class TestContextInPredicate(TestCase):
