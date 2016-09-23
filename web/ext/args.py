@@ -89,7 +89,7 @@ class ArgumentExtension(object):
 	@staticmethod
 	def _process_rich_kwargs(source, kwargs):
 		"""Apply a nested structure to the current kwargs."""
-		pass
+		kwargs.update(source)
 
 
 class ValidateArgumentsExtension(object):
@@ -220,6 +220,6 @@ class JSONKwargsExtension(ArgumentExtension):
 		if not context.request.body:
 			return
 		
-		kw.update(context.request.json)
+		self._process_rich_kwargs(context.request.json, kw)
 
 
