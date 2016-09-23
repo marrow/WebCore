@@ -76,10 +76,14 @@ class TestAllPredicate(TestCase):
 			assert All(nop, nop, nop)('fnord') is None
 	
 	def test_all_truthy(self):
+		assert All(always, always, always)() is True
+		
 		with must_be_called(2) as nop:
 			assert All(always, nop, nop)() is True
 	
 	def test_all_falsy(self):
+		assert All(always, never, always)() is False
+		
 		with must_not_be_called() as canary:
 			assert All(never, canary, canary)() is False
 		
@@ -95,22 +99,37 @@ class TestAllPredicate(TestCase):
 		
 		with must_not_be_called() as canary:
 			assert All(always, never, canary)() is False
+
+
+def TestAnyPredicate(TestCase):
+	def test_any_nop(self):
+		with must_be_called(3) as nop:
+			assert Any(nop, nop, nop)('fnord') is None
 	
-	def test_any(self):
-		assert Any(nop, nop, nop)() is None
+	def test_any_truthy(self):
 		assert Any(always, always, always)() is True
-		assert Any(never, never, never)() is False
 		
-		assert Any(nop, never, never)() is False
-		assert Any(never, nop, never)() is False
-		assert Any(never, never, nop)() is False
+		with must_be_called(2) as nop:
+			assert Any(always, nop, nop)() is True
+	
+	def test_any_falsy(self):
+		assert Any(always, never, always)() is False
 		
-		assert Any(nop, never, always)() is False
-		assert Any(always, nop, never)() is True
-		assert Any(never, always, nop)() is False
+		with must_not_be_called() as canary:
+			assert Any(never, canary, canary)() is False
 		
-		assert Any(nop, nop, always)(27) is True
-		assert Any(nop, nop, never)(27) is False
+		with must_not_be_called() as canary:
+			with must_be_called(1) as nop:
+				assert Any(nop, never, canary)() is False
+		
+		with must_not_be_called() as canary:
+			assert Any(always, never, canary)() is False
+		
+		with must_be_called(2) as nop:
+			assert Any(nop, nop, never)() is False
+		
+		with must_not_be_called() as canary:
+			assert Any(always, never, canary)() is False
 
 
 class TestContextMatchPredicate(TestCase):
