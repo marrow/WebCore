@@ -83,7 +83,7 @@ class ArgumentExtension(object):
 		
 		for container in ordered_arrays:
 			elements = container[0]
-			container.clear()
+			del container[:]
 			container.extend(value for name, value in sorted(elements.items()))
 	
 	@staticmethod
