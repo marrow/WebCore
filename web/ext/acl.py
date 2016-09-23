@@ -14,7 +14,7 @@ predicates match is to deny, in most instances.
 
 from __future__ import unicode_literals
 
-from webob.exc import HTTPUnauthorized, HTTPForbidden
+from webob.exc import HTTPForbidden
 from marrow.package.loader import traverse
 
 from web.core.util import safe_name
@@ -28,6 +28,8 @@ log = __import__('logging').getLogger(__name__)
 # ## Simple Predicates
 
 class Predicate(object):
+	__slots__ = ()
+	
 	def __call__(self, context):
 		raise NotImplementedError()
 
@@ -47,6 +49,28 @@ def Not(Predicate):
 			return
 		
 		return not result
+
+
+class Always(Predicate):
+	"""Always grant access."""
+	
+	__slots__ = ()
+	
+	def __call__(self, context):
+		return True
+
+always = Always()  # Convienent singleton to use.
+
+
+class Never(Predicate):
+	"""Always deny access."""
+	
+	__slots__ = ()
+	
+	def __call__(self, context):
+		return False
+
+never = Never()  # Convienent singleton to use.
 
 
 class All(Predicate):
@@ -206,8 +230,8 @@ class ACLExtension(object):
 			result = predicate(context)
 			if result is not None: break
 		else:
-			raise HTTPNotAuthorized("Authorization failure.")  # No rule matched.
+			raise HTTPForbidden("Authorization failure.")  # No rule matched.
 		
 		if not result:
-			raise HTTPNotAuthorized("Authorization failure.")  # Rule matched, but said no.
+			raise HTTPForbidden("Authorization failure.")  # Rule matched, but said no.
 
