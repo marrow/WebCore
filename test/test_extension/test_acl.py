@@ -33,25 +33,23 @@ class TestBasicPredicateBehaviour(TestCase):
 	def test_not(self):
 		assert Not(always)() is False
 		assert Not(never)() is True
+		assert Not(nop)(27) is None
 	
 	def test_all(self):
 		assert All(nop, nop, nop)() is None
 		assert All(always, always, always)() is True
 		assert All(never, never, never)() is False
 		
-		assert All(always, never, never)() is False
-		assert All(never, always, never)() is False
-		assert All(never, never, always)() is False
+		assert All(nop, never, never)() is False
+		assert All(never, nop, never)() is False
+		assert All(never, never, nop)() is False
 		
-		assert All(always, always, never)() is False
-		assert All(never, always, always)() is False
-			
-		assert All(nop, always, never)() is False
+		assert All(nop, never, always)() is False
 		assert All(always, nop, never)() is False
-		assert All(always, always, nop)() is True
-		assert All(nop, always, always)() is True
-		assert All(never, nop, always)() is False
 		assert All(never, always, nop)() is False
+		
+		assert All(nop, nop, always)(27) is True
+		assert All(nop, nop, never)(27) is False
 	
 	def test_any(self):
 		assert Any(nop, nop, nop)() is None
@@ -65,6 +63,9 @@ class TestBasicPredicateBehaviour(TestCase):
 		assert Any(nop, never, always)() is False
 		assert Any(always, nop, never)() is True
 		assert Any(never, always, nop)() is False
+		
+		assert Any(nop, nop, always)(27) is True
+		assert Any(nop, nop, never)(27) is False
 
 
 class TestExtensionBehaviour(TestCase):
