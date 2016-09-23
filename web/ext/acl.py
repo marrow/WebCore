@@ -14,7 +14,7 @@ predicates match is to deny, in most instances.
 
 from __future__ import unicode_literals
 
-from webob.exc import HTTPNotAuthorized
+from webob.exc import HTTPUnauthorized, HTTPForbidden
 from marrow.package.loader import traverse
 
 from web.core.util import safe_name
@@ -28,9 +28,6 @@ log = __import__('logging').getLogger(__name__)
 # ## Simple Predicates
 
 class Predicate(object):
-	def __init__(self):
-		raise NotImplementedError()
-	
 	def __call__(self, context):
 		raise NotImplementedError()
 
