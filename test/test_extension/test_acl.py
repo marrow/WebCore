@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 
 import pytest
 from unittest import TestCase
+from contextlib import contextmanager
 from webob import Request
 
 from web.core.application import Application
@@ -13,6 +14,39 @@ from web.ext.acl import Predicate, always, never, Not, All, Any #, ContextMatch,
 
 def nop(context=None):
 	pass
+
+
+@contextmanager
+def must_be_called(n=None):
+	"""Ensure the target function is called.
+	
+	If an `n` value is supplied, ensure the target is called that many times.
+	"""
+	called = []
+	
+	def must_call(context=None):
+		called.append(context)
+	
+	yield must_call
+	
+	if n is None:
+		assert len(called) > 0, "Predicate that must be called, was not."
+	
+	else:
+		assert len(called) == n, "Predicate that must be called " + str(n) + " times was called " + \
+				str(len(called)) + " times."
+
+
+@contextmanager
+def must_not_be_called():
+	called = []
+	
+	def must_not_call(context=None):
+		called.append(context)
+	
+	yield must_not_call
+	
+	assert len(called) == 0, "Predicate that must not be called, was."
 
 
 class MockController:
@@ -34,22 +68,33 @@ class TestBasicPredicateBehaviour(TestCase):
 		assert Not(always)() is False
 		assert Not(never)() is True
 		assert Not(nop)(27) is None
+
+
+class TestAllPredicate(TestCase):
+	def test_all_nop(self):
+		with must_be_called(3) as nop:
+			assert All(nop, nop, nop)('fnord') is None
 	
-	def test_all(self):
-		assert All(nop, nop, nop)() is None
-		assert All(always, always, always)() is True
-		assert All(never, never, never)() is False
+	def test_all_truthy(self):
+		with must_be_called(2) as nop:
+			assert All(always, nop, nop)() is True
+	
+	def test_all_falsy(self):
+		with must_not_be_called() as canary:
+			assert All(never, canary, canary)() is False
 		
-		assert All(nop, never, never)() is False
-		assert All(never, nop, never)() is False
-		assert All(never, never, nop)() is False
+		with must_not_be_called() as canary:
+			with must_be_called(1) as nop:
+				assert All(nop, never, canary)() is False
 		
-		assert All(nop, never, always)() is False
-		assert All(always, nop, never)() is False
-		assert All(never, always, nop)() is False
+		with must_not_be_called() as canary:
+			assert All(always, never, canary)() is False
 		
-		assert All(nop, nop, always)(27) is True
-		assert All(nop, nop, never)(27) is False
+		with must_be_called(2) as nop:
+			assert All(nop, nop, never)() is False
+		
+		with must_not_be_called() as canary:
+			assert All(always, never, canary)() is False
 	
 	def test_any(self):
 		assert Any(nop, nop, nop)() is None
@@ -66,6 +111,14 @@ class TestBasicPredicateBehaviour(TestCase):
 		
 		assert Any(nop, nop, always)(27) is True
 		assert Any(nop, nop, never)(27) is False
+
+
+class TestContextMatchPredicate(TestCase):
+	pass
+
+
+class TestContextInPredicate(TestCase):
+	pass
 
 
 class TestExtensionBehaviour(TestCase):
