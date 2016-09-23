@@ -36,8 +36,9 @@ class TestArgumentAndExceptionHandling(TestCase):
 		req = Request.blank(path)
 		if data:
 			req.content_type = 'application/json'
-			req.json = data
 			data.pop('_remove', None)
+			if data:
+				req.json = data
 		return req.get_response(app)
 	
 	def test_positional(self):
