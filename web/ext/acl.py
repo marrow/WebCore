@@ -211,6 +211,9 @@ class ContextIn(ContextMatch):
 	
 	Similar to ContextMatch, except matches the values being "in" the target variable rather than comparing equality.
 	
+	Examples might include:
+	
+	reviewer = ContextIn(True, 'user.role', 'reviewer')
 	"""
 	
 	__slots__ = ('grant', 'attribute', 'values', 'default')
@@ -224,10 +227,9 @@ class ContextIn(ContextMatch):
 		if value is self.SENTINEL:
 			return self.default
 		
-		try:
-			return any(i in value for i in self.values)
-		except TypeError:
-			return self.default
+		result = any(i in value for i in self.values)
+		
+		return self.grant if result else None
 
 
 # ## Extension

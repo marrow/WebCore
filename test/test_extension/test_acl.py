@@ -3,7 +3,6 @@
 from __future__ import unicode_literals
 
 import pytest
-from unittest import TestCase
 from contextlib import contextmanager
 from webob import Request
 
@@ -11,7 +10,7 @@ from web.core.application import Application
 from web.core.context import Context
 from web.ext.acl import Predicate, always, never
 from web.ext.acl import Not, First, All, Any
-from web.ext.acl import ContextMatch #, ContextIn, ACLExtension
+from web.ext.acl import ContextMatch, ContextIn  #, ACLExtension
 
 
 # # Support Machinery
@@ -62,13 +61,19 @@ def admin():
 	yield ContextMatch(True, 'user.admin', True)
 
 
+@pytest.fixture
+def reviewer():
+	"""The "content reviewer" example for ContextIn."""
+	yield ContextIn(True, 'user.role', 'reviewer')
+
+
 class MockController:
 	pass
 
 
 # # Tests
 
-class TestBasicPredicateBehaviour(TestCase):
+class TestBasicPredicateBehaviour(object):
 	def test_bare_predicate_fails(self):
 		with pytest.raises(NotImplementedError):
 			Predicate()()
@@ -87,7 +92,7 @@ class TestBasicPredicateBehaviour(TestCase):
 			assert Not(nop)(27) is None
 
 
-class TestFirstPredicate(TestCase):
+class TestFirstPredicate(object):
 	def test_first_nop(self):
 		with must_be_called(3) as nop:
 			assert First(nop, nop, nop)('fnord') is None
@@ -111,7 +116,7 @@ class TestFirstPredicate(TestCase):
 			assert First(never, canary, canary)() is False
 
 
-class TestAllPredicate(TestCase):
+class TestAllPredicate(object):
 	def test_all_nop(self):
 		with must_be_called(3) as nop:
 			assert All(nop, nop, nop)('fnord') is None
@@ -142,7 +147,7 @@ class TestAllPredicate(TestCase):
 			assert All(always, never, canary)() is False
 
 
-class TestAnyPredicate(TestCase):
+class TestAnyPredicate(object):
 	def test_any_nop(self):
 		with must_be_called(3) as nop:
 			assert Any(nop, nop, nop)('fnord') is None
@@ -197,29 +202,26 @@ class TestContextMatchPredicate(object):
 	def test_admin_example_user_who_is_admin(self, admin, context):
 		context.user = Context(admin=True)
 		assert admin(context) is True
-	
-	
-	'''
-	
-	def test_admin_example_(self):
-		admin = ContextMatch(True, 'user.admin', True)
-		context = Context()
-		
-		assert admin(context) is None
-	
-	def test_remote_addr_example(self):
-		local = ContextMatch(True, 'request.remote_addr', '127.0.0.1')
-		local_context = Context(request=local_request)
-		
-		assert admin(context) is None
-	'''
 
 
-class TestContextInPredicate(TestCase):
-	pass
+class TestContextInPredicate(object):
+	def test_reviewer_example_with_no_user(self, reviewer, context):
+		assert reviewer(context) is None
+	
+	def test_reviewer_example_with_no_role_field(self, reviewer, context):
+		context.user = Context()
+		assert reviewer(context) is None
+	
+	def test_reviewer_example_without_role(self, reviewer, context):
+		context.user = Context(role={'peasant'})
+		assert reviewer(context) is None
+	
+	def test_reviewer_example_with_role(self, reviewer, context):
+		context.user = Context(role={'reviewer'})
+		assert reviewer(context) is True
 
 
-class TestExtensionBehaviour(TestCase):
+class TestExtensionBehaviour(object):
 	def do(self, path, **data):
 		app = Application(MockController)
 		req = Request.blank(path)
