@@ -10,7 +10,7 @@ from web.core.application import Application
 from web.core.context import Context
 from web.ext.acl import Predicate, always, never
 from web.ext.acl import Not, First, All, Any
-from web.ext.acl import ContextMatch, ContextIn  #, ACLExtension
+from web.ext.acl import ContextMatch, ContextContains  #, ACLExtension
 
 
 # # Support Machinery
@@ -64,7 +64,7 @@ def admin():
 @pytest.fixture
 def reviewer():
 	"""The "content reviewer" example for ContextIn."""
-	yield ContextIn(True, 'user.role', 'reviewer')
+	yield ContextContains(True, 'user.role', 'reviewer')
 
 
 class MockController:
@@ -204,7 +204,7 @@ class TestContextMatchPredicate(object):
 		assert admin(context) is True
 
 
-class TestContextInPredicate(object):
+class TestContextContainsPredicate(object):
 	def test_reviewer_example_with_no_user(self, reviewer, context):
 		assert reviewer(context) is None
 	
