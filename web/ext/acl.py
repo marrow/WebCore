@@ -295,9 +295,19 @@ class _When(PluginManager):
 	
 	Will assign the `__acl__` property as the tuple of arguments passed.
 	"""
-	def __call__(self, *acl):
+	def __call__(self, *acl, **kw):
+		inherit = kw.pop('inherit', True)
+		
+		if __debug__:
+			if kw:  # This is the only keyword argument we accept.
+				raise TypeError("Unknown keyword arguments: " + ", ".join(sorted(kw)))
+		
 		def acl_when_inner(target):
 			target.__acl__ = acl
+			
+			if not inherit:
+				target.__acl_inherit__ = False
+			
 			return target
 		
 		return acl_when_inner
