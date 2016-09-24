@@ -8,7 +8,7 @@ from webob import Request
 
 from web.core.application import Application
 from web.core.context import Context
-from web.ext.acl import when, ACLResult, ACLExtension
+from web.ext.acl import when, ACLResult, ACL, ACLExtension
 from web.ext.acl import Predicate, always, never
 from web.ext.acl import Not, First, All, Any
 from web.ext.acl import ContextMatch, ContextContains
@@ -116,6 +116,14 @@ class TestPredicateHelpers(object):
 		assert bool(ACLResult(True, None)) is True
 		assert bool(ACLResult(False, None)) is False
 		assert bool(ACLResult(None, None)) is False
+	
+	def test_acl_invalid_construction(self):
+		with pytest.raises(TypeError):
+			ACL(foo=27)
+	
+	def test_acl_repr(self):
+		acl = ACL(27, policy=(42,))
+		assert repr(acl) == '[(None, 27, None), (None, 42, None)]'
 
 
 class TestBasicPredicateBehaviour(object):
@@ -280,6 +288,11 @@ class TestExtensionBehaviour(object):
 		with pytest.raises(TypeError):
 			ACLExtension(foo=27)
 	
+	def test_chained_policy(self):
+		ext = ACLExtension(always, policy=[never])
+		assert ext.policy[0] is always
+		assert ext.policy[1] is never
+	
 	def test_defaults(self):
 		assert self.do(MockController) == 200
 		assert self.do(Grant) == 200
@@ -299,5 +312,6 @@ class TestExtensionBehaviour(object):
 		assert self.do(EarlyDeny, default=never) == 403
 	
 	def test_empty_policy(self):
+		assert Nuke.test.__acl_inherit__ is False
 		assert self.do(Nuke) == 200
 

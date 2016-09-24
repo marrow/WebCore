@@ -334,8 +334,8 @@ class ACLResult(object):
 
 
 class ACL(list):
-	def __init__(self, *args, **kw): # Python 3: , context=None, policy=None):
-		super(ACL, self).__init__(args)
+	def __init__(self, *rules, **kw): # Python 3: , context=None, policy=None):
+		super(ACL, self).__init__((None, rule, None) for rule in rules)
 		
 		context = kw.pop('context', None)
 		policy = kw.pop('policy', None)
@@ -548,10 +548,7 @@ class ContextMatch(Predicate):
 		self.default = default
 	
 	def __call__(self, context):
-		try:
-			value = traverse(context, self.attribute, self.SENTINEL)  # Retrieve the value.
-		except LookupError:
-			value = self.SENTINEL
+		value = traverse(context, self.attribute, self.SENTINEL)  # Retrieve the value.
 		
 		if value is self.SENTINEL:
 			return self.default
@@ -574,10 +571,7 @@ class ContextContains(ContextMatch):
 	__slots__ = ('grant', 'attribute', 'values', 'default')
 	
 	def __call__(self, context):
-		try:
-			value = traverse(context, self.attribute, self.SENTINEL)  # Retrieve the value.
-		except LookupError:
-			value = self.SENTINEL
+		value = traverse(context, self.attribute, self.SENTINEL)  # Retrieve the value.
 		
 		if value is self.SENTINEL:
 			return self.default
