@@ -8,7 +8,8 @@ from webob import Request
 
 from web.core.application import Application
 from web.core.context import Context
-from web.ext.acl import Predicate, always, never
+from web.ext.acl import when, ACLResult  #, ACL
+from web.ext.acl import Predicate, always, never, when
 from web.ext.acl import Not, First, All, Any
 from web.ext.acl import ContextMatch, ContextContains  #, ACLExtension
 
@@ -73,10 +74,28 @@ class MockController:
 
 # # Tests
 
+
+class TestPredicateHelpers(object):
+	def test_when_decorator(self):
+		@when(None)
+		def inner(): pass
+		
+		assert inner.__acl__ == (None,)
+	
+	def test_acl_result_behaviour(self):
+		assert bool(True, None) is True
+		assert bool(False, None) is False
+		assert bool(None, None) is False
+
+
 class TestBasicPredicateBehaviour(object):
 	def test_bare_predicate_fails(self):
 		with pytest.raises(NotImplementedError):
 			Predicate()()
+	
+	def test_predicate_partial(self):
+		predicate = Not.partial(always)
+		assert predicate()() is False
 	
 	def test_always(self):
 		assert always() is True

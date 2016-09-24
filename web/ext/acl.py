@@ -290,7 +290,7 @@ if __debug__:  # Documentation helpers.
 			}
 
 
-# Plugin manager and decorator.
+# ## Plugin Manager and Decorator
 
 class _When(PluginManager):
 	"""A derivative of a PluginManager that acts as a decorator.
@@ -307,6 +307,47 @@ class _When(PluginManager):
 when = _When('web.acl.predicate')  # Easy reference by short name, e.g. when.match(...)
 
 
+# ## ACL Evaluation Result and ACL List Abstractions
+
+class ACLResult(object):
+	__slots__ = ('result', 'predicate', 'path', 'source')
+	
+	def __init__(self, result, predicate, path=None, source=None):
+		self.result = result
+		self.predicate = predicate
+		self.path = path
+		self.source = source
+	
+	def __nonzero__(self):
+		return bool(self.result)
+
+
+class ACL(list):
+	def __init__(self, *args, context=None, policy=None):
+		super().__init__(args)
+		
+		self.context = proxy(context) if context else None
+		self.policy = policy or ()
+	
+	@property
+	def is_authorized(self):
+		for path, predicate, source in self:
+			result = predicate() if self.context is None else predicate(self.context)
+			
+			if result is None:
+				continue
+			
+			return ACLResult(result, predicate, path, source)
+		
+		return ACLResult(None, None, None, None)
+	
+	def __nonzero__(self):
+		return super().__nonzero__() or self.policy
+	
+	def __iter__(self):
+		return chain(super().__iter__(), ((None, i, None) for i in self.policy))
+
+
 # ## Simple Predicates
 
 class Predicate(object):
@@ -319,6 +360,7 @@ class Predicate(object):
 	def partial(cls, *args, **kw):
 		"""Retrieve a partially applied constructor for this predicate."""
 		return partial(cls, *args, **kw)
+
 
 class Not(Predicate):
 	"""Invert the meaning of another predicate."""
@@ -516,47 +558,6 @@ class ContextContains(ContextMatch):
 		result = any(i in value for i in self.values)
 		
 		return self.grant if result else None
-
-
-# ## Helper Classes
-
-class ACLResult(object):
-	__slots__ = ('result', 'predicate', 'path', 'source')
-	
-	def __init__(self, result, predicate, path=None, source=None):
-		self.result = result
-		self.predicate = predicate
-		self.path = path
-		self.source = source
-	
-	def __nonzero__(self):
-		return bool(self.result)
-
-
-class ACL(list):
-	def __init__(self, *args, context=None, policy=None):
-		super().__init__(args)
-		
-		self.context = proxy(context) if context else None
-		self.policy = policy or ()
-	
-	@property
-	def is_authorized(self):
-		for path, predicate, source in self:
-			result = predicate() if self.context is None else predicate(self.context)
-			
-			if result is None:
-				continue
-			
-			return ACLResult(result, predicate, path, source)
-		
-		return ACLResult(None, None, None, None)
-	
-	def __nonzero__(self):
-		return super().__nonzero__() or self.policy
-	
-	def __iter__(self):
-		return chain(super().__iter__(), ((None, i, None) for i in self.policy))
 
 
 # ## Extension
