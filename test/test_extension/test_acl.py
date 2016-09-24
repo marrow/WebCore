@@ -265,26 +265,31 @@ class TestContextContainsPredicate(object):
 
 
 class TestExtensionBehaviour(object):
-	def do(self, controller, **data):
-		app = Application(controller, extensions=[ACLExtension()])
+	def do(self, controller, **config):
+		app = Application(controller, extensions=[ACLExtension(**config)])
 		req = Request.blank('/')
-		
-		if data:
-			req.content_type = 'application/json'
-			if data:
-				req.json = data
-		
 		return req.get_response(app).status_int
 	
-	def test_no_explicit_rules(self):
+	def test_unknown_kwarg(self):
+		with pytest.raises(TypeError):
+			ACLExtension(foo=27)
+	
+	def test_defaults(self):
 		assert self.do(MockController) == 200
-	
-	def test_explicit_intermediate_grant(self):
 		assert self.do(Grant) == 200
-	
-	def test_early_grant(self):
 		assert self.do(EarlyGrant) == 200
-	
-	def test_early_deny(self):
 		assert self.do(EarlyDeny) == 403
+	
+	def test_existing_policy(self):
+		assert self.do(MockController, policy=[always]) == 200
+		assert self.do(Grant, policy=[always]) == 200
+		assert self.do(EarlyGrant, policy=[always]) == 200
+		assert self.do(EarlyDeny, policy=[always]) == 403
+	
+	def test_default_policy(self):
+		assert self.do(MockController, default=never) == 403
+		assert self.do(Grant, default=never) == 200
+		assert self.do(EarlyGrant, default=never) == 200
+		assert self.do(EarlyDeny, default=never) == 403
+
 
