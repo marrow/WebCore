@@ -323,8 +323,15 @@ class ACLResult(object):
 
 
 class ACL(list):
-	def __init__(self, *args, context=None, policy=None):
+	def __init__(self, *args, **kw): # Python 3: , context=None, policy=None):
 		super().__init__(args)
+		
+		context = kw.pop('context', None)
+		policy = kw.pop('policy', None)
+		
+		if __debug__:
+			if kw:  # This is the only keyword argument we accept.
+				raise TypeError("Unknown keyword arguments: " + ", ".join(sorted(kw)))
 		
 		self.context = proxy(context) if context else None
 		self.policy = policy or ()
@@ -579,11 +586,18 @@ class ACLExtension(object):
 	extensions = {'web.acl.predicate'}
 	context = {'acl'}
 	
-	def __init__(self, *_policy, default=None, policy=None):
+	def __init__(self, *_policy, **kw): # Python 3: , default=None, policy=None):
 		"""Configure the ACL extension by defining an optional base policy.
 		
 		This policy will be used as the base for every request; these are evaluated first, always.
 		"""
+		
+		default = kw.pop('default', None)
+		policy = kw.pop('policy', None)
+		
+		if __debug__:
+			if kw:  # This is the only keyword argument we accept.
+				raise TypeError("Unknown keyword arguments: " + ", ".join(sorted(kw)))
 		
 		if policy is None:
 			policy = []
