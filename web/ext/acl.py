@@ -226,9 +226,10 @@ are provided. These can be used on-demand, or the result can be saved for repeat
 Grant or deny access based on a value from the context matching one of several possible values.
 
 ```python
+deny_console = when.matches(False, 'request.client_addr', None)
 local = when.matches(True, 'request.remote_addr', '127.0.0.1', '::1')
 
-@when(local, when.matches(True, 'user.admin', True), when.never)
+@when(deny_console, local, when.matches(True, 'user.admin', True))
 def endpoint(context):
 	return "Hi."
 ```
@@ -261,7 +262,7 @@ This allows you to easily compare against containers such as lists and sets. Als
 
 from __future__ import unicode_literals
 
-#from weakref import proxy
+from weakref import proxy
 from functools import partial
 from itertools import chain
 from inspect import isclass
@@ -270,6 +271,7 @@ from marrow.package.host import PluginManager
 from marrow.package.loader import traverse
 
 from web.core.util import safe_name
+from web.core.compat import Path
 
 
 # ## Module Globals
@@ -490,8 +492,6 @@ class ContextMatch(Predicate):
 		return self.grant if result else None
 
 
-
-
 class ContextContains(ContextMatch):
 	"""Match a variable from the context containing one or more values.
 	
@@ -516,6 +516,47 @@ class ContextContains(ContextMatch):
 		result = any(i in value for i in self.values)
 		
 		return self.grant if result else None
+
+
+# ## Helper Classes
+
+class ACLResult(object):
+	__slots__ = ('result', 'predicate', 'path', 'source')
+	
+	def __init__(self, result, predicate, path=None, source=None):
+		self.result = result
+		self.predicate = predicate
+		self.path = path
+		self.source = source
+	
+	def __nonzero__(self):
+		return bool(self.result)
+
+
+class ACL(list):
+	def __init__(self, *args, context=None, policy=None):
+		super().__init__(args)
+		
+		self.context = proxy(context) if context else None
+		self.policy = policy or ()
+	
+	@property
+	def is_authorized(self):
+		for path, predicate, source in self:
+			result = predicate() if self.context is None else predicate(self.context)
+			
+			if result is None:
+				continue
+			
+			return ACLResult(result, predicate, path, source)
+		
+		return ACLResult(None, None, None, None)
+	
+	def __nonzero__(self):
+		return super().__nonzero__() or self.policy
+	
+	def __iter__(self):
+		return chain(super().__iter__(), ((None, i, None) for i in self.policy))
 
 
 # ## Extension
@@ -562,7 +603,7 @@ class ACLExtension(object):
 		if __debug__:
 			log.debug("Preparing request context with ACL.", extra=dict(request=id(context)))
 		
-		context.acl = list(self.base_policy)
+		context.acl = ACL(context=context, policy=self.policy)
 	
 	def dispatch(self, context, consumed, handler, is_endpoint):
 		"""Called as dispatch descends into a tier.
@@ -570,7 +611,7 @@ class ACLExtension(object):
 		The ACL extension uses this to build up the current request's ACL.
 		"""
 		
-		acl = getattr(handler, '__acl__', [])
+		acl = getattr(handler, '__acl__', ())
 		inherit = getattr(handler, '__acl_inherit__', True)
 		
 		if __debug__:
@@ -584,9 +625,9 @@ class ACLExtension(object):
 				))
 		
 		if not inherit:
-			context.acl = list(self.base_policy)
+			del context.acl[:]
 		
-		context.acl.extend((context.request.path, i, handler) for i in acl)
+		context.acl.extend((Path(context.request.path), i, handler) for i in acl)
 	
 	def mutate(self, context, handler, args, kw):
 		if not context.acl:
@@ -595,12 +636,50 @@ class ACLExtension(object):
 			
 			return
 		
-		for path, predicate, handler in context.acl:
-			result = predicate(context)
-			if result is not None: break
-		else:
-			raise HTTPForbidden("Authorization failure.")  # No rule matched.
+		result = context.acl.is_authorized
 		
 		if not result:
-			raise HTTPForbidden("Authorization failure.")  # Rule matched, but said no.
+			log.error("Request rejected due to authorization failure.", extra=dict(
+					grant = False,
+					predicate = repr(result.predicate) if result.predicate else None,
+					path = str(result.path) if result.path else None,
+					source = safe_name(result.source) if result.source else None
+				))
+			raise HTTPForbidden()
+		
+		elif __debug__:
+			log.debug("Successful authorization.", extra=dict(
+					grant = False,
+					predicate = repr(result.predicate) if result.predicate else None,
+					path = str(result.path) if result.path else None,
+					source = safe_name(result.source) if result.source else None
+				))
+	
+	def transform(self, context, handler, result):
+		try:
+			acl = result.__acl__
+		except AttributeError:
+			return result
+		
+		acl = ACL(*acl, context=context)
+		result = acl.is_authorized
+		
+		if not result:
+			log.error("Response rejected due to authorization failure.", extra=dict(
+					grant = False,
+					predicate = repr(result.predicate) if result.predicate else None,
+					path = str(result.path) if result.path else None,
+					result = repr(result)
+				))
+			raise HTTPForbidden()
+		
+		elif __debug__:
+			log.debug("Successful response authorization.", extra=dict(
+					grant = False,
+					predicate = repr(result.predicate) if result.predicate else None,
+					path = str(result.path) if result.path else None,
+					result = repr(result)
+				))
+		
+		return result
 
