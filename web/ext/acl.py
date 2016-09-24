@@ -324,7 +324,7 @@ class ACLResult(object):
 
 class ACL(list):
 	def __init__(self, *args, **kw): # Python 3: , context=None, policy=None):
-		super().__init__(args)
+		super(ACL, self).__init__(args)
 		
 		context = kw.pop('context', None)
 		policy = kw.pop('policy', None)
@@ -355,7 +355,7 @@ class ACL(list):
 		return bool(len(self) or len(self.policy))
 	
 	def __iter__(self):
-		return chain(super().__iter__(), ((None, i, None) for i in self.policy))
+		return chain(super(ACL, self).__iter__(), ((None, i, None) for i in self.policy))
 	
 	def __repr__(self):
 		return '[' + ', '.join(repr(i) for i in self) + ']'
