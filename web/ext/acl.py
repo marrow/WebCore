@@ -303,7 +303,8 @@ class _When(PluginManager):
 				raise TypeError("Unknown keyword arguments: " + ", ".join(sorted(kw)))
 		
 		def acl_when_inner(target):
-			target.__acl__ = acl
+			if acl:
+				target.__acl__ = acl
 			
 			if not inherit:
 				target.__acl_inherit__ = False
@@ -350,6 +351,9 @@ class ACL(list):
 	def is_authorized(self):
 		for path, predicate, source in self:
 			result = predicate() if self.context is None else predicate(self.context)
+			
+			if __debug__:
+				log.debug(repr(predicate) + " (from " + repr(source) + ") voted " + repr(result))
 			
 			if result is None:
 				continue
@@ -623,8 +627,7 @@ class ACLExtension(object):
 		if default:
 			policy.append(default)
 		
-		if not policy:  # Grant if the policy is empty.
-			policy.append(when.always)
+		log.info("ACL extension prepared with defualt policy: " + repr(policy))
 	
 	# ### Request-Level Callbacks
 	
@@ -646,7 +649,7 @@ class ACLExtension(object):
 		inherit = getattr(handler, '__acl_inherit__', True)
 		
 		if __debug__:
-			log.debug("Handling dispatch event: " + repr(acl), extra=dict(
+			log.debug("Handling dispatch event: " + repr(handler) + " " + repr(acl), extra=dict(
 					request = id(context),
 					consumed = consumed,
 					handler = safe_name(handler),
@@ -656,6 +659,9 @@ class ACLExtension(object):
 				))
 		
 		if not inherit:
+			if __debug__:
+				log.debug("Clearing collected access control list.")
+			
 			del context.acl[:]
 		
 		context.acl.extend((Path(context.request.path), i, handler) for i in acl)
@@ -667,23 +673,23 @@ class ACLExtension(object):
 			
 			return
 		
-		result = context.acl.is_authorized
+		grant = context.acl.is_authorized
 		
-		if not result:
-			log.error("Request rejected due to endpoint authorization failure.", extra=dict(
+		if grant.result is False:
+			log.error("Endpoint authorization failed: " + repr(grant), extra=dict(
 					grant = False,
-					predicate = repr(result.predicate) if result.predicate else None,
-					path = str(result.path) if result.path else None,
-					source = safe_name(result.source) if result.source else None
+					predicate = repr(grant.predicate) if grant.predicate else None,
+					path = str(grant.path) if grant.path else None,
+					source = safe_name(grant.source) if grant.source else None
 				))
 			raise HTTPForbidden()
 		
 		elif __debug__:
-			log.debug("Successful endpoint authorization.", extra=dict(
+			log.debug("Successful endpoint authorization: " + repr(grant), extra=dict(
 					grant = False,
-					predicate = repr(result.predicate) if result.predicate else None,
-					path = str(result.path) if result.path else None,
-					source = safe_name(result.source) if result.source else None
+					predicate = repr(grant.predicate) if grant.predicate else None,
+					path = str(grant.path) if grant.path else None,
+					source = safe_name(grant.source) if grant.source else None
 				))
 	
 	def transform(self, context, handler, result):
@@ -695,7 +701,7 @@ class ACLExtension(object):
 		acl = ACL(*acl, context=context)
 		result = acl.is_authorized
 		
-		if not result:
+		if result is False:
 			log.error("Response rejected due to return value authorization failure.", extra=dict(
 					grant = False,
 					predicate = repr(result.predicate) if result.predicate else None,

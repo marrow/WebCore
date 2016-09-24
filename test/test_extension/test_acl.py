@@ -72,7 +72,7 @@ class MockController:
 	def __init__(self, context):
 		self._ctx = context
 	
-	def __call__(self):
+	def test(self):
 		return "Hi."
 
 
@@ -84,16 +84,22 @@ class Grant(MockController):
 @when(always)
 class EarlyGrant(MockController):
 	@when(never)
-	def __call__(self):
+	def test(self):
 		return "Hi."
 
 
 @when(never)
 class EarlyDeny(MockController):
 	@when(always)
-	def __call__(self):
+	def test(self):
 		return "Hi."
 
+
+@when(never)
+class Nuke(MockController):
+	@when(inherit=False)
+	def test(self):
+		return "Hi."
 
 
 # # Tests
@@ -267,7 +273,7 @@ class TestContextContainsPredicate(object):
 class TestExtensionBehaviour(object):
 	def do(self, controller, **config):
 		app = Application(controller, extensions=[ACLExtension(**config)])
-		req = Request.blank('/')
+		req = Request.blank('/test')
 		return req.get_response(app).status_int
 	
 	def test_unknown_kwarg(self):
@@ -291,5 +297,7 @@ class TestExtensionBehaviour(object):
 		assert self.do(Grant, default=never) == 200
 		assert self.do(EarlyGrant, default=never) == 200
 		assert self.do(EarlyDeny, default=never) == 403
-
+	
+	def test_empty_policy(self):
+		assert self.do(Nuke) == 200
 
