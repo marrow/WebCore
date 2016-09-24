@@ -109,6 +109,17 @@ setup(
 					'static = web.app.static:static',
 				],
 			
+			'web.acl.predicate': [
+					'not = web.ext.acl:Not',
+					'always = web.ext.acl:always',
+					'never = web.ext.acl:never',
+					'first = web.ext.acl:First',
+					'all = web.ext.acl:all',
+					'any = web.ext.acl:any',
+					'matches = web.ext.acl:ContextMatch',
+					'contains = web.ext.acl:ContextContains',
+				],
+			
 			# #### WebCore Extensions
 			'web.extension': [
 					# ##### BaseExtension, providing request, response, and default views.
