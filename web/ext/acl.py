@@ -254,8 +254,6 @@ def endpoint(context):
 
 This allows you to easily compare against containers such as lists and sets. Also demonstrataed is the ability to
 "partially apply" a predicate, that is, apply some arguments, then apply the rest later.
-
-
 """
 
 # ## Imports
@@ -344,13 +342,16 @@ class ACL(list):
 		return ACLResult(None, None, None, None)
 	
 	def __bool__(self):
-		return super().__bool__() or self.policy
+		return bool(len(self) or len(self.policy))
 	
 	def __nonzero__(self):
-		return super().__nonzero__() or self.policy
+		return bool(len(self) or len(self.policy))
 	
 	def __iter__(self):
 		return chain(super().__iter__(), ((None, i, None) for i in self.policy))
+	
+	def __repr__(self):
+		return '[' + ', '.join(repr(i) for i in self) + ']'
 
 
 # ## Simple Predicates
@@ -621,7 +622,7 @@ class ACLExtension(object):
 		inherit = getattr(handler, '__acl_inherit__', True)
 		
 		if __debug__:
-			log.debug("Handling dispatch event.", extra=dict(
+			log.debug("Handling dispatch event: " + repr(acl), extra=dict(
 					request = id(context),
 					consumed = consumed,
 					handler = safe_name(handler),
@@ -645,7 +646,7 @@ class ACLExtension(object):
 		result = context.acl.is_authorized
 		
 		if not result:
-			log.error("Request rejected due to authorization failure.", extra=dict(
+			log.error("Request rejected due to endpoint authorization failure.", extra=dict(
 					grant = False,
 					predicate = repr(result.predicate) if result.predicate else None,
 					path = str(result.path) if result.path else None,
@@ -654,7 +655,7 @@ class ACLExtension(object):
 			raise HTTPForbidden()
 		
 		elif __debug__:
-			log.debug("Successful authorization.", extra=dict(
+			log.debug("Successful endpoint authorization.", extra=dict(
 					grant = False,
 					predicate = repr(result.predicate) if result.predicate else None,
 					path = str(result.path) if result.path else None,
@@ -671,7 +672,7 @@ class ACLExtension(object):
 		result = acl.is_authorized
 		
 		if not result:
-			log.error("Response rejected due to authorization failure.", extra=dict(
+			log.error("Response rejected due to return value authorization failure.", extra=dict(
 					grant = False,
 					predicate = repr(result.predicate) if result.predicate else None,
 					path = str(result.path) if result.path else None,

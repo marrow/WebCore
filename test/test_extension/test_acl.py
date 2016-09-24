@@ -8,10 +8,10 @@ from webob import Request
 
 from web.core.application import Application
 from web.core.context import Context
-from web.ext.acl import when, ACLResult  #, ACL
+from web.ext.acl import when, ACLResult, ACLExtension
 from web.ext.acl import Predicate, always, never
 from web.ext.acl import Not, First, All, Any
-from web.ext.acl import ContextMatch, ContextContains  #, ACLExtension
+from web.ext.acl import ContextMatch, ContextContains
 
 
 # # Support Machinery
@@ -69,7 +69,31 @@ def reviewer():
 
 
 class MockController:
+	def __init__(self, context):
+		self._ctx = context
+	
+	def __call__(self):
+		return "Hi."
+
+
+@when(always)
+class Grant(MockController):
 	pass
+
+
+@when(always)
+class EarlyGrant(MockController):
+	@when(never)
+	def __call__(self):
+		return "Hi."
+
+
+@when(never)
+class EarlyDeny(MockController):
+	@when(always)
+	def __call__(self):
+		return "Hi."
+
 
 
 # # Tests
@@ -241,12 +265,26 @@ class TestContextContainsPredicate(object):
 
 
 class TestExtensionBehaviour(object):
-	def do(self, path, **data):
-		app = Application(MockController)
-		req = Request.blank(path)
+	def do(self, controller, **data):
+		app = Application(controller, extensions=[ACLExtension()])
+		req = Request.blank('/')
+		
 		if data:
 			req.content_type = 'application/json'
 			if data:
 				req.json = data
-		return req.get_response(app)
+		
+		return req.get_response(app).status_int
+	
+	def test_no_explicit_rules(self):
+		assert self.do(MockController) == 200
+	
+	def test_explicit_intermediate_grant(self):
+		assert self.do(Grant) == 200
+	
+	def test_early_grant(self):
+		assert self.do(EarlyGrant) == 200
+	
+	def test_early_deny(self):
+		assert self.do(EarlyDeny) == 403
 
