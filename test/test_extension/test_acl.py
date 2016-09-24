@@ -9,7 +9,7 @@ from webob import Request
 from web.core.application import Application
 from web.core.context import Context
 from web.ext.acl import when, ACLResult  #, ACL
-from web.ext.acl import Predicate, always, never, when
+from web.ext.acl import Predicate, always, never
 from web.ext.acl import Not, First, All, Any
 from web.ext.acl import ContextMatch, ContextContains  #, ACLExtension
 
@@ -83,9 +83,9 @@ class TestPredicateHelpers(object):
 		assert inner.__acl__ == (None,)
 	
 	def test_acl_result_behaviour(self):
-		assert bool(True, None) is True
-		assert bool(False, None) is False
-		assert bool(None, None) is False
+		assert bool(ACLResult(True, None)) is True
+		assert bool(ACLResult(False, None)) is False
+		assert bool(ACLResult(None, None)) is False
 
 
 class TestBasicPredicateBehaviour(object):

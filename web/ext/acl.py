@@ -318,8 +318,10 @@ class ACLResult(object):
 		self.path = path
 		self.source = source
 	
-	def __nonzero__(self):
+	def __bool__(self):
 		return bool(self.result)
+	
+	__nonzero__ = __bool__
 
 
 class ACL(list):
@@ -340,6 +342,9 @@ class ACL(list):
 			return ACLResult(result, predicate, path, source)
 		
 		return ACLResult(None, None, None, None)
+	
+	def __bool__(self):
+		return super().__bool__() or self.policy
 	
 	def __nonzero__(self):
 		return super().__nonzero__() or self.policy
