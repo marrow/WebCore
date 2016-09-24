@@ -28,6 +28,7 @@ tests_require = [
 		'pytest',  # test collector and extensible runner
 		'pytest-cov',  # coverage reporting
 		'pytest-flakes',  # syntax validation
+		'pytest-capturelog',  # log capture
 		'web.dispatch.object',  # dispatch tests
 		'backlash',  # debug tests
 	]
