@@ -9,6 +9,7 @@ from __future__ import unicode_literals
 from collections import Mapping, OrderedDict as odict
 
 from web.core.context import Context
+from web.core.compat import str
 
 
 try:
@@ -81,10 +82,14 @@ class SerializationExtension(object):
 		resp = context.response
 		serial = context.serializer
 		match = context.request.accept.best_match(serial.keys(), default_match='application/json')
+		result = serial[match].dumps(result)
+		
+		if isinstance(result, str):
+			result = result.decode('utf-8')
 		
 		resp.charset = 'utf-8'
 		resp.content_type = match
-		resp.text = serial[match].dumps(result)
+		resp.text = result
 		
 		return True
 
