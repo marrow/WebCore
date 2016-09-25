@@ -6,10 +6,6 @@ branches:
   except:
       - /^[^/]+/.+$/
 
-branches:
-  except:
-      - /^[^/]+/.+$/
-
 python:
   - "2.7"
   - "pypy"

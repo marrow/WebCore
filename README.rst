@@ -386,6 +386,20 @@ Version 2.0.2
   and `bjoern <http://s.webcore.io/aIne>`_. Each is available as an ``extras_require`` by the same name which will
   pull in the required third-party dependency.
 
+Version 2.0.3
+-------------
+
+- Argument processing moved out of ``web.core`` into extension ``mutate`` handlers. Features improved rich
+  unflattening of query string and form encoded body parameters.  Configurable behaviour. For details, see:
+  `web/ext/args.py <https://github.com/marrow/WebCore/blob/develop/web/ext/args.py>`_
+- `Extensively documented <https://github.com/marrow/WebCore/blob/develop/web/ext/acl.py>`_ access control list
+  extension validating endpoint security and return value permission using context-aware predicates.
+- The ability for extensions to define additional callbacks for collection.
+- The ``DatabaseExtension`` (formerly ``DBExtension``) has been moved into `its own repository
+  <https://github.com/marrow/web.db>`_.
+- Content negotiation endpoint return value serialization, with pluggable ``dumps`` registry.
+- Complete unit test coverage.
+
 
 License
 =======
@@ -452,12 +466,12 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
     :target: https://github.com/marrow/WebCore/issues
     :alt: Github Issues
 
-.. |ghsince| image:: https://img.shields.io/github/commits-since/marrow/WebCore/2.0.2.svg
+.. |ghsince| image:: https://img.shields.io/github/commits-since/marrow/WebCore/2.0.3.svg
     :target: https://github.com/marrow/WebCore/commits/develop
     :alt: Changes since last release.
 
 .. |ghtag| image:: https://img.shields.io/github/tag/marrow/WebCore.svg
-    :target: https://github.com/marrow/WebCore/tree/2.0.2
+    :target: https://github.com/marrow/WebCore/tree/2.0.3
     :alt: Latest Github tagged release.
 
 .. |latestversion| image:: http://img.shields.io/pypi/v/WebCore.svg?style=flat
