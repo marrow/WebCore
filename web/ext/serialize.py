@@ -6,9 +6,9 @@
 
 from __future__ import unicode_literals
 
-from collections import Mapping, OrderedDict as odict
+from collections import Mapping
 
-from web.core.context import Context
+from marrow.package.host import PluginManager
 from web.core.compat import str
 
 
@@ -17,20 +17,11 @@ try:
 except ImportError:
 	import json
 
-try:
-	import yaml
-except ImportError:
-	yaml = None
-
-try:
-	from web.template.serialize import bencode
-except ImportError:
-	bencode = None
-
 
 # ## Module Globals
 
 log = __import__('logging').getLogger(__name__)
+json  # Satisfy linter.
 
 
 # ## Extension
@@ -41,25 +32,19 @@ class SerializationExtension(object):
 	This extension registers handlers for lists and dictionaries (technically list and mappings).
 	
 	Additional serializers can be registered during runtime by other extensions by adding a new mimetype mapping
-	to the `context.serializer` dictionary-like object.  For convienence the default serializers are also provided
+	to the `context.serialize` dictionary-like object.  For convienence the default serializers are also provided
 	using their simple names, so you can access the JSON encoder directly, for example:
 	
-		context.serializer.json.dumps(...)
+		context.serialize.json.dumps(...)
 	"""
 	
-	provides = {'serialization', 'json'}
+	provides = {'serialization'}
+	extensions = {'web.serializer'}
+	context = {'serialize'}
 	
-	def __init__(self):
-		self.provides = set(self.provides)  # We conditionally add the other options.
-		self.mapping = odict({'json': json, 'application/json': json})  # Always present.
-		
-		# if yaml:
-		# 	self.mapping['application/x-yaml'] = self.mapping['yaml'] = yaml
-		# 	self.provides.add('yaml')
-		
-		# if bencode:
-		# 	self.mapping['application/x-bencode'] = self.mapping['bencode'] = bencode
-		# 	self.provides.add('bencode')
+	def __init__(self, default='application/json', types=(list, Mapping)):
+		self.default = default
+		self.types = types
 	
 	# ### Application-Level Callbacks
 	
@@ -67,12 +52,14 @@ class SerializationExtension(object):
 		if __debug__:
 			log.debug("Registering serialization return value handlers.")
 		
-		context.serializer = Context()
-		context.serializer.__dict__ = self.mapping
+		manager = PluginManager('web.serialize')
+		manager.__dict__['__isabstractmethod__'] = False
+		
+		context.serialize = manager
 		
 		# Register the serialization views supported by this extension.
-		context.view.register(list, self.render_serialization)
-		context.view.register(Mapping, self.render_serialization)
+		for kind in self.types:
+			context.view.register(kind, self.render_serialization)
 	
 	# ### Views
 	
@@ -80,9 +67,9 @@ class SerializationExtension(object):
 		"""Render serialized responses."""
 		
 		resp = context.response
-		serial = context.serializer
-		match = context.request.accept.best_match(serial.keys(), default_match='application/json')
-		result = serial[match].dumps(result)
+		serial = context.serialize
+		match = context.request.accept.best_match(serial, default_match=self.default)
+		result = serial[match](result)
 		
 		if isinstance(result, str):
 			result = result.decode('utf-8')

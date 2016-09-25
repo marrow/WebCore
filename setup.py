@@ -163,6 +163,13 @@ setup(
 					'diesel = web.server.diesel_:serve[diesel]',  # http://s.webcore.io/aIg2
 					'bjoern = web.server.bjoern_:serve[bjoern]',  # http://s.webcore.io/aIne
 				],
+			
+			'web.serialize': [
+					'json = web.ext.serialize:json.dumps',  # JavaScript Object Notation
+					'application/json = web.ext.serialize:json.dumps',  # JavaScript Object Notation
+					'yaml = yaml:dumps[yaml]',  # Yet Another Markup Language
+					'application/x-yaml = yaml:dumps[yaml]',  # Yet Another Markup Language
+				]
 		},
 	
 	# ## Installation Dependencies
@@ -200,6 +207,8 @@ setup(
 			'template': ['web.template', 'cinje'],  # Recommended template engine.
 			'database': ['web.db', 'pymongo'],  # Recommended database engine.
 			'asset': ['webassets'],  # Recommended static asset management.
+			'bson': ['pymongo'],
+			'yaml': ['pyyaml'],
 			
 			# ### Plugin Dependencies
 			'waitress': ['waitress'],
