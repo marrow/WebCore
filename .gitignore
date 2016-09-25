@@ -1,6 +1,7 @@
 *.py[co]
 
 # Packaging
+*.egg-info
 .eggs
 .packaging
 

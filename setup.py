@@ -28,6 +28,7 @@ tests_require = [
 		'pytest',  # test collector and extensible runner
 		'pytest-cov',  # coverage reporting
 		'pytest-flakes',  # syntax validation
+		'pytest-capturelog',  # log capture
 		'web.dispatch.object',  # dispatch tests
 		'backlash',  # debug tests
 	]
@@ -107,6 +108,17 @@ setup(
 			# #### Re-usable applications or application components.
 			'web.app': [
 					'static = web.app.static:static',
+				],
+			
+			'web.acl.predicate': [
+					'not = web.ext.acl:Not',
+					'always = web.ext.acl:always',
+					'never = web.ext.acl:never',
+					'first = web.ext.acl:First',
+					'all = web.ext.acl:all',
+					'any = web.ext.acl:any',
+					'matches = web.ext.acl:ContextMatch',
+					'contains = web.ext.acl:ContextContains',
 				],
 			
 			# #### WebCore Extensions
