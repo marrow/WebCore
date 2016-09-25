@@ -6,6 +6,7 @@
 
 from __future__ import unicode_literals
 
+import pkg_resources
 from collections import Mapping
 
 from marrow.package.host import PluginManager
@@ -54,6 +55,9 @@ class SerializationExtension(object):
 		
 		manager = PluginManager('web.serialize')
 		manager.__dict__['__isabstractmethod__'] = False
+		manager.__dict__['types'] = set()
+		
+		manager.types.update(i.name for i in pkg_resources.iter_entry_points('web.serialize') if '/' in i.name)
 		
 		context.serialize = manager
 		
@@ -68,7 +72,7 @@ class SerializationExtension(object):
 		
 		resp = context.response
 		serial = context.serialize
-		match = context.request.accept.best_match(serial, default_match=self.default)
+		match = context.request.accept.best_match(serial.types, default_match=self.default)
 		result = serial[match](result)
 		
 		if isinstance(result, str):
