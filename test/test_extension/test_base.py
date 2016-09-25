@@ -41,51 +41,41 @@ class TestBreadcrumbPath(object):
 	def test_here(self):
 		app = Application(MockController)
 		response = Request.blank('/here').get_response(app).text
-		
 		assert response == '/here'
 	
 	def test_breadcrumb_list_paths(self):
 		app = Application(MockController)
 		response = Request.blank('/paths').get_response(app).text
-		
 		assert response == "., /paths"
 	
 	def test_breadcrumb_list_handlers(self):
 		app = Application(MockController)
 		response = Request.blank('/handlers').get_response(app).text
-		
 		assert response == "test_base:MockController, test_base:MockController.handlers"
 
 
-class TestDefaulViews(object):
+class TestDefaultViews(object):
+	def do(self, endpoint):
+		app = Application(endpoint)
+		return Request.blank('/').get_response(app)
+	
 	def test_binary(self):
-		app = Application(binary_endpoint)
-		response = Request.blank('/').get_response(app)
-		assert response.text == "Word."
+		assert self.do(binary_endpoint).text == "Word."
 	
 	def test_string(self):
-		app = Application(string_endpoint)
-		response = Request.blank('/').get_response(app)
-		assert response.text == "Hi."
+		assert self.do(string_endpoint).text == "Hi."
 	
 	def test_none(self):
-		app = Application(empty_endpoint)
-		response = Request.blank('/').get_response(app)
+		response = self.do(empty_endpoint)
 		assert response.text == ""
 		assert response.content_length == None  # Actually blank responses have no length.
 	
 	def test_response(self):
-		app = Application(response_endpoint)
-		response = Request.blank('/').get_response(app)
-		assert response.text == "Yo."
+		assert self.do(response_endpoint).text == "Yo."
 	
 	def test_file(self):
-		app = Application(binary_file_endpoint)
-		response = Request.blank('/').get_response(app)
-		assert '2016' in response.text
+		assert '2016' in self.do(binary_file_endpoint).text
 	
 	def test_generator(self):
-		app = Application(generator_endpoint)
-		response = Request.blank('/').get_response(app)
-		assert 'foobar' in response.text
+		assert 'foobar' in self.do(generator_endpoint).text
 
