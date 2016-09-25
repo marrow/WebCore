@@ -2,10 +2,10 @@
 
 from __future__ import unicode_literals
 
-from unittest import TestCase
 from webob import Request, Response
 
 from web.core.application import Application
+from web.core.util import safe_name
 
 
 def binary_endpoint(ctx): return b"Word."
@@ -23,7 +23,41 @@ def generator_endpoint(ctx):
 	yield b'bar'
 
 
-class TestDefaulViews(TestCase):
+class MockController(object):
+	def __init__(self, context):
+		self._ctx = context
+	
+	def here(self):
+		return str(self._ctx.path.current)
+	
+	def paths(self):
+		return repr([str(i.path) for i in self._ctx.path])
+	
+	def handlers(self):
+		return repr([safe_name(i.handler) for i in self._ctx.path])
+
+
+class TestBreadcrumbPath(object):
+	def test_here(self):
+		app = Application(MockController)
+		response = Request.blank('/here').get_response(app).text
+		
+		assert response == '/here'
+	
+	def test_breadcrumb_list_paths(self):
+		app = Application(MockController)
+		response = Request.blank('/paths').get_response(app).text
+		
+		assert response == "['.', '/paths']"
+	
+	def test_breadcrumb_list_handlers(self):
+		app = Application(MockController)
+		response = Request.blank('/handlers').get_response(app).text
+		
+		assert response == "['test_base:MockController', 'test_base:MockController.handlers']"
+
+
+class TestDefaulViews(object):
 	def test_binary(self):
 		app = Application(binary_endpoint)
 		response = Request.blank('/').get_response(app)
