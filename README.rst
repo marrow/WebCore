@@ -362,20 +362,25 @@ Version History
 Version 2.0
 -----------
 
-* A complete modernization rewrite of WebCore, from the ground up.
-* Features multiple extension interfaces to extend registered view handlers and provide a uniform callback mechanism.
-* Standard usage makes use of no superglobals or "thread locals", instead relying on a context object collaboratively
+- A complete modernization rewrite of WebCore, from the ground up.
+- Features multiple extension interfaces to extend registered view handlers and provide a uniform callback mechanism.
+- Standard usage makes use of no superglobals or "thread locals", instead relying on a context object collaboratively
   populated by extensions.
-* WebCore's former "dialect" system is now dispatch.
+- WebCore's former "dialect" system is now dispatch.
 
 Version 2.0.1
 -------------
 
-* Corrected argument specification for ``transform`` extension callbacks, fixing ``AnnotationExtension`` usage as per
-  `#163 <https://github.com/marrow/WebCore/issues/163>`_..
-* Additional source-level documentation and expanded examples.
-* An excessively large number of additional WSGI server adapters; now supported are: `waitress
-  <http://s.webcore.io/aIou>`_, `tornado <http://s.webcore.io/aIaN>`_, `fcgi <http://s.webcore.io/fhVY>`_,
+- Thanks Pypi.
+
+Version 2.0.2
+-------------
+
+- Corrected argument specification for ``transform`` extension callbacks, fixing ``AnnotationExtension`` usage as per
+  `#163 <https://github.com/marrow/WebCore/issues/163>`_.
+- Additional source-level documentation and expanded examples.
+- An excessively large number of additional WSGI server adapters; now supported are: waitress
+  `tornado <http://s.webcore.io/aIaN>`_, `fcgi <http://s.webcore.io/fhVY>`_,
   `cherrypy <http://s.webcore.io/aIoF>`_, `appengine <http://s.webcore.io/aIic>`_, `paste <http://s.webcore.io/aIdT>`_,
   `eventlet <http://s.webcore.io/aIaa>`_, `gevent <http://s.webcore.io/aIpU>`_, `diesel <http://s.webcore.io/aIg2>`_,
   and `bjoern <http://s.webcore.io/aIne>`_. Each is available as an ``extras_require`` by the same name which will
@@ -447,12 +452,12 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
     :target: https://github.com/marrow/WebCore/issues
     :alt: Github Issues
 
-.. |ghsince| image:: https://img.shields.io/github/commits-since/marrow/WebCore/2.0.0.svg
+.. |ghsince| image:: https://img.shields.io/github/commits-since/marrow/WebCore/2.0.2.svg
     :target: https://github.com/marrow/WebCore/commits/develop
     :alt: Changes since last release.
 
 .. |ghtag| image:: https://img.shields.io/github/tag/marrow/WebCore.svg
-    :target: https://github.com/marrow/WebCore/tree/1.0
+    :target: https://github.com/marrow/WebCore/tree/2.0.2
     :alt: Latest Github tagged release.
 
 .. |latestversion| image:: http://img.shields.io/pypi/v/WebCore.svg?style=flat

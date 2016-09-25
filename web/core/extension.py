@@ -24,13 +24,15 @@ under the `web.extension` namespace:
 
 Your extension may define several additional properties:
 
-* `provides` -- declare tags describing the features offered by the plugin
-* `needs` -- delcare the tags that must be present for this extension to function
-* `uses` -- declare the tags that must be evaluated prior to this extension, but aren't hard requirements
-* `first` -- declare that this extension is a dependency of all other non-first extensions
-* `last` -- declare that this extension depends on all other non-last extensions
+* `provides` -- declare a set of tags describing the features offered by the plugin
+* `needs` -- delcare a set of tags that must be present for this extension to function
+* `uses` -- declare a set of tags that must be evaluated prior to this extension, but aren't hard requirements
+* `first` -- declare that this extension is a dependency of all other non-first extensions if truthy
+* `last` -- declare that this extension depends on all other non-last extensions if truthy
+* `signals` -- a set of additional signal names declared used (thus cacheable) by the extension manager
 
-Tags used as `provides` values should also be registered as `web.extension` entry points.
+Tags used as `provides` values should also be registered as `web.extension` entry points. Additional `signals` may be
+prefixed with a minus symbol (-) to request reverse ordering, simulating the exit path of WSGI middleware.
 
 """
 
@@ -56,18 +58,19 @@ class WebExtensions(ExtensionManager):
 	"""Principal WebCore extension manager."""
 	
 	# Each of these is an optional extension callback attribute.
-	SIGNALS = (  # Extension hooks.
+	SIGNALS = {  # Core extension hooks.
 			'start',  # Executed during Application construction.
 			'stop',  # Executed when (and if) the serve() server returns.
 			'graceful',  # Executed when (and if) the process is instructed to reload configuration.
 			'prepare',  # Executed during initial request processing.
 			'dispatch',  # Executed once for each dispatch event.
 			'before',  # Executed after all extension `prepare` methods have been called, prior to dispatch.
-			'after',  # Executed after dispatch has returned and the response populated.
 			'mutate',  # Inspect and potentially mutate arguments to the handler prior to execution.
-			'transform',  # Transform the result returned by the handler and apply it to the response.
-			'middleware',  # Executed to allow WSGI middleware wrapping.
-		)
+			'-after',  # Executed after dispatch has returned and the response populated.
+			'-transform',  # Transform the result returned by the handler and apply it to the response.
+			'-done',  # Executed after the response has been consumed by the client.
+			'-middleware',  # Executed to allow WSGI middleware wrapping.
+		}
 	
 	__isabstractmethod__ = False  # Work around a Python 3.4+ issue when attaching to the context.
 	
@@ -82,24 +85,42 @@ class WebExtensions(ExtensionManager):
 		"""
 		
 		self.feature = set()  # Track the active `provides` tags.
-		self.all = self.order(ctx.app.config['extensions'])  # Needs/uses/provides-dependency ordered active extensions.
-		signals = {signal: [] for signal in self.SIGNALS}  # Prepare the known callback sets.
+		all = self.all = self.order(ctx.app.config['extensions'])  # Dependency ordered, active extensions.
 		
-		for ext in self.all:
-			self.feature.update(getattr(ext, 'provides', []))  # Enable those flags.
+		signals = {}
+		inverse = set()
+		
+		# Prepare the known callback sets.
+		
+		def add_signal(name):
+			if name[0] == '-':
+				name = name[1:]
+				inverse.add(name)
 			
-			for mn in self.SIGNALS:  # Attach any callbacks that might exist.
-				m = getattr(ext, mn, None)
-				if m: signals[mn].append(m)
+			signals[name] = []
+		
+		# Populate the initial set of signals from our own.
+		for signal in self.SIGNALS: add_signal(signal)
+		
+		# Populate additional signals and general metadata provided by registered extensions.
+		for ext in all:
+			self.feature.update(getattr(ext, 'provides', []))  # Enable those flags.
+			for signal in getattr(ext, 'signals', []): add_signal(signal)  # And those callbacks.
+		
+		# Prepare the callback cache.
+		
+		for ext in all:
+			for signal in signals:  # Attach any callbacks that might exist.
+				handler = getattr(ext, signal, None)
+				if handler: signals[signal].append(handler)
 			
 			if hasattr(ext, '__call__'):  # This one is aliased; the extension itself is treated as WSGI middleware.
 				signals['middleware'].append(ext)
 		
 		# Certain operations act as a stack, i.e. "before" are executed in dependency order, but "after" are executed
 		# in reverse dependency order.  This is also the case with "mutate" (incoming) and "transform" (outgoing).
-		signals['after'].reverse()
-		signals['transform'].reverse()
-		signals['middleware'].reverse()
+		for signal in inverse:
+			signals[signal].reverse()
 		
 		# Transform the signal lists into tuples to compact them.
 		self.signal = Context(**{k: tuple(v) for k, v in items(signals)})

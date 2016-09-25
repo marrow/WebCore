@@ -80,3 +80,71 @@ class Context(MutableMapping):
 # This auto-detects the basic set of them for exclusion from iteration in the above methods.
 Context._STANDARD_ATTRS = set(dir(Context()))
 
+
+
+class ContextGroup(Context):
+	"""A managed group of related context additions.
+	
+	This proxies most attribute access through to the "default" group member.
+	
+	Because of the possibility of conflicts, all attributes are accessible through dict-like subscripting.
+	
+	Register new group members through dict-like subscript assignment as attribute assignment is passed through to the
+	default handler if assigned.
+	"""
+	
+	default = None
+	
+	def __init__(self, default=None, **kw):
+		if default is not None:
+			self.default = default
+			default.__name__ = 'default'
+		
+		for name in kw:
+			kw[name].__name__ = name
+			self.__dict__[name] = kw[name]
+	
+	def __repr__(self): 
+		return "{0.__class__.__name__}({1})".format(self, ', '.join(sorted(self)))
+	
+	def __len__(self):
+		return len(self.__dict__)
+	
+	def __iter__(self):
+		return iter(set(dir(self)) - self._STANDARD_ATTRS)
+	
+	def __getitem__(self, name):
+		try:
+			return getattr(self, name)
+		except AttributeError:
+			pass
+		
+		raise KeyError()
+	
+	def __setitem__(self, name, value):
+		self.__dict__[name] = value
+	
+	def __delitem__(self, name):
+		del self.__dict__[name]
+	
+	def __getattr__(self, name):
+		if self.default is None:
+			raise AttributeError()
+		
+		return getattr(self.default, name)
+	
+	def __setattr__(self, name, value):
+		if self.default is not None:
+			return setattr(self.default, name, value)
+		
+		self.__dict__[name] = value
+	
+	def __delattr__(self, name):
+		if self.default is not None:
+			return delattr(self.default, name)
+		
+		self.__dict__[name] = None
+		del self.__dict__[name]
+
+ContextGroup._STANDARD_ATTRS = set(dir(ContextGroup()))
+

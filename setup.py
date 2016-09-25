@@ -13,8 +13,6 @@ try:
 except ImportError:
 	from setuptools import setup, find_packages
 
-from setuptools.command.test import test as TestCommand
-
 
 if sys.version_info < (2, 7):
 	raise SystemExit("Python 2.7 or later is required.")
@@ -24,28 +22,13 @@ elif sys.version_info > (3, 0) and sys.version_info < (3, 2):
 version = description = url = author = author_email = ""  # Silence linter warnings.
 exec(open(os.path.join("web", "core", "release.py")).read())  # Actually populate those values.
 
-
-class PyTest(TestCommand):
-	__slots__ = ('test_args', 'test_suite')
-	
-	def finalize_options(self):
-		TestCommand.finalize_options(self)
-		
-		self.test_args = []
-		self.test_suite = True
-	
-	def run_tests(self):
-		import pytest
-		sys.exit(pytest.main(self.test_args))
-
-
 here = os.path.abspath(os.path.dirname(__file__))
 
 tests_require = [
 		'pytest',  # test collector and extensible runner
 		'pytest-cov',  # coverage reporting
 		'pytest-flakes',  # syntax validation
-		'pytest-spec',  # output formatting
+		'pytest-capturelog',  # log capture
 		'web.dispatch.object',  # dispatch tests
 		'backlash',  # debug tests
 	]
@@ -118,9 +101,6 @@ setup(
 			'web.server',  # front-end WSGI bridges
 		],
 	zip_safe = True,
-	cmdclass = dict(
-			test = PyTest,
-		),
 	
 	# ### Plugin Registration
 	
@@ -128,6 +108,17 @@ setup(
 			# #### Re-usable applications or application components.
 			'web.app': [
 					'static = web.app.static:static',
+				],
+			
+			'web.acl.predicate': [
+					'not = web.ext.acl:Not',
+					'always = web.ext.acl:always',
+					'never = web.ext.acl:never',
+					'first = web.ext.acl:First',
+					'all = web.ext.acl:all',
+					'any = web.ext.acl:any',
+					'matches = web.ext.acl:ContextMatch',
+					'contains = web.ext.acl:ContextContains',
 				],
 			
 			# #### WebCore Extensions
@@ -138,12 +129,15 @@ setup(
 					'response = web.ext.base:BaseExtension',
 					
 					# ##### Miscelaneous Builtin Extensions
+					'acl = web.ext.acl:ACLExtension',  # Access control list validation.
 					'analytics = web.ext.analytics:AnalyticsExtension',
 					'annotation = web.ext.annotation:AnnotationExtension',  # Preferred use/needs reference.
 					'cast = web.ext.annotation:AnnotationExtension',  # Legacy reference.
+					'db = web.ext.db:DBExtension',  # Database Connection Management
 					'typecast = web.ext.annotation:AnnotationExtension',  # Legacy reference.
 					'local = web.ext.local:ThreadLocalExtension',  # Preferred use/needs reference.
 					'threadlocal = web.ext.local:ThreadLocalExtension',  # Legacy reference.
+					'assets = web.ext.assets:WebAssetsExtension',  # WebAssets integration.
 				],
 			
 			# #### WSGI Server Adapters
@@ -169,13 +163,24 @@ setup(
 					'diesel = web.server.diesel_:serve[diesel]',  # http://s.webcore.io/aIg2
 					'bjoern = web.server.bjoern_:serve[bjoern]',  # http://s.webcore.io/aIne
 				],
+			
+			'web.serialize': [
+					'json = web.ext.serialize:json.dumps',  # JavaScript Object Notation
+					'application/json = web.ext.serialize:json.dumps',  # JavaScript Object Notation
+					'yaml = yaml:dumps[yaml]',  # Yet Another Markup Language
+					'application/x-yaml = yaml:dumps[yaml]',  # Yet Another Markup Language
+				]
 		},
 	
 	# ## Installation Dependencies
 	
+	setup_requires = [
+			'pytest-runner',
+		] if {'pytest', 'test', 'ptr'}.intersection(sys.argv) else [],
 	install_requires = [
 			'marrow.package<2.0',  # dynamic execution and plugin management
 			'WebOb',  # HTTP request and response objects, and HTTP status code exceptions
+			'pathlib2; python_version < "3.4"',  # Path manipulation utility lib; builtin in 3.4 and 3.5.
 		],
 	tests_require = tests_require,
 	
@@ -202,6 +207,8 @@ setup(
 			'template': ['web.template', 'cinje'],  # Recommended template engine.
 			'database': ['web.db', 'pymongo'],  # Recommended database engine.
 			'asset': ['webassets'],  # Recommended static asset management.
+			'bson': ['pymongo'],
+			'yaml': ['pyyaml'],
 			
 			# ### Plugin Dependencies
 			'waitress': ['waitress'],

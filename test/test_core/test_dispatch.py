@@ -8,12 +8,47 @@ from web.core.context import Context
 from web.core.dispatch import WebDispatchers
 
 
+class MockDispatcher(object):
+	def __init__(self, handler, endpoint=True):
+		self.handler = handler
+		self.endpoint = endpoint
+	
+	def __call__(self, context, handler, path):
+		if self.handler:
+			yield path.popleft(), self.handler, self.endpoint
+			return
+		
+		raise LookupError()
+
+
 class MockController(object):
-	def __init__(self, context):
+	def __init__(self, context=None):
 		self._ctx = context
 	
 	def endpoint(self):
 		return "endpoint"
+
+
+class TransitionTargetController(object):
+	__dispatch__ = MockDispatcher(lambda: "Hi.")
+	
+	def __init__(self, context=None):
+		pass
+
+
+class OtherTargetController(object):
+	__dispatch__ = MockDispatcher(TransitionTargetController())
+	
+	def __init__(self, context=None):
+		pass
+
+
+class DispatchTransitionController(object):
+	def __init__(self, context):
+		pass
+	
+	foo = TransitionTargetController
+	bar = OtherTargetController
 
 
 class DispatchBase(TestCase):
@@ -88,6 +123,19 @@ class TestDispatchProtocol(DispatchBase):
 		
 		assert is_endpoint
 		assert handler() == "endpoint"
+	
+	def test_dispatch_transition(self):
+		self._ctx.request = Request.blank('/foo/bar')
+		is_endpoint, handler = self.dispatch(self._ctx, DispatchTransitionController, self._ctx.request.path)
+		
+		assert is_endpoint
+		assert handler() == "Hi."
+		
+		self._ctx.request = Request.blank('/bar/baz/diz')
+		is_endpoint, handler = self.dispatch(self._ctx, DispatchTransitionController, self._ctx.request.path)
+		
+		assert is_endpoint
+		assert handler() == "Hi."
 
 
 class TestDispatchPlugins(DispatchBase):

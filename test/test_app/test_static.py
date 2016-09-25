@@ -6,6 +6,7 @@ import os.path
 import pytest
 
 from webob.exc import HTTPForbidden, HTTPNotFound
+from web.core.context import Context
 from web.app.static import static
 
 
@@ -15,6 +16,7 @@ class Sample(object):
 	ep = static(HERE)
 	epm = static(HERE, dict(html='mako'))
 	dev = static('/dev')
+	far = static(HERE, far=('txt'))
 
 sample = Sample()
 
@@ -52,4 +54,11 @@ def test_file():
 	fh = sample.ep(None, 'foo.txt')
 	assert fh.read().strip() == b'text'
 	fh.close()
+
+
+def test_far_future_expires():
+	context = Context(response=Context())
+	sample.far(context, 'foo.txt')
+	assert context.response.cache_expires == 60*60*24*365
+
 

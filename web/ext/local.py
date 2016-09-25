@@ -77,12 +77,14 @@ class ThreadLocalExtension(object):
 			delattr(module, name)
 	
 	def prepare(self, context):
+		"""Executed prior to processing a request."""
 		if __debug__:
 			log.debug("Assigning thread local request context.")
 		
 		self.local.context = context
 	
-	def after(self, result):
+	def done(self, result):
+		"""Executed after the entire response has been sent to the client."""
 		if __debug__:
 			log.debug("Cleaning up thread local request context.")
 		

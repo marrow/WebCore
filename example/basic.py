@@ -21,5 +21,5 @@ def basic(context, name="world"):
 if __name__ == '__main__':
 	from web.core import Application
 	
-	Application(basic).serve('waitress')
+	Application(basic).serve('waitress', threads=16)
 

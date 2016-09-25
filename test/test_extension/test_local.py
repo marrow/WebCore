@@ -20,7 +20,7 @@ def test_existing_thread_local_extension():
 	
 	assert local.context is rctx
 	
-	ext.after(rctx)
+	ext.done(rctx)
 	assert not hasattr(local, 'context')
 	
 	ext.stop(ctx)
@@ -43,7 +43,7 @@ def test_new_thread_local_extension():
 	
 	assert local.context is rctx
 	
-	ext.after(rctx)
+	ext.done(rctx)
 	assert not hasattr(local, 'context')
 	
 	ext.stop(ctx)

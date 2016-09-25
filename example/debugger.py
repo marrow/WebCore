@@ -7,6 +7,7 @@ Applications can be as simple or as complex and layered as your needs dictate.
 
 
 def basic(context, name="world"):
+	1/0
 	return "Hello {name}.".format(name=name)
 
 

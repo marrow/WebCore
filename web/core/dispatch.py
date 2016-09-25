@@ -68,11 +68,8 @@ class WebDispatchers(PluginManager):
 				))
 		
 		# Now we need the remaining path elements as a deque.
-		path = deque(path.split('/'))
-		
-		# We don't want a singular leading / in the path to cause trouble.
-		if path and not path[0]:
-			path.popleft()
+		path = path.strip('/')
+		path = deque(path.split('/')) if path else deque()
 		
 		try:
 			while not is_endpoint:
@@ -84,13 +81,14 @@ class WebDispatchers(PluginManager):
 				
 				# Iterate dispatch events, issuing appropriate callbacks as we descend.
 				for consumed, handler, is_endpoint in dispatcher(context, handler, path):
+					if is_endpoint and not callable(handler) and hasattr(handler, '__dispatch__'):
+						is_endpoint = False
 					# DO NOT add production logging statements (ones not wrapped in `if __debug__`) to this callback!
 					for ext in callbacks: ext(context, consumed, handler, is_endpoint)
 				
 				# Repeat of earlier, we do this after extensions in case anything above modifies the environ path.
-				path = deque(context.environ['PATH_INFO'].split('/'))
-				if path and not path[0]:
-					path.popleft()
+				path = context.environ['PATH_INFO'].strip('/')
+				path = deque(path.split('/')) if path else deque()
 				
 				if not is_endpoint and starting is handler:  # We didn't go anywhere.
 					break

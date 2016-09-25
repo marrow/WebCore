@@ -9,8 +9,8 @@ from __future__ import unicode_literals
 import logging
 import logging.config
 
-from inspect import isroutine, isfunction, ismethod, getcallargs
-from webob.exc import HTTPException, HTTPNotFound
+from inspect import isfunction
+from webob.exc import HTTPException, HTTPNotFound, HTTPInternalServerError
 from marrow.package.loader import load
 
 from .context import Context
@@ -18,6 +18,7 @@ from .dispatch import WebDispatchers
 from .extension import WebExtensions
 from .view import WebViews
 from ..ext.base import BaseExtension
+from ..ext import args as arguments
 
 if __debug__:
 	from .util import safe_name
@@ -108,8 +109,20 @@ class Application(object):
 		# We really need this to be there.
 		if 'extensions' not in config: config['extensions'] = list()
 		
-		# Always make sure the BaseExtension is present since request/response objects are handy.
-		config['extensions'].insert(0, BaseExtension())
+		if not any(isinstance(ext, BaseExtension) for ext in config['extensions']):
+			# Always make sure the BaseExtension is present since request/response objects are handy.
+			config['extensions'].insert(0, BaseExtension())
+		
+		if not any(isinstance(ext, arguments.ArgumentExtension) for ext in config['extensions']):
+			# Prepare a default set of argument mutators.
+			config['extensions'].extend([
+					arguments.ValidateArgumentsExtension(),
+					arguments.ContextArgsExtension(),
+					arguments.RemainderArgsExtension(),
+					arguments.QueryStringArgsExtension(),
+					arguments.FormEncodedKwargsExtension(),
+					arguments.JSONKwargsExtension(),
+				])
 		
 		# Tests are skipped on these as we have no particular need to test Python's own logging mechanism.
 		level = config.get('logging', {}).get('level', None)
@@ -143,69 +156,6 @@ class Application(object):
 		# Notify extensions that the service has returned and we are exiting.
 		for ext in self.__context.extension.signal.stop: ext(self.__context)
 	
-	def _extract_arguments(self, request):
-		"""Extract usable args and kwargs from the given request object.
-		
-		Candidate for promotion to an extension callback. Two approaches come to mind:
-		
-		* Simple (fast) last-defined-wins.
-		* Slower "list if defined multiple times".
-			* Optionally merging GET and POST instead of POST overriding.
-			* Optionally PHP-style with [] to denote array elements explicitly.
-		
-		We currently go for the latter without merging or PHP-ness.
-		
-		TODO: Investigate WebOb's request.urlvars and request.urlargs:
-			https://github.com/Pylons/webob/blob/master/webob/request.py#L566-L646
-		"""
-		
-		args = list(request.remainder)
-		if args and args[0] == '': del args[0]  # Trim the result of a leading `/`.
-	
-		def process_kwargs(src):
-			kwargs = dict()
-			
-			for name_, value in src.items():
-				if name_ in kwargs and not isinstance(kwargs[name_], list):
-					kwargs[name_] = [kwargs[name_], value]
-				elif name_ in kwargs:
-					kwargs[name_].append(value)
-				else:
-					kwargs[name_] = value
-			
-			return kwargs
-		
-		kwargs = process_kwargs(request.GET)
-		kwargs.update(process_kwargs(request.POST))
-		
-		return args, kwargs
-	
-	if __debug__:  # This method only exists in development. Really; thus the use of name mangling.
-		def __validate_arguments(self, context, endpoint, bound, args, kwargs):
-			try:
-				if callable(endpoint) and not isroutine(endpoint):
-					# Callable Instance
-					getcallargs(endpoint.__call__, *args, **kwargs)
-				elif bound:
-					# Instance Method
-					getcallargs(endpoint, *args, **kwargs)
-				else:
-					# Unbound Method or Function
-					getcallargs(endpoint, context, *args, **kwargs)
-			
-			except TypeError as e:
-				# If the argument specification doesn't match, the handler can't process this request.
-				# This is one policy. Another possibility is more computationally expensive and would pass only
-				# valid arguments, silently dropping invalid ones. This can be implemented as a mutate handler.
-				log.error(str(e), extra=dict(
-						request = id(context),
-						endpoint = safe_name(endpoint),
-						endpoint_args = args,
-						endpoint_kw = kwargs,
-					))
-				
-				return HTTPNotFound("Incorrect endpoint arguments: " + str(e))
-	
 	def _execute_endpoint(self, context, endpoint, signals):
 		if not callable(endpoint):
 			# Endpoints don't have to be functions.
@@ -220,41 +170,31 @@ class Application(object):
 			# Use the result directly, as if it were the result of calling a function or method.
 			return endpoint
 		
-		# Our endpoint API states that endpoints recieve as positional parameters all remaining path elements, and
-		# as keyword arguments a combination of GET and POST variables with POST taking precedence.
-		args, kwargs = self._extract_arguments(context.request)
-		
-		# Instance methods were handed the context at class construction time via dispatch.
-		# The `not isroutine` bit here catches callable instances, a la "index.html" handling.
-		bound = not isroutine(endpoint) or (ismethod(endpoint) and getattr(endpoint, '__self__', None) is not None)
-	
-		# Allow argument transformation; args and kwargs can be manipulated inline.
-		for ext in signals.mutate: ext(context, endpoint, args, kwargs)
-		
-		if __debug__:
-			log.debug("Callable endpoint located.", extra=dict(
-					request = id(context),
-					endpoint = safe_name(endpoint),
-					endpoint_args = args,
-					endpoint_kw = kwargs
-				))
-			
-			# Make sure the handler can actually accept these arguments when running in development mode.
-			# Passing invalid arguments would 500 Internal Server Error on us due to the TypeError exception bubbling up.
-			result = self.__validate_arguments(context, endpoint, bound, args, kwargs)
-			
-			if result:  # Bail if validation returned any truthy value.
-				return result
+		# Populate any endpoint arguments and allow for chained mutation and validation.
+		args, kwargs = [], {}
 		
 		try:
-			# Actually call the endpoint.
-			if bound:
-				result = endpoint(*args, **kwargs)
-			else:
-				result = endpoint(context, *args, **kwargs)
+			for ext in signals.mutate: ext(context, endpoint, args, kwargs)
 		
 		except HTTPException as e:
 			result = e
+		
+		else:
+			# If successful in accumulating arguments, finally call the endpoint.
+			
+			if __debug__:
+				log.debug("Callable endpoint located and arguments prepared.", extra=dict(
+						request = id(context),
+						endpoint = safe_name(endpoint),
+						endpoint_args = args,
+						endpoint_kw = kwargs
+					))
+			
+			try:
+				result = endpoint(*args, **kwargs)
+			
+			except HTTPException as e:
+				result = e
 		
 		# Execute return value transformation callbacks.
 		for ext in signals.transform: result = ext(context, endpoint, result)
@@ -271,7 +211,6 @@ class Application(object):
 		Most apps won't utilize middleware, the extension interface is preferred for most operations in WebCore.
 		They allow for code injection at various intermediary steps in the processing of a request and response.
 		"""
-		
 		context = environ['wc.context'] = self.RequestContext(environ=environ)
 		signals = context.extension.signal
 		
@@ -281,20 +220,25 @@ class Application(object):
 		# Identify the endpoint for this request.
 		is_endpoint, handler = context.dispatch(context, context.root, context.environ['PATH_INFO'])
 		
-		# If no endpoint could be resolved, that's a 404.
-		if not is_endpoint:
-			# We can't just set the handler to the exception class or instance, because both are callable.
-			def handler(_ctx, *args, **kw):  # Yes, this works.  We're just assigning this code obj. to a label.  :3
-				"""An endpoint that returns a 404 Not Found error on dispatch failure."""
-				return HTTPNotFound("Dispatch failed." if __debug__ else None)  # Not an exceptional event, so don't raise.
-		
-		result = self._execute_endpoint(context, handler, signals)  # Process the endpoint.
-		
+		if is_endpoint:
+			try:
+				result = self._execute_endpoint(context, handler, signals)  # Process the endpoint.
+			except Exception as e:
+				log.exception("Caught exception attempting to execute the endpoint.")
+				result = HTTPInternalServerError(str(e) if __debug__ else "Please see the logs.")
 				
+				if 'debugger' in context.extension.feature:
+					context.response = result
+					for ext in signals.after: ext(context)  # Allow signals to clean up early.
+					raise
+		
+		else:  # If no endpoint could be resolved, that's a 404.
+			result = HTTPNotFound("Dispatch failed." if __debug__ else None)
+		
 		if __debug__:
 			log.debug("Result prepared, identifying view handler.", extra=dict(
 					request = id(context),
-					result = repr(result)
+					result = safe_name(type(result))
 				))
 		
 		# Identify a view capable of handling this result.
@@ -312,5 +256,13 @@ class Application(object):
 		
 		for ext in signals.after: ext(context)
 		
-		return context.response.conditional_response_app(environ, start_response)
+		def capture_done(response):
+			for chunk in response:
+				yield chunk
+			
+			for ext in signals.done: ext(context)
+		
+		# This is really long due to the fact we don't want to capture the response too early.
+		# We need anything up to this point to be able to simply replace `context.response` if needed.
+		return capture_done(context.response.conditional_response_app(environ, start_response))
 

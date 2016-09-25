@@ -18,7 +18,7 @@ log = __import__('logging').getLogger(__name__)
 
 # ## Static File Endpoint
 
-def static(base, mapping=None):
+def static(base, mapping=None, far=('js', 'css', 'gif', 'jpg', 'jpeg', 'png', 'ttf', 'woff')):
 	"""Serve files from disk.
 	
 	This utility endpoint factory is meant primarily for use in development environments; in production environments
@@ -36,6 +36,9 @@ def static(base, mapping=None):
 	
 		class Root:
 			page = static('/path/to/static/pages', dict(html='mako'))
+	
+	By default the "usual culprits" are served with far-futures cache expiry headers. If you wish to change the
+	extensions searched just assign a new `far` iterable.  To disable, assign any falsy value.
 	"""
 	
 	base = abspath(base)
@@ -59,6 +62,9 @@ def static(base, mapping=None):
 		
 		if not isfile(path):  # Only serve normal files; no UNIX domain sockets, FIFOs, etc., etc.
 			raise HTTPForbidden("Cowardly refusing to open a non-file." if __debug__ else None)
+		
+		if far and path.rpartition('.')[2] in far:
+			context.response.cache_expires = 60*60*24*365
 		
 		if mapping:  # Handle the mapping of filename extensions to 2-tuples. 'Cause why not?
 			_, _, extension = basename(path).partition('.')
