@@ -25,6 +25,30 @@ log = __import__('logging').getLogger(__name__)
 json  # Satisfy linter.
 
 
+# ## Plugin Management
+
+
+class SerializationPlugins(PluginManager):
+	def __init__(self, namespace, folders=None):
+		self.__dict__['names'] = set()
+		self.__dict__['types'] = set()
+		super(SerializationPlugins, self).__init__(namespace, folders)
+	
+	def register(self, name, plugin):
+		super(SerializationPlugins, self).register(name, plugin)
+		
+		self.names.add(name)
+		
+		if '/' in name:
+			self.types.add(name)
+	
+	def _register(self, dist):
+		try:
+			super(SerializationPlugins, self)._register(dist)
+		except pkg_resources.DistributionNotFound:
+			pass
+
+
 # ## Extension
 
 class SerializationExtension(object):
@@ -53,11 +77,8 @@ class SerializationExtension(object):
 		if __debug__:
 			log.debug("Registering serialization return value handlers.")
 		
-		manager = PluginManager('web.serialize')
+		manager = SerializationPlugins('web.serialize')
 		manager.__dict__['__isabstractmethod__'] = False
-		manager.__dict__['types'] = set()
-		
-		manager.types.update(i.name for i in pkg_resources.iter_entry_points('web.serialize') if '/' in i.name)
 		
 		context.serialize = manager
 		
