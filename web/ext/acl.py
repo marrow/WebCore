@@ -365,8 +365,7 @@ class ACL(list):
 	def __bool__(self):
 		return bool(len(self) or len(self.policy))
 	
-	def __nonzero__(self):
-		return bool(len(self) or len(self.policy))
+	__nonzero__ = __bool__
 	
 	def __iter__(self):
 		return chain(super(ACL, self).__iter__(), ((None, i, None) for i in self.policy))
@@ -693,23 +692,23 @@ class ACLExtension(object):
 			return result
 		
 		acl = ACL(*acl, context=context)
-		result = acl.is_authorized
+		valid = acl.is_authorized
 		
-		if result is False:
+		if valid.result is False:
 			log.error("Response rejected due to return value authorization failure.", extra=dict(
 					grant = False,
-					predicate = repr(result.predicate) if result.predicate else None,
-					path = str(result.path) if result.path else None,
-					result = repr(result)
+					predicate = repr(valid.predicate) if valid.predicate else None,
+					path = str(valid.path) if valid.path else None,
+					result = safe_name(type(result))
 				))
-			raise HTTPForbidden()
+			return HTTPForbidden()
 		
 		elif __debug__:
 			log.debug("Successful response authorization.", extra=dict(
-					grant = False,
-					predicate = repr(result.predicate) if result.predicate else None,
-					path = str(result.path) if result.path else None,
-					result = repr(result)
+					grant = valid.result,
+					predicate = repr(valid.predicate) if valid.predicate else None,
+					path = str(valid.path) if valid.path else None,
+					result = safe_name(type(result))
 				))
 		
 		return result

@@ -8,6 +8,7 @@ from webob import Request
 
 from web.core.application import Application
 from web.core.context import Context
+from web.ext.serialize import SerializationExtension
 from web.ext.acl import when, ACLResult, ACL, ACLExtension
 from web.ext.acl import Predicate, always, never
 from web.ext.acl import Not, First, All, Any
@@ -73,7 +74,17 @@ class MockController:
 		self._ctx = context
 	
 	def test(self):
-		return "Hi."
+		return None
+	
+	def allowed(self):
+		class secret(dict):
+			__acl__ = [always]
+		return secret(value=27)
+	
+	def forbidden(self):
+		class secret(dict):
+			__acl__ = [never]
+		return secret(value=27)
 
 
 @when(always)
@@ -85,21 +96,21 @@ class Grant(MockController):
 class EarlyGrant(MockController):
 	@when(never)
 	def test(self):
-		return "Hi."
+		return None
 
 
 @when(never)
 class EarlyDeny(MockController):
 	@when(always)
 	def test(self):
-		return "Hi."
+		return None
 
 
 @when(never)
 class Nuke(MockController):
 	@when(inherit=False)
 	def test(self):
-		return "Hi."
+		return None
 
 
 # # Tests
@@ -111,6 +122,9 @@ class TestPredicateHelpers(object):
 		def inner(): pass
 		
 		assert inner.__acl__ == (None,)
+		
+		with pytest.raises(TypeError):
+			when(foo=27)
 	
 	def test_acl_result_behaviour(self):
 		assert bool(ACLResult(True, None)) is True
@@ -124,6 +138,16 @@ class TestPredicateHelpers(object):
 	def test_acl_repr(self):
 		acl = ACL(27, policy=(42,))
 		assert repr(acl) == '[(None, 27, None), (None, 42, None)]'
+	
+	def test_acl_skip(self):
+		with must_be_called(1) as nop:
+			acl = ACL(nop, always)
+			assert acl.is_authorized.result is True
+	
+	def test_acl_fallthrough(self):
+		with must_be_called(1) as nop:
+			acl = ACL(nop)
+			assert acl.is_authorized.result is None
 
 
 class TestBasicPredicateBehaviour(object):
@@ -279,10 +303,11 @@ class TestContextContainsPredicate(object):
 
 
 class TestExtensionBehaviour(object):
-	def do(self, controller, **config):
-		app = Application(controller, extensions=[ACLExtension(**config)])
-		req = Request.blank('/test')
-		return req.get_response(app).status_int
+	def do(self, controller, path='/test', **config):
+		app = Application(controller, extensions=[ACLExtension(**config), SerializationExtension()])
+		req = Request.blank(path)
+		resp = req.get_response(app)
+		return resp.json if resp.status_int == 200 and resp.body else resp.status_int
 	
 	def test_unknown_kwarg(self):
 		with pytest.raises(TypeError):
@@ -314,4 +339,10 @@ class TestExtensionBehaviour(object):
 	def test_empty_policy(self):
 		assert Nuke.test.__acl_inherit__ is False
 		assert self.do(Nuke) == 200
+	
+	def test_return_value_success(self):
+		assert self.do(MockController, '/allowed') == {'value': 27}
+	
+	def test_return_value_failure(self):
+		assert self.do(MockController, '/forbidden') == 403
 
