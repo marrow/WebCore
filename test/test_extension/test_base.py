@@ -31,10 +31,10 @@ class MockController(object):
 		return str(self._ctx.path.current)
 	
 	def paths(self):
-		return repr([str(i.path) for i in self._ctx.path])
+		return ', '.join(str(i.path) for i in self._ctx.path)
 	
 	def handlers(self):
-		return repr([safe_name(i.handler) for i in self._ctx.path])
+		return ', '.join(safe_name(i.handler) for i in self._ctx.path)
 
 
 class TestBreadcrumbPath(object):
@@ -48,13 +48,13 @@ class TestBreadcrumbPath(object):
 		app = Application(MockController)
 		response = Request.blank('/paths').get_response(app).text
 		
-		assert response == "['.', '/paths']"
+		assert response == "., /paths"
 	
 	def test_breadcrumb_list_handlers(self):
 		app = Application(MockController)
 		response = Request.blank('/handlers').get_response(app).text
 		
-		assert response == "['test_base:MockController', 'test_base:MockController.handlers']"
+		assert response == "test_base:MockController, test_base:MockController.handlers"
 
 
 class TestDefaulViews(object):
