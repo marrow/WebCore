@@ -66,8 +66,8 @@ Installing ``WebCore`` is easy, just execute the following in a terminal::
 
 **Note:** We *strongly* recommend always using a container, virtualization, or sandboxing environment of some kind when
 developing using Python; installing things system-wide is yucky (for a variety of reasons) nine times out of ten.  We
-prefer light-weight `virtualenv <https://virtualenv.pypa.io/en/latest/virtualenv.html>`_, others prefer solutions as
-robust as `Vagrant <http://www.vagrantup.com>`_.
+prefer light-weight `virtualenv <https://virtualenv.pypa.io/en/latest/virtualenv.html>`__, others prefer solutions as
+robust as `Vagrant <http://www.vagrantup.com>`__.
 
 If you add ``WebCore`` to the ``install_requires`` argument of the call to ``setup()`` in your application's
 ``setup.py`` file, WebCore will be automatically installed and made available when your own application or
@@ -78,8 +78,8 @@ side-effects when updating.  Use ``WebCore<2.1`` to get all bugfixes for the cur
 Dependencies and Extras
 -----------------------
 
-WebCore only depends on the excellent `webob <http://webob.org>`_ package to provide request, response, and HTTP
-status code exception helpers and the `marrow.package <https://github.com/marrow/package>`_ utility package for plugin
+WebCore only depends on the excellent `webob <http://webob.org>`__ package to provide request, response, and HTTP
+status code exception helpers and the `marrow.package <https://github.com/marrow/package>`__ utility package for plugin
 management. All other dependencies will be application dependencies; choice of template engine,
 database layer, session storage mechanism, and even dispatch method are left entirely up to the developer making use
 of the framework. Provided are a number of ``extras`` requirements, which you can define using a comma-separated list
@@ -91,10 +91,10 @@ appended to the package name during installation from the command-line, or withi
 The available extras are:
 
 - ``development`` -- this installs a recommended set of development-time packages, including
-  `pytest <http://pytest.org/>`_ and a suite of plugins for it, plus the 
-  `backlash <https://github.com/TurboGears/backlash>`_ interactive debugger (needed by the optional
+  `pytest <http://pytest.org/>`__ and a suite of plugins for it, plus the 
+  `backlash <https://github.com/TurboGears/backlash>`__ interactive debugger (needed by the optional
   ``DebugExtension``), object dispatch, the comprehensive ``ptipython`` upgraded REPL, and the
-  `waitress <https://github.com/Pylons/waitress>`_ development web server.
+  `waitress <https://github.com/Pylons/waitress>`__ development web server.
 
 - ``production`` -- install recommended production-time packages; currently this only installs the ``flup`` FastCGI
   server bridge.
@@ -120,13 +120,13 @@ Development Version
 
 |developstatus| |developcover| |ghsince| |issuecount| |ghfork|
 
-Development takes place on `GitHub <https://github.com/>`_ in the
-`WebCore <https://github.com/marrow/WebCore/>`_ project.  Issue tracking, documentation, and downloads
+Development takes place on `GitHub <https://github.com/>`__ in the
+`WebCore <https://github.com/marrow/WebCore/>`__ project.  Issue tracking, documentation, and downloads
 are provided there. Development chat (both development of WebCore and chat for users using WebCore to develop their
-own solutions) is graciously provided by `Freenode <ircs://chat.freenode.net:6697/#webcore>`_ in the ``#webcore``
+own solutions) is graciously provided by `Freenode <ircs://chat.freenode.net:6697/#webcore>`__ in the ``#webcore``
 channel.
 
-Installing the current development version requires `Git <http://git-scm.com/>`_, a distributed source code management
+Installing the current development version requires `Git <http://git-scm.com/>`__, a distributed source code management
 system.  If you have Git you can run the following to download and *link* the development version into your Python
 runtime::
 
@@ -143,7 +143,7 @@ Extra dependenies can be declared the same as per web-based installation::
 
 If you would like to make changes and contribute them back to the project, fork the GitHub project, make your changes,
 and submit a pull request.  This process is beyond the scope of this documentation; for more information see
-`GitHub's documentation <http://help.github.com/>`_.
+`GitHub's documentation <http://help.github.com/>`__.
 
 
 Basic Concepts
@@ -262,7 +262,7 @@ constructor. *Callable endpoints* are additionally passed any unprocessed path e
 a combination of query string arguments (``GET`` values) and form-encoded body elements (``POST`` values) as keyword
 arguments, with arguments from the request body taking precedence and duplicated keys being passed as a list of
 values. They may return any value there is a view registered for, see the
-`docstring of the view manager <https://github.com/marrow/WebCore/blob/develop/web/core/view.py?ts=4>`_ for details.
+`docstring of the view manager <https://github.com/marrow/WebCore/blob/develop/web/core/view.py?ts=4>`__ for details.
 
 *Static endpoints*, on the other hand, are non-callable objects that can be handled by a view. The very first example
 at the top of this document relies on the fact that there is a view to handle strings, both static, and as returned by
@@ -301,7 +301,7 @@ The process of finding the endpoint to use to process a request is called *dispa
 dispatch available, some should be immediately familiar.
 
 - **Object dispatch.** This is the default (providided by the 
-  `web.dispatch.object <https://github.com/marrow/web.dispatch.object>`_ package) form of dispatch for WebCore, and
+  `web.dispatch.object <https://github.com/marrow/web.dispatch.object>`__ package) form of dispatch for WebCore, and
   is also utilized by several other frameworks such as TurboGears. Essentially each path element is looked up as
   an attribute of the previously looked up object treating a path such as ``/foo/bar/baz`` as an attempt to resolve
   the Python reference ``root.foo.bar.baz``. This is quite flexible, allowing easy redirection of descent using
@@ -311,17 +311,17 @@ dispatch available, some should be immediately familiar.
   who have used any of the major macro- or micro-frameworks in Python such as Django, Flask, etc. You explicitly map 
   URLs, generally using a regular expression or regular expression short-hand, to specific callable endpoints. Often
   this is a accomplished using a decorator. WebCore offers this form of dispatch throuhg the
-  `web.dispatch.route <https://github.com/marrow/web.dispatch.route>`_ package.
+  `web.dispatch.route <https://github.com/marrow/web.dispatch.route>`__ package.
 
 - **Traversal.** This is similar to object dispatch, but descending through mapping keys. The previous example then
   translates to ``root['foo']['bar']['baz']``, allowing managed descent through the ``__getitem__`` protocol. This
   is one of the methods (the other being routes) provided by Pyramid. We offer this form of dispatch through the
-  `web.dispatch.traversal <https://github.com/marrow/web.dispatch.traversal>`_ package.
+  `web.dispatch.traversal <https://github.com/marrow/web.dispatch.traversal>`__ package.
 
 There may be other dispatchers available and the protocol allows for "dispatch middleware" to offer even more flexible
 approaches to endpoint lookup. The dispatch protocol itself is framework agnostic (these example dispatchers are in
 no way WebCore-specific) and
-`has its own documentation <https://github.com/marrow/protocols/blob/master/dispatch/README.md>`_.
+`has its own documentation <https://github.com/marrow/protocols/blob/master/dispatch/README.md>`__.
 
 
 Plugins and Namespaces
@@ -329,7 +329,7 @@ Plugins and Namespaces
 
 WebCore recommends registration of extensions and other plugins as Python-standard ``entry_points`` references.
 Please see the `relevant setuptools documentation 
-<https://pythonhosted.org/setuptools/setuptools.html#dynamic-discovery-of-services-and-plugins>`_ for details on this
+<https://pythonhosted.org/setuptools/setuptools.html#dynamic-discovery-of-services-and-plugins>`__ for details on this
 process. Additionally, WebCore marks package namespaces for shared use. The namespaces used, and their purposes, are:
 
 - ``web`` -- the top level shared namespace for WebCore and WebCore accessories
@@ -377,13 +377,13 @@ Version 2.0.2
 -------------
 
 - Corrected argument specification for ``transform`` extension callbacks, fixing ``AnnotationExtension`` usage as per
-  `#163 <https://github.com/marrow/WebCore/issues/163>`_.
+  `#163 <https://github.com/marrow/WebCore/issues/163>`__.
 - Additional source-level documentation and expanded examples.
 - An excessively large number of additional WSGI server adapters; now supported are: waitress
-  `tornado <http://s.webcore.io/aIaN>`_, `fcgi <http://s.webcore.io/fhVY>`_,
-  `cherrypy <http://s.webcore.io/aIoF>`_, `appengine <http://s.webcore.io/aIic>`_, `paste <http://s.webcore.io/aIdT>`_,
-  `eventlet <http://s.webcore.io/aIaa>`_, `gevent <http://s.webcore.io/aIpU>`_, `diesel <http://s.webcore.io/aIg2>`_,
-  and `bjoern <http://s.webcore.io/aIne>`_. Each is available as an ``extras_require`` by the same name which will
+  `tornado <http://s.webcore.io/aIaN>`__, `fcgi <http://s.webcore.io/fhVY>`__,
+  `cherrypy <http://s.webcore.io/aIoF>`__, `appengine <http://s.webcore.io/aIic>`__, `paste <http://s.webcore.io/aIdT>`__,
+  `eventlet <http://s.webcore.io/aIaa>`__, `gevent <http://s.webcore.io/aIpU>`__, `diesel <http://s.webcore.io/aIg2>`_,
+  and `bjoern <http://s.webcore.io/aIne>`__. Each is available as an ``extras_require`` by the same name which will
   pull in the required third-party dependency.
 
 Version 2.0.3
@@ -391,12 +391,12 @@ Version 2.0.3
 
 - Argument processing moved out of ``web.core`` into extension ``mutate`` handlers. Features improved rich
   unflattening of query string and form encoded body parameters.  Configurable behaviour. For details, see:
-  `web/ext/args.py <https://github.com/marrow/WebCore/blob/develop/web/ext/args.py>`_
-- `Extensively documented <https://github.com/marrow/WebCore/blob/develop/web/ext/acl.py>`_ access control list
+  `web/ext/args.py <https://github.com/marrow/WebCore/blob/develop/web/ext/args.py>`__
+- `Extensively documented <https://github.com/marrow/WebCore/blob/develop/web/ext/acl.py>`__ access control list
   extension validating endpoint security and return value permission using context-aware predicates.
 - The ability for extensions to define additional callbacks for collection.
 - The ``DatabaseExtension`` (formerly ``DBExtension``) has been moved into `its own repository
-  <https://github.com/marrow/web.db>`_.
+  <https://github.com/marrow/web.db>`__.
 - Content negotiation endpoint return value serialization, with pluggable ``dumps`` registry.
 - Complete unit test coverage.
 
