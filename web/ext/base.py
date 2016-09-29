@@ -125,6 +125,7 @@ class BaseExtension(object):
 		if not consumed and context.request.path_info_peek() == '':
 			consumed = ['']
 		
+		nConsumed = 0
 		if consumed:
 			# Migrate path elements consumed from the `PATH_INFO` to `SCRIPT_NAME` WSGI environment variables.
 			if not isinstance(consumed, (list, tuple)):
@@ -133,12 +134,15 @@ class BaseExtension(object):
 			for element in consumed:
 				if element == context.request.path_info_peek():
 					context.request.path_info_pop()
+					nConsumed += 1
+				else:
+					break
 		
 		# Update the breadcrumb list.
 		context.path.append(Crumb(handler, Path(request.script_name)))
 		
 		if consumed:  # Lastly, update the remaining path element list.
-			request.remainder = request.remainder[len(consumed):]
+			request.remainder = request.remainder[nConsumed:]
 	
 	# ### Views
 	
