@@ -129,11 +129,9 @@ setup(
 					'response = web.ext.base:BaseExtension',
 					
 					# ##### Miscelaneous Builtin Extensions
-					'acl = web.ext.acl:ACLExtension',  # Access control list validation.
 					'analytics = web.ext.analytics:AnalyticsExtension',
 					'annotation = web.ext.annotation:AnnotationExtension',  # Preferred use/needs reference.
 					'cast = web.ext.annotation:AnnotationExtension',  # Legacy reference.
-					'db = web.ext.db:DBExtension',  # Database Connection Management
 					'typecast = web.ext.annotation:AnnotationExtension',  # Legacy reference.
 					'local = web.ext.local:ThreadLocalExtension',  # Preferred use/needs reference.
 					'threadlocal = web.ext.local:ThreadLocalExtension',  # Legacy reference.
