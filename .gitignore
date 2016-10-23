@@ -1,4 +1,8 @@
-*.py[co]
+# Python Bytecode
+*.py[cod]
+
+# C Extensions
+*.so
 
 # Packaging
 *.egg-info
@@ -7,24 +11,29 @@
 
 # Virtual Environment Pseudo-Chroot
 bin
-lib
-usr
-var
 include
+lib
 share
 tmp
+usr
+var
 
 # Unit Test / Coverage Reports
-coverage.xml
+.cache
+.cagoule.db
 .coverage
 .tox
-.cagoule.db
-.cache/
-htmlcov/
+coverage.xml
+htmlcov
+
+# Translations
+*.mo
+*.pot
 
 # Mac
 .DS_Store
 
 # Completion Integration
 .ropeproject
+tags
 
