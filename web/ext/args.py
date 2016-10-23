@@ -167,7 +167,7 @@ class RemainderArgsExtension(ArgumentExtension):
 	first = True
 	needs = {'request'}
 	uses = {'args.context'}
-	provides = {'args.remainder'}
+	provides = {'args', 'args.remainder'}
 	
 	def mutate(self, context, endpoint, args, kw):
 		if not context.request.remainder:
@@ -181,7 +181,7 @@ class QueryStringArgsExtension(ArgumentExtension):
 	
 	first = True
 	needs = {'request'}
-	provides = {'kwargs.get'}
+	provides = {'kwargs', 'kwargs.get'}
 	
 	def mutate(self, context, endpoint, args, kw):
 		self._process_flat_kwargs(context.request.GET, kw)
@@ -193,7 +193,7 @@ class FormEncodedKwargsExtension(ArgumentExtension):
 	first = True
 	needs = {'request'}
 	uses = {'kwargs.get'}  # Query string values must be processed first, to be overridden.
-	provides = {'kwargs.post'}
+	provides = {'kwargs', 'kwargs.post'}
 	
 	def mutate(self, context, endpoint, args, kw):
 		self._process_flat_kwargs(context.request.POST, kw)
@@ -205,7 +205,7 @@ class JSONKwargsExtension(ArgumentExtension):
 	first = True
 	needs = {'request'}
 	uses = {'kwargs.get'}  # We override values defined in the query string.
-	provides = {'kwargs.json'}
+	provides = {'kwargs', 'kwargs.json'}
 	
 	def mutate(self, context, endpoint, args, kw):
 		if not context.request.content_type == 'application/json':
