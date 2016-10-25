@@ -66,7 +66,7 @@ Installing ``WebCore`` is easy, just execute the following in a terminal::
 
 **Note:** We *strongly* recommend always using a container, virtualization, or sandboxing environment of some kind when
 developing using Python; installing things system-wide is yucky (for a variety of reasons) nine times out of ten.  We
-prefer light-weight `virtualenv <https://virtualenv.pypa.io/en/latest/virtualenv.html>`__, others prefer solutions as
+prefer light-weight `virtualenv <https://virtualenv.pypa.io/>`__, others prefer solutions as
 robust as `Vagrant <http://www.vagrantup.com>`__.
 
 If you add ``WebCore`` to the ``install_requires`` argument of the call to ``setup()`` in your application's
