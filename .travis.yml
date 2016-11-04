@@ -16,6 +16,7 @@ python:
 
 install:
   - travis_retry pip install --upgrade setuptools pip codecov
+  - pip install setuptools_scm
   - pip install -e '.[development]'
 
 script:
