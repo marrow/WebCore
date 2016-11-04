@@ -55,8 +55,8 @@ class AnalyticsExtension(object):
 	def after(self, context, exc=None):
 		"""Executed after dispatch has returned and the response populated, prior to anything being sent to the client."""
 		
-		duration = time.time() - context._start_time
-		delta = unicode(round(duration, 5))
+		duration = context._duration = round((time.time() - context._start_time) * 1000)  # Convert to ms.
+		delta = unicode(duration)
 		
 		# Default response augmentation.
 		if self.header:

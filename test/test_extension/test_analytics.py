@@ -29,7 +29,7 @@ def test_analytics_extension():
 	time.sleep(0.1)
 	
 	ext.after(ctx)
-	assert 0.1 <= float(ctx.response.headers['X-Generation-Time']) <= 0.2
+	assert 100 <= float(ctx.response.headers['X-Generation-Time']) <= 200
 
 
 def test_analytics_extension_in_context():
@@ -39,5 +39,5 @@ def test_analytics_extension_in_context():
 		pytest.skip("web.dispatch.object not installed")
 	
 	resp = Request.blank('/').get_response(sample)
-	assert 0.1 <= float(resp.headers['X-Generation-Time']) <= 0.2
+	assert 100 <= float(resp.headers['X-Generation-Time']) <= 200
 
