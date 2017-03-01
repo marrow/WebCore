@@ -164,7 +164,7 @@ three arguments:
 The "root controller" is used as the starting point for dispatch resolution of the endpoint for a request, see the
 Controllers section below for details on what can be used here, but it's basically anything.
 
-By defualt the ``BaseExtension``, providing basic request and response objects and baisc views, is always enabled for 
+By default the ``BaseExtension``, providing basic request and response objects and baisc views, is always enabled for 
 your application, has no configuration, and does not need to be instantiated yourself. Other extensions should be
 instantiated and passed in the ``extensions`` list.
 
