@@ -329,7 +329,7 @@ Plugins and Namespaces
 
 WebCore recommends registration of extensions and other plugins as Python-standard ``entry_points`` references.
 Please see the `relevant setuptools documentation 
-<https://pythonhosted.org/setuptools/setuptools.html#dynamic-discovery-of-services-and-plugins>`__ for details on this
+<https://setuptools.readthedocs.io/en/latest/setuptools.html#dynamic-discovery-of-services-and-plugins>`__ for details on this
 process. Additionally, WebCore marks package namespaces for shared use. The namespaces used, and their purposes, are:
 
 - ``web`` -- the top level shared namespace for WebCore and WebCore accessories
