@@ -163,9 +163,12 @@ setup(
 				],
 			
 			'web.serialize': [
-					'json = web.ext.serialize:json.dumps',  # JavaScript Object Notation
-					'application/json = web.ext.serialize:json.dumps',  # JavaScript Object Notation
+					'json = json:dumps',  # JavaScript Object Notation
+					'application/json = json:dumps',  # JavaScript Object Notation
+					'bson = bson.json_util:dumps[bson]',  # JSON with BSON Extensions
+					'application/json+bson = bson.json_util:dumps[bson]',  # JSON with BSON Extensions
 					'yaml = yaml:dumps[yaml]',  # Yet Another Markup Language
+					'yml = yaml:dumps[yaml]',  # Yet Another Markup Language
 					'application/x-yaml = yaml:dumps[yaml]',  # Yet Another Markup Language
 				]
 		},
