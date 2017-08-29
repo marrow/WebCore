@@ -5,6 +5,8 @@
 Applications can be as simple or as complex and layered as your needs dictate.
 """
 
+from web.core import Application
+
 
 def basic(context, name="world"):
 	"""Say hello.
@@ -19,7 +21,4 @@ def basic(context, name="world"):
 
 
 if __name__ == '__main__':
-	from web.core import Application
-	
 	Application(basic).serve('waitress', threads=16)
-
