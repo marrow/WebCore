@@ -39,6 +39,9 @@ class AnalyticsExtension(object):
 		# Record settings.
 		self.header = header
 		self.log = getattr(log, level) if level else None
+		
+		if level:  # Only attach this event if needed.
+			self.done = self._done
 	
 	# ### Request-Local Callabacks
 	
@@ -63,8 +66,21 @@ class AnalyticsExtension(object):
 			context.response.headers[self.header] = delta
 		
 		if self.log:
-			self.log("Response generated in " + delta + " seconds.", extra=dict(
-					duration = duration,
-					request = id(context)
-				))
-
+			self.log("Response prepared in " + delta + " ms.", extra={
+					'duration': duration,
+					'request': id(context),
+				})
+	
+	def _done(self, context):
+		"""Executed after the request has finished streaming to the user."""
+		
+		gduration = round((time.time() - context._start_time) * 1000)  # Convert to ms.
+		sduration = gduration - context._duration
+		gdelta = unicode(duration)
+		sdelta = unicode(duration)
+		
+		self.log("Response completed in " + gdelta + " ms, streaming in " + sdelta + " ms.", extra={
+				'duration': gduration,
+				'streaming': sduration,
+				'request': id(context),
+			})
