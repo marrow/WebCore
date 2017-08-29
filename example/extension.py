@@ -8,40 +8,21 @@ log = __import__('logging').getLogger(__name__)
 # Example extensions.
 
 class Extension(object):
-	"""A template of a WebCore 2 extension.
+	"""A template of a WebCore 2 extension."""
 	
-	Only the __init__ method is requried.
+	# Metadata
+	# Omit if unchanged from the below defaults.
+	# Where lists are used, sets are suggested when populated.
 	
-	The class attributes listed below control ordering and activation of other extensions.
-	
-	`uses`:
-	:   Used for extension sorting and dependency graphing; if these features are present we can use them.
-	`needs`:
-	:   As per `uses`, but requires the named features be present.
-	`always`:
-	:   If `True` always load this extension.  Useful for application-provided extensions.
-	`never`:
-	:   The opposite of `always`.
-	`first`:
-	:   Always try to be first in the extension stack.
-	`last`:
-	:   Always try to be last in the extension stack.
-	`provides`:
-	:   A list of keywords usable in `uses` and `needs` declarations.
-	`extensions`:
-	:   A tuple of entry_point namespaces to search for extensions.
-	
-	The names of method arguments are unimportant; all values are passed positionally.
-	"""
-	
-	uses = []
-	needs = []
-	always = False
-	never = False
-	first = False
-	last = False
-	provides = []
-	extensions = ()
+	provides = []  # Tag-based declaration of feature names.
+	uses = []  # Tag-based declaration of optional feature utilization to aid in dependency graphing.
+	needs = []  # Tag-based declaration of required features. If any are missing, the application will not start.
+	always = False  # This extension should always be loaded; it may be core, or per-application.
+	never = False  # Ensure this extension can not be utilized.
+	first = False  # Always attempt to execute first, prior to all other extensions.
+	last = False  # Always attempt to execute last, after all other extensions have been processed.
+	extensions = []  # Entry point namespaces for plugins relating to this extension.
+	signals = []  # Additional extension callbacks utilized by this one.
 	
 	def __init__(self, **config):
 		"""Executed to configure the extension.
