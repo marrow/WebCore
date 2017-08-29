@@ -18,6 +18,8 @@ except ImportError:
 	def _tmp(): yield None  # pragma: no cover
 	Generator = type(_tmp())
 
+
+from functools import partial
 from os.path import getmtime
 from time import mktime, gmtime
 from datetime import datetime
@@ -43,7 +45,6 @@ class Bread(list):
 	@property
 	def current(self):
 		return self[-1].path
-
 
 
 # ## Extension
@@ -143,6 +144,28 @@ class BaseExtension(object):
 		
 		if consumed:  # Lastly, update the remaining path element list.
 			request.remainder = request.remainder[nConsumed:]
+	
+	def interactive(self, context):
+		"""Called to provide REPL shell locals.
+		
+		In our case we add some handy shortcuts for simulating requests.
+		"""
+		
+		def inner(method, *args, **kw):
+			req = Request.blank(*args, **dict(kw, method=method))
+			return req.send(context.app)
+		
+		contribution = {i: partial(inner, i.upper()) for i in ('options', 'head', 'get', 'post', 'put', 'delete')}
+		
+		contribution.update({i: getattr(context, i) for i in ('root', 'app', 'dispatch', 'view')})
+		
+		contribution.update(
+				root = context.root,
+				app = context.app,
+				dispatch = context.dispatch,
+			)
+		
+		return contribution
 	
 	# ### Views
 	

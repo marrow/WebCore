@@ -145,6 +145,11 @@ class SerializationExtension(object):
 		for kind in self.types:
 			context.view.register(kind, self.render_serialization)
 	
+	def interactive(self, context):
+		"""Called to provide REPL shell locals."""
+		
+		return {'dumps': context.serialize}
+	
 	def render_serialization(self, context, result):
 		"""Render serialized responses."""
 		
@@ -176,4 +181,3 @@ class SerializationExtension(object):
 			raise TypeError("No view could be found to handle serialized result: " + repr(type(result)))
 		
 		return True
-
