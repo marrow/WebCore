@@ -9,18 +9,17 @@ branches:
 python:
   - "2.7"
   - "pypy"
-  - "pypy3.3-5.2-alpha1"
-  - "3.3"
+  - "pypy-5.7.1"
   - "3.4"
   - "3.5"
+  - "3.6"
 
 install:
-  - travis_retry pip install --upgrade setuptools pip codecov
-  - pip install setuptools_scm
+  - travis_retry pip install --upgrade setuptools pip setuptools_scm logilab-common
   - pip install -e '.[development]'
 
 script:
-    python setup.py test
+    pytest
 
 after_script:
     bash <(curl -s https://codecov.io/bash)

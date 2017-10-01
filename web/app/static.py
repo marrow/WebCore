@@ -74,4 +74,3 @@ def static(base, mapping=None, far=('js', 'css', 'gif', 'jpg', 'jpeg', 'png', 't
 		return open(path, 'rb')
 	
 	return static_handler
-

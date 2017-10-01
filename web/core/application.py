@@ -42,6 +42,9 @@ class Application(object):
 	* Collection and execution of `web.extension` callbacks.
 	* WSGI middleware wrapping.
 	* The final WSGI application handling requests.
+	
+	The application object is treated as an extension allowing per-application customization utilizing extension
+	callbacks (such as rendering custom views on startup) through subclassing.
 	"""
 	
 	__slots__ = (
@@ -52,6 +55,8 @@ class Application(object):
 			'RequestContext',  # Per-request context class.
 			'__call__',  # WSGI request handler.  Dynamically assigned.
 		)
+	
+	last = True
 	
 	def __init__(self, root, **config):
 		"""Construct the initial ApplicationContext, populate, and prepare the WSGI stack.
@@ -123,6 +128,8 @@ class Application(object):
 					arguments.FormEncodedKwargsExtension(),
 					arguments.JSONKwargsExtension(),
 				])
+		
+		config['extensions'].append(self)  # Allow the application object itself to register callbacks.
 		
 		# Tests are skipped on these as we have no particular need to test Python's own logging mechanism.
 		level = config.get('logging', {}).get('level', None)
