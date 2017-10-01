@@ -16,7 +16,7 @@ python:
   - "3.6"
 
 install:
-  - travis_retry pip install --upgrade setuptools pip setuptools_scm
+  - travis_retry pip install --upgrade setuptools pip setuptools_scm logilab-common
   - pip install -e '.[development]'
 
 script:
