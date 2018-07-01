@@ -173,7 +173,7 @@ class RemainderArgsExtension(ArgumentExtension):
 		if not context.request.remainder:
 			return
 		
-		args.extend(context.request.remainder)
+		args.extend(i for i in context.request.remainder if i)
 
 
 class QueryStringArgsExtension(ArgumentExtension):
