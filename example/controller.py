@@ -36,12 +36,20 @@ class Another(object):  # On Python 3 you'd leave off the `(object)` bit everywh
 		
 		For example:
 		
-			curl http://localhost:8080/child/
+			curl http://localhost:8080/child
+
 		"""
 		
 		return "I'm the baby!"
 	
 	def eat(self, food="pizza"):
+		"""Executed if this endpoint is accessed.
+
+		For example:
+			curl http://localhost:8080/child/eat
+			curl http://localhost:8080/child/eat/sushi
+		"""
+		
 		return "Yum, I love {food}!".format(food=food)
 
 
@@ -62,6 +70,12 @@ class Root(object):
 	"""
 	
 	__slots__ = ('_ctx', )  # This is an optimization to tell CPython that our only instance attribute is `_ctx`.
+
+	"""
+	In order to extend Root into other objects such as Another, you need to register them in class scope like so.
+	This will make the Another class available to the user as /child via Object dispatching.
+	"""
+	child = Another
 	
 	def __init__(self, context):
 		"""Initialize our controller, either saving the context or getting anything we need from it."""
