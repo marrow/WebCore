@@ -12,7 +12,7 @@ from .util import lazy
 
 # ## Module Globals
 
-__all__ = ['local', 'Applicaiton', 'lazy']  # Symbols exported by this package.
+__all__ = ['local', 'Application', 'lazy']  # Symbols exported by this package.
 
 # This is to support the web.ext.local extension, and allow for early importing of the variable.
 local = __local()
