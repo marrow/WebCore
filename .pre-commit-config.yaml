@@ -1,0 +1,35 @@
+-   repo: https://github.com/pre-commit/pre-commit-hooks.git
+    sha: v0.9.2
+    hooks:
+    -   id: check-added-large-files
+    -   id: check-ast
+    -   id: check-byte-order-marker
+    -   id: check-docstring-first
+    -   id: check-merge-conflict
+    -   id: check-symlinks
+    -   id: debug-statements
+    -   id: detect-private-key
+    -   id: end-of-file-fixer
+    -   id: forbid-new-submodules
+    -   id: check-json
+    -   id: check-xml
+    -   id: check-yaml
+-   repo: https://github.com/Lucas-C/pre-commit-hooks-safety
+    sha: v1.1.0
+    hooks:
+    -   id: python-safety-dependencies-check
+-   repo: local
+    hooks:
+    -   id: python-bandit-vulnerability-check
+        name: bandit
+        entry: bandit
+        args: [-lll, --recursive, marrow, web, test]
+        language: system
+        files: ''
+-   repo: local
+    hooks:
+    -   id: py.test
+        name: py.test
+        language: system
+        entry: sh -c 'TEST_SKIP_CAPPED=1 py.test'
+        files: ''
