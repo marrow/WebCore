@@ -74,4 +74,13 @@ class TestArgumentAndExceptionHandling(TestCase):
 	
 	def test_empty_body(self):
 		assert self.do('/rich', _remove=True).text == ""
-
+	
+	def test_trailing_slash_eliding(self):
+		res = self.do('/endpoint/2/4/')
+		assert res.status_int == 200
+		assert res.text == "8"
+	
+	def test_mid_slash_eliding(self):
+		res = self.do('/endpoint///2//4/')
+		assert res.status_int == 200
+		assert res.text == "8"
