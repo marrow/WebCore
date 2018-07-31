@@ -132,6 +132,7 @@ setup(
 					'annotation = web.ext.annotation:AnnotationExtension',  # Preferred use/needs reference.
 					'cast = web.ext.annotation:AnnotationExtension',  # Legacy reference.
 					'typecast = web.ext.annotation:AnnotationExtension',  # Legacy reference.
+					'defer = web.ext.defer:DeferralExtension', # Executor interface.
 					'local = web.ext.local:ThreadLocalExtension',  # Preferred use/needs reference.
 					'threadlocal = web.ext.local:ThreadLocalExtension',  # Legacy reference.
 					'assets = web.ext.assets:WebAssetsExtension',  # WebAssets integration.
@@ -219,4 +220,3 @@ setup(
 			'bjoern': ['bjoern'],
 		},
 )
-
