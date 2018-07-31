@@ -16,6 +16,7 @@ from marrow.package.loader import load
 from .context import Context
 from .dispatch import WebDispatchers
 from .extension import WebExtensions
+from .util import addLoggingLevel
 from .view import WebViews
 from ..ext.base import BaseExtension
 from ..ext import args as arguments
@@ -130,6 +131,11 @@ class Application(object):
 				])
 		
 		config['extensions'].append(self)  # Allow the application object itself to register callbacks.
+		
+		try:
+			addLoggingLevel('trace', logging.DEBUG - 5)
+		except AttributeError:
+			pass
 		
 		# Tests are skipped on these as we have no particular need to test Python's own logging mechanism.
 		level = config.get('logging', {}).get('level', None)
@@ -272,4 +278,3 @@ class Application(object):
 		# This is really long due to the fact we don't want to capture the response too early.
 		# We need anything up to this point to be able to simply replace `context.response` if needed.
 		return capture_done(context.response.conditional_response_app(environ, start_response))
-
