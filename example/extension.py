@@ -30,6 +30,8 @@ class Extension(object):
 	:   A list of keywords usable in `uses` and `needs` declarations.
 	`extensions`:
 	:   A tuple of entry_point namespaces to search for extensions.
+	`excludes`:
+	:   An iterable of `provides` tags that must NOT be set.
 	
 	The names of method arguments are unimportant; all values are passed positionally.
 	"""
@@ -42,6 +44,7 @@ class Extension(object):
 	last = False
 	provides = []
 	extensions = ()
+	excludes = ()
 	
 	def __init__(self, **config):
 		"""Executed to configure the extension.

@@ -23,6 +23,7 @@ var
 .cagoule.db
 .coverage
 .tox
+.pytest_cache
 coverage.xml
 htmlcov
 
