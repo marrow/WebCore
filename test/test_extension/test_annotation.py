@@ -77,3 +77,20 @@ def test_annotation_transformation():
 	
 	assert result == ('int', 1134)
 
+
+def test_annotation_failure():
+	ext = AnnotationExtension()
+	ctx = Context()
+	args = []
+	kwargs = {'a': 'xyzzy'}
+	
+	with pytest.raises(ValueError):
+		ext.mutate(ctx, endpoint, args, kwargs)
+	
+	try:
+		ext.mutate(ctx, endpoint, args, kwargs)
+	except ValueError as e:
+		s = str(e)
+		
+		assert 'xyzzy' in s
+		assert "argument 'a'" in s

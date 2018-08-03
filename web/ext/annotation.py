@@ -60,9 +60,11 @@ class AnnotationExtension(object):
 				val = cast(val)
 			except (ValueError, TypeError) as e:
 				parts = list(e.args)
-				parts[0] = parts[0] + " processing argument {}".format(arg)
+				parts[0] = parts[0] + " processing argument '{}'".format(arg)
 				e.args = tuple(parts)
 				raise
+			
+			return val
 			
 		annotations = getattr(handler.__func__ if hasattr(handler, '__func__') else handler, '__annotations__', None)
 		if not annotations:
@@ -77,12 +79,12 @@ class AnnotationExtension(object):
 		for i, value in enumerate(list(args)):
 			key = arglist[i]
 			if key in annotations:
-				args[i] = annotations[key](value)
+				args[i] = cast(key, value)
 		
 		# Convert keyword arguments
 		for key, value in list(items(kw)):
 			if key in annotations:
-				kw[key] = annotations[key](value)
+				kw[key] = cast(key, value)
 	
 	def transform(self, context, handler, result):
 		"""Transform the value returned by the controller endpoint.
