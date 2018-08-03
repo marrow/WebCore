@@ -1,8 +1,6 @@
 # encoding: utf-8
 
-# Imports
-
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import weakref
 
@@ -14,11 +12,8 @@ except ImportError:
 
 from web.core.util import lazy
 
-# Module Globals
 
 log = __import__('logging').getLogger(__name__)
-
-# Extension
 
 
 class DeferredFuture(object):
@@ -129,7 +124,7 @@ class DeferralExtension(object):
 		if Executor is None:
 			if 'max_workers' not in config:
 				config['max_workers'] = 5
-
+			
 			Executor = futures.ThreadPoolExecutor
 		
 		self._config = config
