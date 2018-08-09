@@ -9,7 +9,7 @@ branches:
 python:
   - "2.7"
   - "pypy"
-  - "pypy-5.7.1"
+  - "pypy3"
   - "3.4"
   - "3.5"
   - "3.6"
