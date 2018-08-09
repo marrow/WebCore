@@ -30,6 +30,7 @@ tests_require = [
 		'pytest-flakes',  # syntax validation
 		'web.dispatch.object',  # dispatch tests
 		'backlash',  # debug tests
+		'futures; python_version < "3.4"',  # deferred execution extension
 	]
 
 
