@@ -43,13 +43,13 @@ class DeferredFuture(object):
 		return self._internal and self._internal.done()
 	
 	def result(self, timeout=None):
-		if self._internal is None and self.schedule() is None:
+		if self._internal is None and self._schedule() is None:
 			raise futures.CancelledError
 		
 		return self._internal.result(timeout)
 	
 	def exception(self, timeout=None):
-		if self._internal is None and self.schedule() is None:
+		if self._internal is None and self._schedule() is None:
 			raise futures.CancelledError
 		
 		return self._internal.exception(timeout)
@@ -63,10 +63,10 @@ class DeferredFuture(object):
 		
 		return True
 	
-	def schedule(self, executor=None):
+	def _schedule(self, executor=None):
 		if executor is None:
 			if self._deferred:
-				return self._deferred.schedule_one(self)
+				return self._deferred._schedule_one(self)
 			raise Exception # Shouldn't be accessible this early in the process lifecycle...
 		
 		if self.set_running_or_notify_cancel() is False:
@@ -92,11 +92,15 @@ class DeferredExecutor(object):
 		self._futures.append(future)
 		return future
 	
-	def map(self, func, *iterables, timeout=None, chunksize=1):
-		pass
+	def map(self, func, *iterables, **kw):
+		timeout = kw.pop('timeout', None)
+		chunksize = kw.pop('chunksize', 1)
+		
+		if kw:
+			raise TypeError("map() got an unexpected keyword argument(s) '{}'".format("', '".join(kw)))
 	
-	def schedule_one(self, future):
-		return future.schedule(self._executor)
+	def _schedule_one(self, future):
+		return future._schedule(self._executor)
 	
 	def shutdown(self, wait=True):
 		if wait is False:
@@ -104,7 +108,9 @@ class DeferredExecutor(object):
 			return
 		
 		while len(self._futures) > 0:
-			self._futures.pop(0).schedule(self._executor)
+			self._futures.pop(0)._schedule(self._executor)
+		
+		self._executor.shutdown(wait)
 
 
 class DeferralExtension(object):
@@ -142,8 +148,11 @@ class DeferralExtension(object):
 	
 	def done(self, context):
 		if 'deferred_executor' not in context.__dict__: # Check if there's even any work to be done
-			log.debug("Deferred executor not accessed during request")
+			if __debug__:
+				log.debug("deferred executor not accessed during request")
 			return
 		
 		context.deferred_executor.shutdown(wait=True)
-		log.debug("Deferred executor accessed")
+		
+		if __debug__:
+			log.debug("Deferred executor accessed")

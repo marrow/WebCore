@@ -64,7 +64,7 @@ def test_deferred_executor():
 	deferred_executor.shutdown(wait=False)
 	assert future.running() is False
 	
-	deferred_executor.schedule_one(future)
+	deferred_executor._schedule_one(future)
 	assert future.running() is True
 
 
