@@ -1,38 +1,10 @@
 # encoding: utf-8
 
+from concurrent.futures import ThreadPoolExecutor
+
 from web.core.context import Context
 from web.core.util import lazy
 from web.ext.defer import DeferralExtension, DeferredExecutor
-
-
-sentinel = object()
-
-class MockFuture(object):
-	def __init__(self):
-		self.done_cbs = []
-	
-	def done(self):
-		return False
-	
-	def running(self):
-		return True
-	
-	def add_done_callback(self, cb):
-		self.done_cbs.append(cb)
-
-
-class MockExecutor(object):
-	def submit(self, func, *args, **kwarg):
-		return MockFuture()
-	
-	def shutdown(self, wait=True):
-		self._shutdown = True
-		return
-
-
-class MockDeferredExecutor(object):
-	def schedule_one(self, future):
-		future.schedule(MockExecutor())
 
 
 def test_deferred_future():
