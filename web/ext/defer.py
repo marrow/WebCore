@@ -18,18 +18,25 @@ log = __import__('logging').getLogger(__name__)
 
 
 class DeferredFuture(object):
-	__slots__ = ['_deferred', '_func', '_cancelled', '_internal', '_done_callbacks']
+	"""A deferred (mock) future.
 	
-	def __init__(self, deferred, func, *args, **kwargs):
-		self._deferred = deferred
-		self._func = (func, args, kwargs)
+	Stores the task information needed to submit the callable and arguments to a real executor plus the done callbacks
+	to be called upon completion of the real future.
+	"""
+	
+	__slots__ = ['_deferred', '_func', '_cancelled', '_internal', '_callbacks']
+	
+	def __init__(self, _executor, _func, *args, **kwargs):
+		"""Construct a deferred, mock future."""
+		self._deferred = _executor
+		self._func = (_func, args, kwargs)
 		self._cancelled = False
 		self._internal = None
-		self._done_callbacks = []
+		self._callbacks = []
 	
 	def cancel(self):
 		if self._internal is not None:
-			return False
+			return self._internal.cancel()
 		
 		self._cancelled = True
 		return True
@@ -56,7 +63,7 @@ class DeferredFuture(object):
 		return self._internal.exception(timeout)
 	
 	def add_done_callback(self, func):
-		self.done_callbacks.append(func)
+		self._callbacks.append(func)
 	
 	def set_running_or_notify_cancel(self):
 		if self._cancelled or self._internal:
@@ -64,32 +71,35 @@ class DeferredFuture(object):
 		
 		return True
 	
-	def _schedule(self, executor=None):
-		if executor is None:
-			if self._deferred:
-				return self._deferred._schedule_one(self)
-			raise Exception # Shouldn't be accessible this early in the process lifecycle...
+	def _schedule(self, executor):
+		"""Schedule this deferred task using the provided executor.
 		
-		if self.set_running_or_notify_cancel() is False:
+		Will submit the task, locally note the real future instance (`_internal` attribute), and attach done
+		callbacks.  Calling any of the standard Future methods (e.g. `result`, `done`, etc.) will first schedule the
+		task, then execute the appropriate method by proxy.
+		"""
+		
+		if not self.set_running_or_notify_cancel():  # Give a talking to regarding "is False" / "is True" use!
 			return None
 		
 		self._internal = executor.submit(self._func[0], *self._func[1], **self._func[2])
 		assert self._internal is not None
 		
-		for cb in self._done_callbacks:
-			self._internal.add_done_callback(cb)
+		for fn in self._callbacks:
+			self._internal.add_done_callback(fn)
+		
 		return self._internal
 
 
 class DeferredExecutor(object):
-	__slots__ = ['_futures', '_executor', '__weakref__']
+	__slots__ = ['_futures', '_executor']
 	
 	def __init__(self, executor):
 		self._futures = []
 		self._executor = executor
 	
 	def submit(self, func, *args, **kwargs):
-		future = DeferredFuture(weakref.proxy(self), func, *args, **kwargs)
+		future = DeferredFuture(self, func, *args, **kwargs)
 		self._futures.append(future)
 		return future
 	
@@ -99,9 +109,6 @@ class DeferredExecutor(object):
 		
 		if kw:
 			raise TypeError("map() got an unexpected keyword argument(s) '{}'".format("', '".join(kw)))
-	
-	def _schedule_one(self, future):
-		return future._schedule(self._executor)
 	
 	def shutdown(self, wait=True):
 		for future in self._futures:
@@ -113,9 +120,9 @@ class DeferredExecutor(object):
 class DeferralExtension(object):
 	"""Provide a Futures-compatible backround task executor that defers until after the headers have been sent.
 	
-	This exposes two executors: `executor` (generally a thread or process pool) and `defer`, a task pool that submits
-	the tasks to the real executor only after the headers have been sent to the client. In this way, background tasks
-	should have no visible impact on response generation times.
+	This exposes two executors within the context: `executor` (generally a thread or process pool) and `defer`, a
+	task pool that submits the tasks to the real executor only after the headers have been sent to the client. In this
+	way, background tasks should have no visible impact on response generation times.
 	"""
 	
 	provides = ['executor', 'deferral']
@@ -148,11 +155,12 @@ class DeferralExtension(object):
 		"""
 		
 		context.executor = self._Executor(**self._config)
+		context.defer = lazy(self._get_deferred_executor, 'defer')
 	
 	def prepare(self, context):
 		"""Construct a context-local pool of deferred tasks, with request-local deferred executor."""
 		
-		context.defer = lazy(self._get_deferred_executor, 'defer')
+		pass
 	
 	def done(self, context):
 		"""After request processing has completed, submit any deferred tasks to the real executor."""
