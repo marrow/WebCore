@@ -104,21 +104,18 @@ class DeferredExecutor(object):
 		return future._schedule(self._executor)
 	
 	def shutdown(self, wait=True):
-		if wait is False:
-			self._futures = []
-			return
+		for future in self._futures:
+			future._schedule(self._executor)
 		
-		while len(self._futures) > 0:
-			self._futures.pop(0)._schedule(self._executor)
-		
-		self._executor.shutdown(wait)
+		self._futures = []
 
 
 class DeferralExtension(object):
 	"""Provide a Futures-compatible backround task executor that defers until after the headers have been sent.
 	
 	This exposes two executors: `executor` (generally a thread or process pool) and `defer`, a task pool that submits
-	the tasks to the real executor only after the headers have been sent to the client.
+	the tasks to the real executor only after the headers have been sent to the client. In this way, background tasks
+	should have no visible impact on response generation times.
 	"""
 	
 	provides = ['executor', 'deferral']
@@ -137,39 +134,38 @@ class DeferralExtension(object):
 	
 	def _get_deferred_executor(self, context):
 		"""Lazily construct a deferred future executor."""
-		return DeferredExecutor(weakref.proxy(context.executor))
+		return DeferredExecutor(context.executor)
 	
 	def _get_concrete_executor(self, context):
 		"""Lazily construct an actual future executor implementation."""
+		
 		return self._Executor(**self._config)
 	
 	def start(self, context):
-		"""Prepare the context with lazy constructors on startup."""
+		"""Prepare the context with application-scope attributes on startup.
+		
+		The real Futures executor is constructed once, then re-used between requests.
+		"""
 		
 		context.executor = self._Executor(**self._config)
-		context.defer = lazy(self._get_deferred_executor, 'defer')
 	
 	def prepare(self, context):
-		"""Construct a context-local pool of deferred tasks."""
+		"""Construct a context-local pool of deferred tasks, with request-local deferred executor."""
 		
-		context._tasks = []
+		context.defer = lazy(self._get_deferred_executor, 'defer')
 	
 	def done(self, context):
 		"""After request processing has completed, submit any deferred tasks to the real executor."""
 		
-		if not context._tasks:
-			return
-		
-		for task in context._tasks:
-			task._schedule(context.defer)
-		
 		if 'defer' not in context.__dict__:
+			if __debug__:
+				log.debug("Deferred tasks not accessed during this request; nothing to do.")
+			
 			return  # Bail early to prevent accidentally constructing the lazy value.
 		
+		# Within this context, deferral is done with.
+		# Additionally, this will automatically schedule all submitted tasks with the real executor.
 		context.defer.shutdown(wait=False)
-		
-		if __debug__:
-			log.debug("Deferred executor accessed, tasks scheduled.")
 	
 	def stop(self, context):
 		"""Drain the real executor on web service shutdown."""
