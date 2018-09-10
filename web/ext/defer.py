@@ -2,12 +2,13 @@
 
 from __future__ import unicode_literals, print_function
 
+import multiprocessing
 import weakref
 
 try:
 	from concurrent import futures
 except ImportError:
-	print("You must install the 'futures' package.")
+	print("To use the task deferral extension on your Python version, you must first install the 'futures' package.")
 	raise
 
 from web.core.util import lazy
@@ -114,22 +115,20 @@ class DeferredExecutor(object):
 
 
 class DeferralExtension(object):
-	"""Provide an interface on RequestContext to defer a background function call until after the response has finished
-	streaming to the browser.
+	"""Provide a Futures-compatible backround task executor that defers until after the headers have been sent.
 	
-	A mock executor interface will be added at `context.deferred_executor` that will preserve calls until the
-	extension's 'done' callback at which point the extension will flush commands to a configurable internal executor.
+	This exposes two executors: `executor` (generally a thread or process pool) and `defer`, a task pool that submits
+	the tasks to the real executor only after the headers have been sent to the client.
 	"""
 	
 	provides = ['executor', 'deferral']
 	
 	def __init__(self, Executor=None, **config):
-		"""Configure the deferral extension.
-		"""
+		"""Configure the deferral extension."""
 		
 		if Executor is None:
 			if 'max_workers' not in config:
-				config['max_workers'] = 5
+				config['max_workers'] = multiprocessing.cpu_count()
 			
 			Executor = futures.ThreadPoolExecutor
 		
@@ -137,22 +136,42 @@ class DeferralExtension(object):
 		self._Executor = Executor
 	
 	def _get_deferred_executor(self, context):
+		"""Lazily construct a deferred future executor."""
 		return DeferredExecutor(weakref.proxy(context.executor))
 	
-	def start(self, context):
-		context.executor = self._Executor(**self._config)
-		context.deferred_executor = lazy(self._get_deferred_executor, 'deferred_executor')
+	def _get_concrete_executor(self, context):
+		"""Lazily construct an actual future executor implementation."""
+		return self._Executor(**self._config)
 	
-	def stop(self, context):
-		context.executor.shutdown(wait=True)
+	def start(self, context):
+		"""Prepare the context with lazy constructors on startup."""
+		
+		context.executor = self._Executor(**self._config)
+		context.defer = lazy(self._get_deferred_executor, 'defer')
+	
+	def prepare(self, context):
+		"""Construct a context-local pool of deferred tasks."""
+		
+		context._tasks = []
 	
 	def done(self, context):
-		if 'deferred_executor' not in context.__dict__: # Check if there's even any work to be done
-			if __debug__:
-				log.debug("deferred executor not accessed during request")
+		"""After request processing has completed, submit any deferred tasks to the real executor."""
+		
+		if not context._tasks:
 			return
 		
-		context.deferred_executor.shutdown(wait=True)
+		for task in context._tasks:
+			task._schedule(context.defer)
+		
+		if 'defer' not in context.__dict__:
+			return  # Bail early to prevent accidentally constructing the lazy value.
+		
+		context.defer.shutdown(wait=False)
 		
 		if __debug__:
-			log.debug("Deferred executor accessed")
+			log.debug("Deferred executor accessed, tasks scheduled.")
+	
+	def stop(self, context):
+		"""Drain the real executor on web service shutdown."""
+		
+		context.executor.shutdown(wait=True)
