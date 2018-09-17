@@ -7,7 +7,7 @@ import weakref
 
 try:
 	from concurrent import futures
-except ImportError:
+except ImportError:  # pragma: no cover
 	print("To use the task deferral extension on your Python version, you must first install the 'futures' package.")
 	raise
 
@@ -45,7 +45,7 @@ class DeferredFuture(object):
 		return self._cancelled or (self._internal and self._internal.cancelled())
 	
 	def running(self):
-		return self._internal is not None and self._internal.running()
+		return self._internal and self._internal.running()
 	
 	def done(self):
 		return self._internal and self._internal.done()
@@ -69,7 +69,8 @@ class DeferredFuture(object):
 		if self._cancelled or self._internal:
 			return False
 		
-		return True
+		# self._internal.set_running_or_notify_cancel()
+		return True  # dubious about this...
 	
 	def _schedule(self, executor):
 		"""Schedule this deferred task using the provided executor.
@@ -79,7 +80,7 @@ class DeferredFuture(object):
 		task, then execute the appropriate method by proxy.
 		"""
 		
-		if not self.set_running_or_notify_cancel():  # Give a talking to regarding "is False" / "is True" use!
+		if not self.set_running_or_notify_cancel():
 			return None
 		
 		self._internal = executor.submit(self._func[0], *self._func[1], **self._func[2])
@@ -89,6 +90,10 @@ class DeferredFuture(object):
 			self._internal.add_done_callback(fn)
 		
 		return self._internal
+	
+	def __repr__(self):
+		callbacks = len(self._callbacks)
+		return '{0.__class__.__name__}({0._func[0]}, *{0._func[1]!r}, **{0._func[2]!r}, callbacks={1})'.format(self, callbacks)
 
 
 class DeferredExecutor(object):
