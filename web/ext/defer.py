@@ -24,34 +24,34 @@ class DeferredFuture(object):
 	to be called upon completion of the real future.
 	"""
 	
-	__slots__ = ['_deferred', '_func', '_cancelled', '_internal', '_callbacks']
+	__slots__ = ['_ctx', '_func', '_cancelled', '_internal', '_callbacks']
 	
-	def __init__(self, _executor, _func, *args, **kwargs):
+	def __init__(self, _context, _func, *args, **kwargs):
 		"""Construct a deferred, mock future."""
-		self._deferred = _executor
+		self._ctx = _context
 		self._func = (_func, args, kwargs)
 		self._cancelled = False
 		self._internal = None
 		self._callbacks = []
 	
 	def cancel(self):
-		if self._internal is not None:
+		if self._internal:
 			return self._internal.cancel()
 		
 		self._cancelled = True
 		return True
 	
 	def cancelled(self):
-		return self._cancelled or (self._internal and self._internal.cancelled())
+		return bool(self._cancelled or (self._internal and self._internal.cancelled()))
 	
 	def running(self):
-		return self._internal and self._internal.running()
+		return bool(self._internal and self._internal.running())
 	
 	def done(self):
-		return self._internal and self._internal.done()
+		return bool(self._internal and self._internal.done())
 	
 	def result(self, timeout=None):
-		if self._internal is None and self._schedule() is None:
+		if not self._internal and not self._schedule():
 			raise futures.CancelledError
 		
 		return self._internal.result(timeout)
@@ -72,13 +72,16 @@ class DeferredFuture(object):
 		# self._internal.set_running_or_notify_cancel()
 		return True  # dubious about this...
 	
-	def _schedule(self, executor):
+	def _schedule(self, executor=None):
 		"""Schedule this deferred task using the provided executor.
 		
 		Will submit the task, locally note the real future instance (`_internal` attribute), and attach done
 		callbacks.  Calling any of the standard Future methods (e.g. `result`, `done`, etc.) will first schedule the
 		task, then execute the appropriate method by proxy.
 		"""
+		
+		if not executor:
+			executor = self._ctx.executor
 		
 		if not self.set_running_or_notify_cancel():
 			return None
@@ -97,14 +100,14 @@ class DeferredFuture(object):
 
 
 class DeferredExecutor(object):
-	__slots__ = ['_futures', '_executor']
+	__slots__ = ['_futures', '_ctx']
 	
-	def __init__(self, executor):
+	def __init__(self, context):
 		self._futures = []
-		self._executor = executor
+		self._ctx = context
 	
 	def submit(self, func, *args, **kwargs):
-		future = DeferredFuture(self, func, *args, **kwargs)
+		future = DeferredFuture(self._ctx, func, *args, **kwargs)
 		self._futures.append(future)
 		return future
 	
@@ -117,7 +120,7 @@ class DeferredExecutor(object):
 	
 	def shutdown(self, wait=True):
 		for future in self._futures:
-			future._schedule(self._executor)
+			future._schedule()
 		
 		self._futures = []
 
@@ -146,7 +149,7 @@ class DeferralExtension(object):
 	
 	def _get_deferred_executor(self, context):
 		"""Lazily construct a deferred future executor."""
-		return DeferredExecutor(context.executor)
+		return DeferredExecutor(context)
 	
 	def _get_concrete_executor(self, context):
 		"""Lazily construct an actual future executor implementation."""

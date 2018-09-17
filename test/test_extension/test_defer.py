@@ -34,15 +34,25 @@ class Root(object):
 		self.ctx = ctx
 	
 	def __call__(self):
-		print("Submitting.")
 		receipt = self.ctx.defer.submit(deferred, 2, 4)
 		receipt.add_done_callback(resulting)
 		return repr(receipt)
-
+	
 	def isa(self):
 		return type(self.ctx.defer).__name__ + '\n' + type(self.ctx.executor).__name__
-
-
+	
+	def prop(self, p, invoke=False, *args, **kw):
+		receipt = self.ctx.defer.submit(deferred, 2, 4)
+		receipt.add_done_callback(resulting)
+		
+		if invoke:
+			receipt._schedule(self.ctx.executor)
+		
+		attr = getattr(receipt, p)
+		if callable(attr):
+			result = attr(*args, **kw)
+			return repr(attr) + "\n" + repr(result)
+		return repr(attr)
 
 
 class TestDeferralExtension(object):
@@ -64,11 +74,13 @@ class TestDeferralExtension(object):
 		assert 'defer' in ctx
 		assert isinstance(ctx.defer, DeferredExecutor)
 	
-	def test_submission(self):
+	def test_submission_and_repr(self):
 		req = Request.blank('/')
 		status, headers, body_iter = req.call_application(self.app)
 		body = b''.join(body_iter).decode('utf8')
-		# DeferredFuture(<function deferred at 0x10aed5488>, *(2, 4), **{}, callbacks=1)
+		
+		# DeferredFuture(<function deferred at 0xYYYYYYYY>, *(2, 4), **{}, callbacks=1)
+		
 		assert body.startswith('DeferredFuture(')
 		assert 'function deferred' in body
 		assert '*(2, 4)' in body
@@ -77,6 +89,37 @@ class TestDeferralExtension(object):
 		
 		assert len(results) == 3
 		assert results == ['called', 'returned', 8]
+		del results[:]
+	
+	def test_attributes_pre_schedule(self):
+		def attr(name, executed=True, immediate=False):
+			req = Request.blank('/prop/' + name + ("?invoke=True" if immediate else ""))
+			status, headers, body_iter = req.call_application(self.app)
+			result = b''.join(body_iter).decode('utf8').partition('\n')[::2]
+			# Body must complete iteration before we do any tests against the job...
+			
+			if executed:
+				assert len(results) == 3
+				assert results == ['called', 'returned', 8]
+				del results[:]
+			else:
+				assert len(results) == 0
+			
+			return result
+		
+		assert attr('cancel', False)[1] == 'True'
+		
+		assert attr('cancelled')[1] == 'False'
+		assert attr('running')[1] == 'False'
+		assert attr('done')[1] == 'False'
+		
+		assert attr('result')[1] == '8'
+		assert attr('exception')[1] == 'None'
+		
+		assert attr('_internal')[0] == 'None'
+		assert attr('_internal', immediate=True)[0] != 'None'
+		
+		# DeferredFuture(<function deferred at 0xYYYYYYYY>, *(2, 4), **{}, callbacks=1)
 	
 	def test_context(self):
 		req = Request.blank('/isa')
