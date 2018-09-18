@@ -42,6 +42,12 @@ class Root(object):
 	def blank(self):
 		return "nope"
 	
+	def deferred_body(self):
+		def inner():
+			return "yup"
+		
+		return self.ctx.defer.submit(inner)
+	
 	def isa(self):
 		return type(self.ctx.defer).__name__ + '\n' + type(self.ctx.executor).__name__
 	
@@ -150,6 +156,14 @@ class TestDeferralExtension(object):
 		
 		assert defer == 'DeferredExecutor'
 		assert executor == 'ThreadPoolExecutor'
+	
+	def test_deferred_body(self):
+		req = Request.blank('/deferred_body')
+		status, headers, body_iter = req.call_application(self.app)
+		body = b''.join(body_iter).decode('utf8')
+		
+		assert body == 'yup'
+
 
 
 
