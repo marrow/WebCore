@@ -1,13 +1,9 @@
 # encoding: utf-8
 
-#import time
-#import pytest
-
 from concurrent.futures import ThreadPoolExecutor
 from webob import Request
 
 from web.core import Application
-#from web.core.context import Context
 from web.ext.defer import DeferralExtension, DeferredExecutor
 
 
@@ -91,14 +87,14 @@ class TestDeferralExtension(object):
 		assert results == ['called', 'returned', 8]
 		del results[:]
 	
-	def test_attributes_pre_schedule(self):
+	def test_attributes(self):
 		def attr(name, executed=True, immediate=False):
 			req = Request.blank('/prop/' + name + ("?invoke=True" if immediate else ""))
 			status, headers, body_iter = req.call_application(self.app)
 			result = b''.join(body_iter).decode('utf8').partition('\n')[::2]
 			# Body must complete iteration before we do any tests against the job...
 			
-			if executed:
+			if executed and name != 'cancel':
 				assert len(results) == 3
 				assert results == ['called', 'returned', 8]
 				del results[:]
@@ -108,6 +104,7 @@ class TestDeferralExtension(object):
 			return result
 		
 		assert attr('cancel', False)[1] == 'True'
+		assert attr('cancel', True)[1] == 'True'
 		
 		assert attr('cancelled')[1] == 'False'
 		assert attr('running')[1] == 'False'
@@ -118,8 +115,6 @@ class TestDeferralExtension(object):
 		
 		assert attr('_internal')[0] == 'None'
 		assert attr('_internal', immediate=True)[0] != 'None'
-		
-		# DeferredFuture(<function deferred at 0xYYYYYYYY>, *(2, 4), **{}, callbacks=1)
 	
 	def test_context(self):
 		req = Request.blank('/isa')

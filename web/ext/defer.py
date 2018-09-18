@@ -69,7 +69,6 @@ class DeferredFuture(object):
 		if self._cancelled or self._internal:
 			return False
 		
-		# self._internal.set_running_or_notify_cancel()
 		return True  # dubious about this...
 	
 	def _schedule(self, executor=None):
