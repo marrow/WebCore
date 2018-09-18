@@ -85,6 +85,11 @@ class DeferredFuture(object):
 		if not self.set_running_or_notify_cancel():
 			return None
 		
+		if self._internal:  # TODO: Test this.
+			if __debug__:
+				log.warn("Scheduling already scheduled deferred task: " + repr(self))
+			return self._internal
+		
 		self._internal = executor.submit(self._func[0], *self._func[1], **self._func[2])
 		assert self._internal is not None
 		
@@ -113,11 +118,14 @@ class DeferredExecutor(object):
 	def map(self, func, *iterables, **kw):
 		return self._ctx.executor.map(func, *iterables, **kw)
 	
+	def schedule(self):
+		return [future._schedule() for future in self._futures]
+	
 	def shutdown(self, wait=True):
-		futures = [future._schedule() for future in self._futures]
+		futures = self.schedule()
 		self._futures = []
 		
-		if wait:
+		if wait:  # TODO: Test this.
 			list(as_completed(futures, timeout=None if wait is True else wait))
 
 
@@ -146,11 +154,6 @@ class DeferralExtension(object):
 	def _get_deferred_executor(self, context):
 		"""Lazily construct a deferred future executor."""
 		return DeferredExecutor(context)
-	
-	def _get_concrete_executor(self, context):
-		"""Lazily construct an actual future executor implementation."""
-		
-		return self._Executor(**self._config)
 	
 	def start(self, context):
 		"""Prepare the context with application-scope attributes on startup.
