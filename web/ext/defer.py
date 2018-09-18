@@ -36,7 +36,7 @@ class DeferredFuture(object):
 	
 	def cancel(self):
 		if self._internal:
-			return self._internal.cancel()
+			return self._internal.cancel()  # TODO: Test this.
 		
 		self._cancelled = True
 		return True
@@ -52,13 +52,13 @@ class DeferredFuture(object):
 	
 	def result(self, timeout=None):
 		if not self._internal and not self._schedule():
-			raise futures.CancelledError
+			raise futures.CancelledError()  # TODO: Test this.
 		
 		return self._internal.result(timeout)
 	
 	def exception(self, timeout=None):
-		if self._internal is None and self._schedule() is None:
-			raise futures.CancelledError
+		if not self._internal and not self._schedule():
+			raise futures.CancelledError()  # TODO: Test this.  I'm sensing a pattern, here.
 		
 		return self._internal.exception(timeout)
 	
@@ -111,11 +111,15 @@ class DeferredExecutor(object):
 		return future
 	
 	def map(self, func, *iterables, **kw):
-		timeout = kw.pop('timeout', None)
-		chunksize = kw.pop('chunksize', 1)
+		kwargs = {
+				'timeout': kw.pop('timeout', None),
+				'chunksize': kw.pop('chunksize', 1)
+			}
 		
 		if kw:
 			raise TypeError("map() got an unexpected keyword argument(s) '{}'".format("', '".join(kw)))
+		
+		return self._ctx.executor.map(func, *iterables, **kwargs)
 	
 	def shutdown(self, wait=True):
 		for future in self._futures:

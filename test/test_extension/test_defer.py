@@ -19,6 +19,11 @@ def deferred(a, b):
 	return a * b
 
 
+def double(a):
+	global results
+	return a * 2
+
+
 def resulting(receipt):
 	global results
 	results.append("returned")
@@ -42,13 +47,19 @@ class Root(object):
 		receipt.add_done_callback(resulting)
 		
 		if invoke:
-			receipt._schedule(self.ctx.executor)
+			receipt._schedule()
 		
 		attr = getattr(receipt, p)
 		if callable(attr):
 			result = attr(*args, **kw)
 			return repr(attr) + "\n" + repr(result)
 		return repr(attr)
+	
+	def map(self):
+		parts = [1, 2, 4, 8]
+		
+		iterator = self.ctx.defer.map(double, parts)
+		return '\n'.join(str(i) for i in iterator)
 
 
 class TestDeferralExtension(object):
@@ -115,6 +126,14 @@ class TestDeferralExtension(object):
 		
 		assert attr('_internal')[0] == 'None'
 		assert attr('_internal', immediate=True)[0] != 'None'
+	
+	def test_map(self):
+		req = Request.blank('/map')
+		status, headers, body_iter = req.call_application(self.app)
+		body = b''.join(body_iter).decode('utf8')
+		results = [int(i) for i in body.split()]
+		
+		assert results == [2, 4, 8, 16]
 	
 	def test_context(self):
 		req = Request.blank('/isa')
