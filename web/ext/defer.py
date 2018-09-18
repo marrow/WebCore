@@ -111,15 +111,7 @@ class DeferredExecutor(object):
 		return future
 	
 	def map(self, func, *iterables, **kw):
-		kwargs = {
-				'timeout': kw.pop('timeout', None),
-				'chunksize': kw.pop('chunksize', 1)
-			}
-		
-		if kw:
-			raise TypeError("map() got an unexpected keyword argument(s) '{}'".format("', '".join(kw)))
-		
-		return self._ctx.executor.map(func, *iterables, **kwargs)
+		return self._ctx.executor.map(func, *iterables, **kw)
 	
 	def shutdown(self, wait=True):
 		for future in self._futures:
