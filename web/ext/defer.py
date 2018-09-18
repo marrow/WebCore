@@ -166,6 +166,14 @@ class DeferralExtension(object):
 		
 		pass
 	
+	def transform(self, context, handler, result):
+		"""Allow endpoints to return a Future (deferred or otherwise) to block on the result before continuing."""
+		
+		if isinstance(result, (futures.Future, DeferredFuture)):  # TODO: DeferredFuture should probably subclass...
+			result = result.result()
+		
+		return result
+	
 	def done(self, context):
 		"""After request processing has completed, submit any deferred tasks to the real executor."""
 		
