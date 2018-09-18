@@ -114,10 +114,11 @@ class DeferredExecutor(object):
 		return self._ctx.executor.map(func, *iterables, **kw)
 	
 	def shutdown(self, wait=True):
-		for future in self._futures:
-			future._schedule()
-		
+		futures = [future._schedule() for future in self._futures]
 		self._futures = []
+		
+		if wait:
+			list(as_completed(futures, timeout=None if wait is True else wait))
 
 
 class DeferralExtension(object):

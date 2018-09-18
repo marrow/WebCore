@@ -39,6 +39,9 @@ class Root(object):
 		receipt.add_done_callback(resulting)
 		return repr(receipt)
 	
+	def blank(self):
+		return "nope"
+	
 	def isa(self):
 		return type(self.ctx.defer).__name__ + '\n' + type(self.ctx.executor).__name__
 	
@@ -67,6 +70,10 @@ class TestDeferralExtension(object):
 	
 	def dtest_use(self):
 		req = Request.blank('/')
+		status, headers, body_iter = req.call_application(self.app)
+	
+	def test_non_use(self):
+		req = Request.blank('/blank')
 		status, headers, body_iter = req.call_application(self.app)
 	
 	def test_preparation(self):
