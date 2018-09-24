@@ -1,5 +1,7 @@
 # encoding: utf-8
 
+import time
+
 from concurrent.futures import ThreadPoolExecutor
 from webob import Request
 
@@ -69,14 +71,17 @@ class Root(object):
 		
 		iterator = self.ctx.defer.map(double, parts)
 		return '\n'.join(str(i) for i in iterator)
+	
+	def schedule(self):
+		receipt = self.ctx.defer.submit(deferred, 2, 4)
+		receipt.add_done_callback(resulting)
+		a = receipt._schedule()
+		b = receipt._schedule()
+		return str(a is b)
 
 
 class TestDeferralExtension(object):
 	app = Application(Root, extensions=[DeferralExtension()])
-	
-	def dtest_use(self):
-		req = Request.blank('/')
-		status, headers, body_iter = req.call_application(self.app)
 	
 	def test_non_use(self):
 		req = Request.blank('/blank')
@@ -93,6 +98,17 @@ class TestDeferralExtension(object):
 		
 		assert 'defer' in ctx
 		assert isinstance(ctx.defer, DeferredExecutor)
+	
+	def test_double_schedule(self):
+		req = Request.blank('/schedule')
+		status, headers, body_iter = req.call_application(self.app)
+		body = b''.join(body_iter).decode('utf8')
+		
+		time.sleep(0.2)
+		assert body == 'True'
+		assert len(results) == 3
+		assert results == ['called', 'returned', 8]
+		del results[:]
 	
 	def test_submission_and_repr(self):
 		req = Request.blank('/')
@@ -116,6 +132,7 @@ class TestDeferralExtension(object):
 			req = Request.blank('/prop/' + name + ("?invoke=True" if immediate else ""))
 			status, headers, body_iter = req.call_application(self.app)
 			result = b''.join(body_iter).decode('utf8').partition('\n')[::2]
+			time.sleep(0.2)
 			# Body must complete iteration before we do any tests against the job...
 			
 			if executed and name != 'cancel':

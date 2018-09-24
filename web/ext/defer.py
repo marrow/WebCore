@@ -82,7 +82,7 @@ class DeferredFuture(object):
 		if not executor:
 			executor = self._ctx.executor
 		
-		if not self.set_running_or_notify_cancel():
+		if self._cancelled:
 			return None
 		
 		if self._internal:  # TODO: Test this.
