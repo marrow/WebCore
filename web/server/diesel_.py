@@ -3,7 +3,7 @@
 from diesel.protocols.wsgi import WSGIApplication
 
 
-def serve(application, host='127.0.0.1', port=8080):
+def serve(application, host:str='127.0.0.1', port:int=8080):
 	"""Diesel-based (greenlet) WSGI-HTTP server.
 	
 	As a minor note, this is crazy. Diesel includes Flask, too.

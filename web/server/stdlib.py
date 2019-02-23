@@ -9,7 +9,7 @@ if not __debug__:
 	warnings.warn("Use of standard library reference servers in production is discouraged.", RuntimeWarning)
 
 
-def simple(application, host='127.0.0.1', port=8080):
+def simple(application, host:str='127.0.0.1', port:int=8080):
 	"""Python-standard WSGI-HTTP server for testing purposes.
 	
 	The additional work performed here is to match the default startup output of "waitress".

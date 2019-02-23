@@ -7,7 +7,7 @@ except ImportError:
 	raise
 
 
-def serve(application, host='127.0.0.1', port=8080, socket=None, **options):
+def serve(application, host:str='127.0.0.1', port:int=8080, socket:str=None, **options):
 	"""Basic FastCGI support via flup.
 	
 	This web server has many, many options. Please see the Flup project documentation for details.

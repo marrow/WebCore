@@ -3,7 +3,7 @@
 from cherrypy.wsgiserver import CherryPyWSGIServer
 
 
-def serve(application, host='127.0.0.1', port=8080):
+def serve(application, host:str='127.0.0.1', port:int=8080):
 	"""CherryPy-based WSGI-HTTP server."""
 	
 	# Instantiate the server with our configuration and application.

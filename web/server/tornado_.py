@@ -7,7 +7,7 @@ except ImportError:
 	raise
 
 
-def serve(application, host='127.0.0.1', port=8080, **options):
+def serve(application, host:str='127.0.0.1', port:int=8080, **options):
 	"""Tornado's HTTPServer.
 	
 	This is a high quality asynchronous server with many options.  For details, please visit:
