@@ -7,10 +7,8 @@ import codecs
 from setuptools import setup, find_packages
 
 
-if sys.version_info < (2, 7):
-	raise SystemExit("Python 2.7 or later is required.")
-elif sys.version_info > (3, 0) and sys.version_info < (3, 2):
-	raise SystemExit("CPython 3.3 or Pypy 3 (3.2) or later is required.")
+if sys.version_info < (3, 3):
+	raise SystemExit("Python 3.3 or later runtime is required.")
 
 version = description = url = author = author_email = ""  # Silence linter warnings.
 exec(open(os.path.join("web", "core", "release.py")).read())  # Actually populate those values.
@@ -78,15 +76,29 @@ setup(
 	#		"'3.0' > python_version >= '2.7'",
 	#	],
 	
-	packages = find_packages(exclude=['bench', 'docs', 'example', 'test', 'htmlcov']),
+	packages = (
+			'web.app.echo',
+			'web.app.static',
+			'web.core',
+			'web.ext.analytics',
+			'web.ext.annotation',
+			'web.ext.args',
+			'web.ext.base',
+			'web.ext.debug',
+			'web.ext.extmime',
+			'web.ext.local',
+			'web.ext.serialize',
+			'web.server.appengine',
+			'web.server.cherrypy_',
+			'web.server.diesel_',
+			'web.server.fcgi',
+			'web.server.gevent_',
+			'web.server.stdlib',
+			'web.server.tornado_',
+			'web.server.waitress_',
+		),
 	include_package_data = True,
-	namespace_packages = [
-			'web',  # primary namespace
-			'web.app',  # application code goes here
-			'web.ext',  # framework extensions
-			'web.server',  # front-end WSGI bridges
-		],
-	zip_safe = True,
+	zip_safe = False,
 	
 	# ### Plugin Registration
 	
@@ -160,14 +172,14 @@ setup(
 			'pytest-runner',
 		] if {'pytest', 'test', 'ptr'}.intersection(sys.argv) else [],
 	install_requires = [
-			'marrow.package<2.0',  # dynamic execution and plugin management
+			'marrow.package >2.0,<3.0',  # dynamic execution and plugin management
 			'WebOb',  # HTTP request and response objects, and HTTP status code exceptions
 			'pathlib2; python_version < "3.4"',  # Path manipulation utility lib; builtin in 3.4 and 3.5.
 		],
 	tests_require = tests_require,
 	
 	extras_require = {
-			# ### Recommended Environments
+			# Recommended Environments
 			'development': tests_require + [  # An extended set of useful development tools.
 					'ptpython',  # Improved Python shell.  Run as "ptipython".
 					'ipython',  # Additional extras to improve the Python shell.
