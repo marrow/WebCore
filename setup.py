@@ -4,7 +4,7 @@ import os
 import sys
 import codecs
 
-from setuptools import setup, find_packages
+from setuptools import setup
 
 
 if sys.version_info < (3, 3):
@@ -77,25 +77,10 @@ setup(
 	#	],
 	
 	packages = (
-			'web.app.echo',
-			'web.app.static',
+			'web.app',
 			'web.core',
-			'web.ext.analytics',
-			'web.ext.annotation',
-			'web.ext.args',
-			'web.ext.base',
-			'web.ext.debug',
-			'web.ext.extmime',
-			'web.ext.local',
-			'web.ext.serialize',
-			'web.server.appengine',
-			'web.server.cherrypy_',
-			'web.server.diesel_',
-			'web.server.fcgi',
-			'web.server.gevent_',
-			'web.server.stdlib',
-			'web.server.tornado_',
-			'web.server.waitress_',
+			'web.ext',
+			'web.server',
 		),
 	include_package_data = True,
 	zip_safe = False,
@@ -172,7 +157,7 @@ setup(
 			'pytest-runner',
 		] if {'pytest', 'test', 'ptr'}.intersection(sys.argv) else [],
 	install_requires = [
-			'marrow.package >2.0,<3.0',  # dynamic execution and plugin management
+			'marrow.package<3.0',  # dynamic execution and plugin management
 			'WebOb',  # HTTP request and response objects, and HTTP status code exceptions
 			'pathlib2; python_version < "3.4"',  # Path manipulation utility lib; builtin in 3.4 and 3.5.
 		],
