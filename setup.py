@@ -1,17 +1,10 @@
-#!/usr/bin/env python
-# encoding: utf-8
-
-from __future__ import print_function
+#!/usr/bin/env python3
 
 import os
 import sys
 import codecs
 
-
-try:
-	from setuptools.core import setup, find_packages
-except ImportError:
-	from setuptools import setup, find_packages
+from setuptools import setup, find_packages
 
 
 if sys.version_info < (2, 7):
@@ -33,10 +26,7 @@ tests_require = [
 	]
 
 
-# ## Package Metadata
-
 setup(
-	# ### Basic Metadata
 	name = "WebCore",
 	version = version,
 	description = description,
@@ -46,7 +36,7 @@ setup(
 	author = author.name,
 	author_email = author.email,
 	license = 'MIT',
-	keywords = ['marrow', 'web.core', 'web.ext'],
+	keywords = ['marrow', 'web.core', 'web.ext', 'mvc', 'web framework', 'microframework', 'nanoframework'],
 	classifiers = [
 			"Development Status :: 5 - Production/Stable",
 			"Environment :: Console",
@@ -55,13 +45,12 @@ setup(
 			"License :: OSI Approved :: MIT License",
 			"Operating System :: OS Independent",
 			"Programming Language :: Python",
-			"Programming Language :: Python :: 2",
-			"Programming Language :: Python :: 2.7",
 			"Programming Language :: Python :: 3",
-			"Programming Language :: Python :: 3.2",
 			"Programming Language :: Python :: 3.3",
 			"Programming Language :: Python :: 3.4",
 			"Programming Language :: Python :: 3.5",
+			"Programming Language :: Python :: 3.6",
+			"Programming Language :: Python :: 3.7",
 			"Programming Language :: Python :: Implementation :: CPython",
 			"Programming Language :: Python :: Implementation :: PyPy",
 			"Topic :: Internet :: WWW/HTTP :: Dynamic Content",
@@ -88,8 +77,6 @@ setup(
 	#		"python_version >= '3.2'",
 	#		"'3.0' > python_version >= '2.7'",
 	#	],
-	
-	# ### Code Discovery
 	
 	packages = find_packages(exclude=['bench', 'docs', 'example', 'test', 'htmlcov']),
 	include_package_data = True,
@@ -169,8 +156,6 @@ setup(
 				]
 		},
 	
-	# ## Installation Dependencies
-	
 	setup_requires = [
 			'pytest-runner',
 		] if {'pytest', 'test', 'ptr'}.intersection(sys.argv) else [],
@@ -194,12 +179,12 @@ setup(
 					'flup6',  # Python 2 and 3 compatible Flup fork.
 				],
 			
-			# ### Dispatch Mechanisms
+			# Dispatch Mechanisms
 			'object': ['web.dispatch.object'],
 			'route': ['web.dispatch.route'],
 			'traversal': ['web.dispatch.traversal'],
 			
-			# ### General Extras
+			# General Extras
 			'cli': ['web.command'],  # Command-line interface.
 			'template': ['web.template', 'cinje'],  # Recommended template engine.
 			'database': ['web.db', 'pymongo'],  # Recommended database engine.
@@ -207,7 +192,7 @@ setup(
 			'bson': ['pymongo'],
 			'yaml': ['pyyaml'],
 			
-			# ### Plugin Dependencies
+			# Plugin Dependencies
 			'waitress': ['waitress'],
 			'tornado': ['tornado'],
 			'flup': ['flup6'],
@@ -219,4 +204,3 @@ setup(
 			'bjoern': ['bjoern'],
 		},
 )
-

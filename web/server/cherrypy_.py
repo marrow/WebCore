@@ -1,15 +1,7 @@
-# encoding: utf-8
-
 """CherryPy-based WSGI server adapter."""
-
-# ## Imports
-
-from __future__ import unicode_literals, print_function
 
 from cherrypy.wsgiserver import CherryPyWSGIServer
 
-
-# ## Server Adapter
 
 def serve(application, host='127.0.0.1', port=8080):
 	"""CherryPy-based WSGI-HTTP server."""
@@ -25,4 +17,3 @@ def serve(application, host='127.0.0.1', port=8080):
 		server.start()
 	except KeyboardInterrupt:
 		server.stop()  # CherryPy has some of its own shutdown work to do.
-

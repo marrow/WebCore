@@ -1,16 +1,8 @@
-# encoding: utf-8
-
 """Eventlet-based WSGI server adapter."""
-
-# ## Imports
-
-from __future__ import unicode_literals, print_function
 
 from eventlet import listen
 from eventlet.wsgi import server
 
-
-# ## Server Adapter
 
 def serve(application, host='127.0.0.1', port=8080):
 	"""Eventlet-based WSGI-HTTP server.
@@ -20,4 +12,3 @@ def serve(application, host='127.0.0.1', port=8080):
 	
 	# Instantiate the server with a bound port and with our application.
 	server(listen(host, int(port)), application)
-

@@ -1,9 +1,3 @@
-# encoding: utf-8
-
-# ## Imports
-
-from __future__ import unicode_literals, print_function
-
 try:
 	import tornado.ioloop
 	import tornado.httpserver
@@ -12,8 +6,6 @@ except ImportError:
 	print("You must install the 'tornado' package.")
 	raise
 
-
-# ## Server Adapter
 
 def serve(application, host='127.0.0.1', port=8080, **options):
 	"""Tornado's HTTPServer.
@@ -32,4 +24,3 @@ def serve(application, host='127.0.0.1', port=8080, **options):
 	
 	# Start and block on the Tornado IO loop.
 	tornado.ioloop.IOLoop.instance().start()
-

@@ -1,24 +1,13 @@
-# encoding: utf-8
-
 """Python-standard reference servers for development use."""
-
-# ## Imports
-
-from __future__ import unicode_literals, print_function
 
 from wsgiref.handlers import CGIHandler
 from wsgiref.simple_server import make_server
-
-
-# ## Production Warning
 
 # We let people know it's a bad idea to use these in production.
 if not __debug__:
 	import warnings
 	warnings.warn("Use of standard library reference servers in production is discouraged.", RuntimeWarning)
 
-
-# ## Server Adapters
 
 def simple(application, host='127.0.0.1', port=8080):
 	"""Python-standard WSGI-HTTP server for testing purposes.
@@ -64,6 +53,3 @@ def iiscgi(application):
 		warnings.warn("Interactive debugging and other persistence-based processes will not work.")
 	
 	IISCGIHandler().run(application)
-
-
-

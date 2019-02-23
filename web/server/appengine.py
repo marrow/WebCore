@@ -1,17 +1,9 @@
-# encoding: utf-8
-
 """Python-standard reference servers for development use."""
-
-# ## Imports
-
-from __future__ import unicode_literals
 
 import warnings
 
 from google.appengine.ext.webapp.util import run_wsgi_app
 
-
-# ## Server Adapter
 
 def appengine(application):
 	"""Google App Engine adapter, CGI.
@@ -23,4 +15,3 @@ def appengine(application):
 	
 	# Bridge the current CGI request.
 	run_wsgi_app(application)
-
