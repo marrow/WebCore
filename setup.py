@@ -17,7 +17,7 @@ tests_require = [
 		'pytest-cov',  # coverage reporting
 		'pytest-flakes',  # syntax validation
 		'pytest-isort',  # import ordering
-		'web.dispatch.object>=3.0,<4.0',  # dispatch tests
+		'web.dispatch.object>=2.1,<2.2',  # dispatch tests
 		'backlash',  # debug tests
 	]
 
