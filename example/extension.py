@@ -1,50 +1,25 @@
-# encoding: utf-8
-
-
-# Standard Logger object.
-log = __import__('logging').getLogger(__name__)
-
-
-# Example extensions.
-
-class Extension(object):
-	"""A template of a WebCore 2 extension.
+class Extension:
+	"""A template for or example of a WebCore extension.
 	
-	Only the __init__ method is requried.
+	Only the __init__ method is requried.  For application-specific callback implementations, subclass
+	web.core.Application and define these callbacks on your application-specific subclass. Reusable behaviors should
+	be isolated into reusable extension objects, however.
 	
-	The class attributes listed below control ordering and activation of other extensions.
-	
-	`uses`:
-	:   Used for extension sorting and dependency graphing; if these features are present we can use them.
-	`needs`:
-	:   As per `uses`, but requires the named features be present.
-	`always`:
-	:   If `True` always load this extension.  Useful for application-provided extensions.
-	`never`:
-	:   The opposite of `always`.
-	`first`:
-	:   Always try to be first in the extension stack.
-	`last`:
-	:   Always try to be last in the extension stack.
-	`provides`:
-	:   A list of keywords usable in `uses` and `needs` declarations.
-	`extensions`:
-	:   A tuple of entry_point namespaces to search for extensions.
-	`excludes`:
-	:   An iterable of `provides` tags that must NOT be set.
-	
-	The names of method arguments are unimportant; all values are passed positionally.
+	The class attributes listed below control ordering and activation of other extensions. The names of method
+	arguments are unimportant; all values are passed positionally.
 	"""
 	
-	uses = []
-	needs = []
-	always = False
-	never = False
-	first = False
-	last = False
-	provides = []
-	extensions = ()
-	excludes = ()
+	provides:Set[str] = set()  # A set of keywords usable in `uses` and `needs` declarations.
+	uses:Set[str] = set()  # Used for extension sorting and dependency graphing for optional dependnecies.
+	needs:Set[str] = set()  # Used for extension sorting and dependency graphing for required dependencies.
+	excludes:Set[str] = set()  # A set of `provides` tags that must not be present for this extension to be usable.
+	
+	always:bool = False  # If truthy, always enable this extension.
+	never:bool = False  # If truthy, never allow this extension to be directly utilized.
+	first:bool = False  # Always try to be first: if truthy, become a dependency for all non-first extensions.
+	last:bool = False  # Always try to be last: if truthy, include all non-last extensions as a direct dependency.
+	
+	extensions:Set[str] = set()  # A set of entry_point namespaces to search for related plugin registrations.
 	
 	def __init__(self, **config):
 		"""Executed to configure the extension.
@@ -54,7 +29,7 @@ class Extension(object):
 		You can also update the class attributes here.  It only really makes sense to add dependencies.
 		"""
 		
-		super(Extension, self).__init__()
+		super().__init__()
 	
 	def __call__(self, context, app):
 		"""Executed to wrap the application in middleware.
@@ -143,10 +118,10 @@ class Extension(object):
 		"""
 		pass
 	
-	def mutate(self, context, handler, bound, args, kw):
-		"""Inspect and potentially mutate the given handler's arguments.
+	def collect(self, context, handler, bound, args, kw):
+		"""Collect, inspect, and potentially mutate the target handler's arguments.
 		
-		The args list and kw dictionary may be freely modified, though invalid arguments to the handler will fail.
+		The `args` list and `kw` dictionary may be freely modified, though invalid arguments to the handler will fail.
 		"""
 		pass
 	
@@ -174,7 +149,7 @@ class Extension(object):
 		pass
 
 
-class TransactionalExtension(object):
+class TransactionalExtension:
 	"""A more targeted extension example focusing on transaction behaviour within WebCore.
 	
 	The TransactionExtension must be present in the Application prior to use.
@@ -229,6 +204,3 @@ class TransactionalExtension(object):
 	def done(self, context):
 		"""The last chance to perform any work within an automatic managed transaction."""
 		pass
-	
-
-
