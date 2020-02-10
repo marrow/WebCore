@@ -1,7 +1,7 @@
 class Extension:
 	"""A template for or example of a WebCore extension.
 	
-	Only the __init__ method is requried.  For application-specific callback implementations, subclass
+	Only the __init__ method is required.  For application-specific callback implementations, subclass
 	web.core.Application and define these callbacks on your application-specific subclass. Reusable behaviors should
 	be isolated into reusable extension objects, however.
 	
