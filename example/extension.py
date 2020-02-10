@@ -30,6 +30,7 @@ class Extension:
 		"""
 		
 		super().__init__()
+		...
 	
 	def __call__(self, context, app):
 		"""Executed to wrap the application in middleware.
@@ -38,6 +39,7 @@ class Extension:
 		
 		Accepts a WSGI application as the second argument and must likewise return a WSGI app.
 		"""
+		...
 		
 		return app
 	
@@ -48,15 +50,14 @@ class Extension:
 		
 		Any of the actions you wanted to perform during `__init__` you should do here.
 		"""
-		
-		pass
+		...
 	
 	def stop(self, context):
 		"""Executed during application shutdown after the last request has been served.
 		
 		The first argument is the global context class, not request-local context instance.
 		"""
-		pass
+		...
 	
 	def graceful(self, context, **config):
 		"""Called when a SIGHUP is sent to the application.
@@ -65,14 +66,14 @@ class Extension:
 		
 		Allows your code to re-load configuration and your code should close then re-open sockets and files.
 		"""
-		pass
+		...
 	
 	def prepare(self, context):
 		"""Executed during request set-up to populate the thread-local `context` instance.
 		
 		The purpose of the extension ordering is to ensure that methods like these are executed in the correct order.
 		"""
-		pass
+		...
 	
 	def dispatch(self, context, consumed, handler, is_endpoint):
 		"""Executed as dispatch descends into a tier.
@@ -101,12 +102,11 @@ class Extension:
 			# Route example.
 			dispatch(context, '/admin/user/27/modify', modify_user, True)
 		"""
-		
-		pass
+		...
 	
 	def before(self, context):
 		"""Executed after all extension prepare methods have been called, prior to dispatch."""
-		pass
+		...
 	
 	def after(self, context):
 		"""Executed after dispatch has returned and the response populated, prior to anything being sent to the client.
@@ -116,18 +116,18 @@ class Extension:
 		`context.response.status` to see if the response was successful.  (Executed in the context of processing an
 		exception in most cases where one would be raised.)
 		"""
-		pass
+		...
 	
 	def collect(self, context, handler, bound, args, kw):
 		"""Collect, inspect, and potentially mutate the target handler's arguments.
 		
 		The `args` list and `kw` dictionary may be freely modified, though invalid arguments to the handler will fail.
 		"""
-		pass
+		...
 	
 	def transform(self, context, handler, result):
 		"""Transform outgoing values prior to view lookup."""
-		pass
+		...
 	
 	def done(self, context):
 		"""Executed after the entire response has completed generating.
@@ -137,16 +137,17 @@ class Extension:
 		of the body is complete whereas `after` is executed prior to iteration of the body, but after endpoint
 		execution.
 		"""
-		pass
+		...
 	
 	def interactive(self):
 		"""Populate an interactive shell."""
+		...
+		
 		return dict()
 	
 	def inspect(self, context):
 		"""Return an object conforming to the inspector panel API."""
-		
-		pass
+		...
 
 
 class TransactionalExtension:
@@ -167,23 +168,19 @@ class TransactionalExtension:
 		request during the endpoint and response generation lifecycle.
 		{move:OtM}, committed prior to the final WSGI application (WebOb) being executed and returned from our own.
 		"""
-		
-		pass
+		...
 	
 	def vote(self, context):
 		"""Called to ask extensions if the transaction is still valid."""
-		
-		pass
+		...
 	
 	def finish(self, context):
 		"""Called to complete a transaction, but only if the transaction is valid."""
-		
-		pass
+		...
 	
 	def abort(self, context):
 		"""Called if the vote failed, and the transaction is not valid at time of completion."""
-		
-		pass
+		...
 	
 	# Understanding behaviour, automatic transaction interactions with existing extension callbacks.
 	
@@ -198,9 +195,8 @@ class TransactionalExtension:
 		template engine) of that streamed content, is not an error in the processing of the endpoint itself. If the
 		original endpoint indicated success, the transaction is committed.
 		"""
-		
-		pass
+		...
 	
 	def done(self, context):
 		"""The last chance to perform any work within an automatic managed transaction."""
-		pass
+		...
