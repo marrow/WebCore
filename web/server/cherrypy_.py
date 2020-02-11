@@ -21,3 +21,4 @@ def serve(application:WSGI, host:HostBind='127.0.0.1', port:PortBind=8080) -> No
 		server.start()
 	except KeyboardInterrupt:
 		server.stop()  # CherryPy has some of its own shutdown work to do.
+		raise  # Continue propagation.
