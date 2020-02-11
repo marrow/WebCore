@@ -1,5 +1,7 @@
 from mimetypes import guess_type
 
+from ..core.typing import Context, Tags, Optional
+
 
 class AcceptFilenameExtension:
 	"""Processes the request path, using the mimetype associated with the filename extension as the Accept header.
@@ -9,12 +11,12 @@ class AcceptFilenameExtension:
 	header, if present, it prepends any detected type to the list.
 	"""
 	
-	needs = {'request'}
-	provides = {'request.accept'}
 	first: bool = True
+	needs: Tags = {'request'}
+	provides: Tags = {'request.accept'}
 	
-	def prepare(self, context):
-		encoding, compression = guess_type(context.environ['PATH_INFO'])
+	def prepare(self, context:Context) -> None:
+		encoding: Optional[str], _ = guess_type(context.environ['PATH_INFO'])
 		
 		if encoding:
 			context.request.accept = encoding + context.request.accept

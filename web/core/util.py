@@ -5,6 +5,7 @@
 import logging
 
 from threading import RLock
+from typing import Optional
 
 from marrow.package.canonical import name
 
@@ -16,7 +17,7 @@ sentinel = object()  # A singleton value to allow `None` as a legal value.
 
 # ## Utility Functions
 
-def safe_name(thing):
+def safe_name(thing) -> str:
 	"""Attempt to resolve the canonical name for an object, falling back on the `repr()` if unable to do so."""
 	try:
 		return name(thing)
@@ -33,7 +34,7 @@ class lazy:
 	by extensions to add zero-overhead (if un-accessed) values to the context.
 	"""
 	
-	def __init__(self, func, name=None, doc=None):
+	def __init__(self, func, name:Optional[str]=None, doc:Optional[str]=None):
 		self.__name__ = name or func.__name__
 		self.__module__ = func.__module__
 		self.__doc__ = func.__doc__
@@ -53,7 +54,7 @@ class lazy:
 		return value
 
 
-def addLoggingLevel(levelName, levelNum, methodName=None):
+def addLoggingLevel(levelName:str, levelNum:int, methodName:str=None) -> None:
 	"""Comprehensively add a new logging level to the `logging` module and the current logging class.
 	
 	`levelName` becomes an attribute of the `logging` module with the value `levelNum`. `methodName` becomes a

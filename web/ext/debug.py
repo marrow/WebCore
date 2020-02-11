@@ -3,6 +3,7 @@
 from webob.exc import HTTPNotFound
 from backlash import DebuggedApplication
 
+from ..core.typing import Context, Tags, WSGI
 
 
 log = __import__('logging').getLogger(__name__)
@@ -15,7 +16,7 @@ class Console:
 	
 	__slots__ = ('debugger', 'request')
 	
-	def __init__(self, context):
+	def __init__(self, context:Context) -> None:
 		self.debugger = context.get('debugger', None)
 		self.request = context.request
 	
@@ -38,17 +39,18 @@ class DebugExtension:
 	"""
 	
 	__slots__ = ('path', 'verbose')
+	provides: Tags = {'debugger', 'console'}
 	
-	provides = ['debugger', 'console']
+	path: str
+	verbose: bool
 	
-	def __init__(self, path="/__console__", verbose=False):
-		if __debug__:
-			log.debug("Initializing debugger extension.")
+	def __init__(self, path:str='/__console__', verbose:bool=False) -> None:
+		if __debug__: log.debug("Initializing debugger extension.")
 		
 		self.path = path
 		self.verbose = verbose
 		
-		super(DebugExtension, self).__init__()
+		super().__init__()
 	
 	def init_console(self):
 		"""Add variables to the console context."""
@@ -58,7 +60,7 @@ class DebugExtension:
 		"""Add variables to the debugger context."""
 		return dict(context=environ.get('context'))
 	
-	def __call__(self, context, app):
+	def __call__(self, context:Context, app:WSGI) -> WSGI:
 		"""Executed to wrap the application in middleware.
 		
 		The first argument is the application context, not request context.
@@ -66,8 +68,7 @@ class DebugExtension:
 		Accepts a WSGI application as the second argument and must likewise return a WSGI app.
 		"""
 		
-		if __debug__:
-			log.debug("Wrapping application in debugger middleware.")
+		if __debug__: log.debug("Wrapping application in debugger middleware.")
 		
 		app = DebuggedApplication(
 				app,

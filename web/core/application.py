@@ -16,6 +16,7 @@ from .context import Context
 from .dispatch import WebDispatchers
 from .extension import WebExtensions
 from .util import addLoggingLevel
+from .typing import Callable, WSGIEnvironment, WSGIStartResponse, WSGIResponse, Union
 from .view import WebViews
 from ..ext.base import BaseExtension
 from ..ext import args as arguments
@@ -83,7 +84,7 @@ class Application:
 		if isfunction(root):  # We need to armour against this turning into a bound method of the context.
 			root = staticmethod(root)
 		
-		# This construts a basic `ApplicationContext` containing a few of the passed-in values.
+		# This constructs a basic `ApplicationContext` containing a few of the passed-in values.
 		context = self.__context = Context(app=self, root=root)._promote('ApplicationContext')
 		
 		# These can't really be deferred to extensions themselves, for fairly obvious chicken/egg reasons.
@@ -149,7 +150,7 @@ class Application:
 	
 	# This is impractical to test due to the blocking nature of starting a web server interface.
 	# Individual adapters are hand-tested for basic operation prior to release.
-	def serve(self, service='auto', **options):  # pragma: no cover
+	def serve(self, service:Union[str,Callable]='auto', **options):  # pragma: no cover
 		"""Initiate a web server service to serve this application.
 		
 		You can always use the Application instance as a bare WSGI application, of course.  This method is provided as
@@ -170,7 +171,7 @@ class Application:
 		# Notify extensions that the service has returned and we are exiting.
 		for ext in self.__context.extension.signal.stop: ext(self.__context)
 	
-	def _execute_endpoint(self, context, endpoint, signals):
+	def _execute_endpoint(self, context:Context, endpoint:Callable, signals):
 		if not callable(endpoint):
 			# Endpoints don't have to be functions.
 			# They can instead point to what a function would return for view lookup.
@@ -215,7 +216,7 @@ class Application:
 		
 		return result
 	
-	def application(self, environ, start_response):
+	def application(self, environ: WSGIEnvironment, start_response: WSGIStartResponse) -> WSGIResponse:
 		"""Process a single WSGI request/response cycle.
 		
 		This is the WSGI handler for WebCore.  Depending on the presence of extensions providing WSGI middleware,

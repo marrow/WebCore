@@ -70,7 +70,7 @@ class WebExtensions(ExtensionManager):
 	
 	__isabstractmethod__ = False  # Work around a Python 3.4+ issue when attaching to the context.
 	
-	def __init__(self, ctx):
+	def __init__(self, ctx:Context):
 		"""Extension registry constructor.
 		
 		The extension registry is not meant to be instantiated by third-party software. Instead, access the registry

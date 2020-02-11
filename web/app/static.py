@@ -37,11 +37,11 @@ def static(base, mapping=None, far=('js', 'css', 'gif', 'jpg', 'jpeg', 'png', 't
 	extensions searched just assign a new `far` iterable.  To disable, assign any falsy value.
 	"""
 	
-	base = abspath(base)
+	base: str = abspath(base)
 	
 	@staticmethod
 	def static_handler(context, *parts, **kw):
-		path = normpath(pathjoin(base, *parts))
+		path: str = normpath(pathjoin(base, *parts))
 		
 		if __debug__:
 			log.debug("Attempting to serve static file.", extra=dict(

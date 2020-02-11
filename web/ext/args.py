@@ -6,6 +6,8 @@ These allow you to customize the behaviour of the arguments passed to endpoints.
 from inspect import isroutine, ismethod, getcallargs
 
 from webob.exc import HTTPNotFound
+
+from ..core.typing import Tags
 from ..core.util import safe_name
 
 
@@ -97,9 +99,9 @@ class ValidateArgumentsExtension:
 	conflict occurs.
 	"""
 	
-	last = True
-	
-	provides = {'args.validation', 'kwargs.validation'}
+	last: Tags = True
+	provides: Tags = {'args.validation', 'kwargs.validation'}
+	uses: Tags = {'timing.prefix'}
 	
 	def __init__(self, enabled='development', correct=False):
 		"""Configure when validation is performed and the action performed.
@@ -138,8 +140,8 @@ class ValidateArgumentsExtension:
 class ContextArgsExtension(ArgumentExtension):
 	"""Add the context as the first positional argument, possibly conditionally."""
 	
-	first = True
-	provides = {'args.context'}
+	first: Tags = True
+	provides: Tags = {'args.context'}
 	
 	def __init__(self, always=False):
 		"""Configure the conditions under which the context is added to endpoint positional arguments.
@@ -162,10 +164,10 @@ class ContextArgsExtension(ArgumentExtension):
 class RemainderArgsExtension(ArgumentExtension):
 	"""Add any unprocessed path segments as positional arguments."""
 	
-	first = True
-	needs = {'request'}
-	uses = {'args.context'}
-	provides = {'args', 'args.remainder'}
+	first: Tags = True
+	needs: Tags = {'request'}
+	uses: Tags = {'args.context'}
+	provides: Tags = {'args', 'args.remainder'}
 	
 	def mutate(self, context, endpoint, args, kw):
 		if not context.request.remainder:
@@ -177,9 +179,9 @@ class RemainderArgsExtension(ArgumentExtension):
 class QueryStringArgsExtension(ArgumentExtension):
 	"""Add query string arguments ("GET") as keyword arguments."""
 	
-	first = True
-	needs = {'request'}
-	provides = {'kwargs', 'kwargs.get'}
+	first: Tags = True
+	needs: Tags = {'request'}
+	provides: Tags = {'kwargs', 'kwargs.get'}
 	
 	def mutate(self, context, endpoint, args, kw):
 		self._process_flat_kwargs(context.request.GET, kw)
@@ -188,10 +190,10 @@ class QueryStringArgsExtension(ArgumentExtension):
 class FormEncodedKwargsExtension(ArgumentExtension):
 	"""Add form-encoded or MIME mmultipart ("POST") arguments as keyword arguments."""
 	
-	first = True
-	needs = {'request'}
-	uses = {'kwargs.get'}  # Query string values must be processed first, to be overridden.
-	provides = {'kwargs', 'kwargs.post'}
+	first: Tags = True
+	needs: Tags = {'request'}
+	uses: Tags = {'kwargs.get'}  # Query string values must be processed first, to be overridden.
+	provides: Tags = {'kwargs', 'kwargs.post'}
 	
 	def mutate(self, context, endpoint, args, kw):
 		self._process_flat_kwargs(context.request.POST, kw)
@@ -203,10 +205,10 @@ class JSONKwargsExtension(ArgumentExtension):
 	TODO: Generalize and isolate similar to outbound serialization, accepting inbound serializations via registry.
 	"""
 	
-	first = True
-	needs = {'request'}
-	uses = {'kwargs.get'}  # We override values defined in the query string.
-	provides = {'kwargs', 'kwargs.json'}
+	first: Tags = True
+	needs: Tags = {'request'}
+	uses: Tags = {'kwargs.get'}  # We override values defined in the query string.
+	provides: Tags = {'kwargs', 'kwargs.json'}
 	
 	def mutate(self, context, endpoint, args, kw):
 		if not context.request.content_type == 'application/json':

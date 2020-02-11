@@ -38,13 +38,14 @@ class BaseExtension:
 	This extension is not meant to be manually constructed or manipulated; use is automatic.
 	"""
 	
-	first = True  # Must occur as early as possible in callback lists.
-	always = True  # Always enabled.
-	provides = ["base", "request", "response"]  # Export these symbols for use as other extension's dependencies.
+	first: bool = True  # Must occur as early as possible in callback lists.
+	always: bool = True  # Always enabled.
+	provides: Tags = ["base", "request", "response"]  # Export these symbols for use as other extension's dependencies.
+	uses: Tags = {'timing.prefix'}
 	
 	# ### Application-Level Callbacks
 	
-	def start(self, context):
+	def start(self, context:Context) -> None:
 		if __debug__: log.debug("Registering core return value handlers.")
 		
 		# This prepares the mimetypes registry, and adds values typically missing from it.
@@ -63,7 +64,7 @@ class BaseExtension:
 	
 	# ### Request-Level Callbacks
 	
-	def prepare(self, context):
+	def prepare(self, context:Context) -> None:
 		"""Add the usual suspects to the context.
 		
 		This adds `request`, `response`, and `path` to the `RequestContext` instance.
@@ -87,7 +88,7 @@ class BaseExtension:
 		# Track the "breadcrumb list" of dispatch through distinct controllers.
 		context.path = Bread()
 	
-	def dispatch(self, context, consumed, handler, is_endpoint):
+	def dispatch(self, context:Context, crumb:Crumb) -> None:
 		"""Called as dispatch descends into a tier.
 		
 		The base extension uses this to maintain the "current url".
@@ -128,28 +129,36 @@ class BaseExtension:
 	
 	# ### Views
 	
-	def render_none(self, context, result):
+	def render_none(self, context:Context, result:None) -> bool:
 		"""Render empty responses."""
+		
 		context.response.body = b''
 		del context.response.content_length
+		
 		return True
 	
-	def render_response(self, context, result):
+	def render_response(self, context:Context, result:Response) -> bool:
 		"""Allow direct returning of WebOb `Response` instances."""
+		
 		context.response = result
+		
 		return True
 	
-	def render_binary(self, context, result):
+	def render_binary(self, context:Context, result:bytes) -> bool:
 		"""Return binary responses unmodified."""
+		
 		context.response.app_iter = iter((result, ))  # This wraps the binary string in a WSGI body iterable.
+		
 		return True
 	
-	def render_text(self, context, result):
+	def render_text(self, context:Context, result:str) -> bool:
 		"""Return textual responses, encoding as needed."""
+		
 		context.response.text = result
+		
 		return True
 	
-	def render_file(self, context, result):
+	def render_file(self, context:Context, result:IOBase) -> bool:
 		"""Perform appropriate metadata wrangling for returned open file handles."""
 		
 		if __debug__: log.debug("Processing file-like object.", extra=dict(request=id(context), result=repr(result)))
@@ -173,14 +182,16 @@ class BaseExtension:
 		
 		return True
 	
-	def render_generator(self, context, result):
+	def render_generator(self, context:Context, result:Generator) -> bool:
 		"""Attempt to serve generator responses through stream encoding.
 		
 		This allows for direct use of cinje template functions, which are generators, as returned views.
 		"""
-		context.response.encoding = 'utf8'
+		
+		context.response.encoding = 'utf-8'
 		context.response.app_iter = (
-				(i.encode('utf8') if isinstance(i, unicode) else i)  # Stream encode unicode chunks.
+				(i.encode('utf-8') if isinstance(i, bytes) else str(i))  # Stream encode Unicode chunks.
 				for i in result if i is not None  # Skip None values.
 			)
+		
 		return True

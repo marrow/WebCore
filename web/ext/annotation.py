@@ -1,21 +1,28 @@
 """Python 3 function annotation typecasting support."""
 
+import typing
+from collections import abc
 
 from inspect import ismethod, getfullargspec
 
-from web.core.compat import items
+from ..core.typing import Any, Callable, Mapping, Tags, Optional
 
 
-# ## Extension
+SPLIT = lambda v: ",".split(v) if isinstance(v, str) else list(v)
 
-class AnnotationExtension(object):
+
+AnnotationAliases = Mapping[type, type]
+Mapper = Callable[[str], Any]
+AnnotationMappers = Mapping[type, Mapper]
+
+
+class AnnotationExtension:
 	"""Utilize Python 3 function annotations as a method to filter arguments coming in from the web.
 	
-	Argument annotations are treated as callbacks to execute, passing in the unicode value coming in from the web and
+	Argument annotations are treated as callbacks to execute, passing in the Unicode value coming in from the web and
 	swapping it with the value returned by the callback. This allows for trivial typecasting to most built-in Python
 	types such as `int`, `float`, etc., as well as creative use such as `','.split` to automatically split a comma-
-	separated value. One can of course also write custom callbacks, notably ones that raise `HTTPException`
-	subclasses to not appear as an Internal Server Error.
+	separated value. One can of course also write custom callbacks.
 	
 	For example:
 	
@@ -34,9 +41,32 @@ class AnnotationExtension(object):
 	editor's syntax definitions.
 	"""
 	
-	__slots__ = tuple()
+	provides:Tags = {'annotation', 'cast', 'typecast'}  # Export these symbols for other extensions to depend upon.
 	
-	provides = ['annotation', 'cast', 'typecast']  # Export these symbols for other extensions to depend upon.
+	# Execute the following and prune:
+	# {n: k.__origin__ for n, k in ((n, getattr(typing, n)) for n in dir(typing) if not n.startswith('_')) \
+	# if hasattr(k, '__origin__') and not inspect.isabstract(k.__origin__)}
+	
+	aliases:AnnotationAliases = {  # These type annotations are "abstract", so we map them to "concrete" types for casting.
+			abc.ByteString: bytes,
+			abc.Iterable: list,
+			abc.Mapping: dict,
+			abc.MutableMapping: dict,
+			typing.AbstractSet: set,
+			typing.ByteString: bytes,
+			typing.Iterable: list,
+			typing.Mapping: dict,
+			typing.MutableMapping: dict,
+			typing.MutableSequence: list,
+			typing.MutableSet: set,
+			typing.Sequence: list,
+		}
+	
+	mapper:AnnotationMappers = {  # Mechanisms to produce the desired type from basic Unicode text input.
+			list: lambda v: v.split(",") if isinstance(v, str) else list(v),
+			set: lambda v: v.split(",") if isinstance(v, str) else set(v),
+		}
+	
 	
 	# ### Request-Local Callbacks
 	
