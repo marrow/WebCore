@@ -5,6 +5,7 @@ cache: pip
 branches:
   except:
       - /^[^/]+/.+$/
+      - next
 
 python:
   - "2.7"
@@ -35,4 +36,3 @@ notifications:
     template:
       - "%{repository_slug}:%{branch}@%{commit} %{message}"
       - "Duration: %{duration} - Details: %{build_url}"
-
