@@ -6,8 +6,10 @@ except ImportError:
 	print("You must install the 'waitress' package.")
 	raise
 
+from ..core.typing import WSGI, HostBind, PortBind
 
-def serve(application, host:str='127.0.0.1', port:int=8080, threads:int=4, **kw):
+
+def serve(application:WSGI, host:HostBind='127.0.0.1', port:PortBind=8080, threads:int=4, **kw) -> None:
 	"""The recommended development HTTP server.
 	
 	Note that this server performs additional buffering and will not honour chunked encoding breaks.

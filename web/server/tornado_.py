@@ -7,7 +7,10 @@ except ImportError:
 	raise
 
 
-def serve(application, host:str='127.0.0.1', port:int=8080, **options):
+from ..core.typing import WSGI, HostBind, PortBind
+
+
+def serve(application:WSGI, host:HostBind='127.0.0.1', port:PortBind=8080, **options) -> None:
 	"""Tornado's HTTPServer.
 	
 	This is a high quality asynchronous server with many options.  For details, please visit:

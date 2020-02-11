@@ -2,8 +2,10 @@
 
 from diesel.protocols.wsgi import WSGIApplication
 
+from ..core.typing import WSGI, HostBind, PortBind
 
-def serve(application, host:str='127.0.0.1', port:int=8080):
+
+def serve(application:WSGI, host:HostBind='127.0.0.1', port:PortBind=8080) -> None:
 	"""Diesel-based (greenlet) WSGI-HTTP server.
 	
 	As a minor note, this is crazy. Diesel includes Flask, too.

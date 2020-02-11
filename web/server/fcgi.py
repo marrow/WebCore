@@ -6,8 +6,10 @@ except ImportError:
 	print("You must install a 'flup' package such as 'flup6' to use FastCGI support.")
 	raise
 
+from ..core.typing import WSGI, HostBind, PortBind, DomainBind
 
-def serve(application, host:str='127.0.0.1', port:int=8080, socket:str=None, **options):
+
+def serve(application:WSGI, host:HostBind='127.0.0.1', port:PortBind=8080, socket:DomainBind=None, **options) -> None:
 	"""Basic FastCGI support via flup.
 	
 	This web server has many, many options. Please see the Flup project documentation for details.

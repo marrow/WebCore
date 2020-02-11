@@ -4,8 +4,10 @@ import warnings
 
 from google.appengine.ext.webapp.util import run_wsgi_app
 
+from ..core.typing import WSGI
 
-def appengine(application):
+
+def appengine(application:WSGI) -> None:
 	"""Google App Engine adapter, CGI.
 	
 	Note: This adapter is essentially untested, and likely duplicates the `cgiref` adapter.

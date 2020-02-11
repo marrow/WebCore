@@ -3,6 +3,9 @@
 from wsgiref.handlers import CGIHandler
 from wsgiref.simple_server import make_server
 
+from ..core.typing import WSGI, HostBind, PortBind
+
+
 # We let people know it's a bad idea to use these in production.
 if not __debug__:
 	import warnings
@@ -24,7 +27,7 @@ def simple(application, host:str='127.0.0.1', port:int=8080):
 	make_server(str(host), int(port), application).serve_forever()
 
 
-def cgi(application):
+def cgi(application:WSGI) -> None:
 	"""Python-standard WSGI-CGI server for testing purposes.
 	
 	This is not a production quality interface and will behave badly under load. Python-as-CGI is not a very good way
@@ -39,7 +42,7 @@ def cgi(application):
 	CGIHandler().run(application)
 
 
-def iiscgi(application):
+def iiscgi(application:WSGI) -> None:
 	"""A specialized version of the reference WSGI-CGI server to adapt to Microsoft IIS quirks.
 	
 	This is not a production quality interface and will behave badly under load.
