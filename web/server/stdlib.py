@@ -47,10 +47,6 @@ def iiscgi(application:WSGI) -> None:
 	
 	This is not a production quality interface and will behave badly under load.
 	"""
-	try:
-		from wsgiref.handlers import IISCGIHandler
-	except ImportError:
-		print("Python 3.2 or newer is required.")
 	
 	if not __debug__:
 		warnings.warn("Interactive debugging and other persistence-based processes will not work within this environment.", RuntimeWarning)
