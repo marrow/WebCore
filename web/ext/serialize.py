@@ -1,6 +1,5 @@
 """An example, though quite usable extension to handle list and dictionary return values."""
 
-import pkg_resources
 from pkg_resources import Distribution, DistributionNotFound
 from collections import Mapping as MappingABC, Iterable as IterableABC
 
