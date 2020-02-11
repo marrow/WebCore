@@ -8,8 +8,11 @@ from ..core.typing import WSGI, HostBind, PortBind
 
 # We let people know it's a bad idea to use these in production.
 if not __debug__:
-	import warnings
-	warnings.warn("Use of standard library reference servers in production is discouraged.", RuntimeWarning)
+	from warnings import warn
+	
+	warn("Use of standard library reference servers in production is discouraged.", RuntimeWarning)
+	
+	WARN_NO_PERSISTENCE = "Interactive debugging and other persistence-based processes will not operate."
 
 
 def simple(application:WSGI, host:HostBind='127.0.0.1', port:PortBind=8080) -> None:
@@ -35,8 +38,7 @@ def cgi(application:WSGI) -> None:
 	diagnostic tool in development, however.
 	"""
 	
-	if not __debug__:
-		warnings.warn("Interactive debugging and other persistence-based processes will not work within this environment.", RuntimeWarning)
+	if not __debug__: warn(WARN_NO_PERSISTENCE, RuntimeWarning)
 	
 	# Instantiate the handler and begin bridging the application.
 	CGIHandler().run(application)
@@ -48,7 +50,6 @@ def iiscgi(application:WSGI) -> None:
 	This is not a production quality interface and will behave badly under load.
 	"""
 	
-	if not __debug__:
-		warnings.warn("Interactive debugging and other persistence-based processes will not work within this environment.", RuntimeWarning)
+	if not __debug__: warn(WARN_NO_PERSISTENCE, RuntimeWarning)
 	
 	IISCGIHandler().run(application)
