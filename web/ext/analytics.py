@@ -32,12 +32,12 @@ If `timing` is enabled (which it is by default), Server-Timing headers will addi
 
 Callbacks are executed in this order:
 
-	pre {prepare, before} →			# environment is prepared
-		dispatch →					# endpoint discovery (multiple calls)
-			collect →				# arguments to endpoint are collected
-				! endpoint →		# endpoint is actually called
-					transform →		# transform response prior to view invocation
-						-after →		# returning response
+	pre {prepare, before}			# environment is prepared
+		dispatch					# endpoint discovery (multiple calls)
+			collect					# arguments to endpoint are collected
+				! endpoint			# endpoint is actually called
+					transform		# transform response prior to view invocation
+						-after		# returning response
 							-done	# response delivered
 """
 
