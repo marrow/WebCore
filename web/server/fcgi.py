@@ -16,10 +16,7 @@ def serve(application:WSGI, host:HostBind='127.0.0.1', port:PortBind=8080, socke
 	"""
 	
 	# Allow either on-disk socket (recommended) or TCP/IP socket use.
-	if not socket:
-		bindAddress = (host, int(port))
-	else:
-		bindAddress = socket
+	bind = socket if socket else (str(host), int(port))
 	
 	# Bind and start the blocking web server interface.
 	WSGIServer(application, bindAddress=bindAddress, **options).run()
