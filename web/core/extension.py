@@ -36,6 +36,7 @@ prefixed with a minus symbol (-) to request reverse ordering, simulating the exi
 
 # ## Imports
 
+from warnings import warn
 
 from marrow.package.host import ExtensionManager
 
@@ -66,6 +67,7 @@ class WebExtensions(ExtensionManager):
 			'-transform',  # Transform the result returned by the handler and apply it to the response.
 			'-done',  # Executed after the response has been consumed by the client.
 			'-middleware',  # Executed to allow WSGI middleware wrapping.
+			'interactive',  # Populate the context of an interactive REPL environment, e.g. interactive debugger.
 		}
 	
 	__isabstractmethod__ = False  # Work around a Python 3.4+ issue when attaching to the context.
