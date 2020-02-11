@@ -13,7 +13,7 @@ def appengine(application:WSGI) -> None:
 	Note: This adapter is essentially untested, and likely duplicates the `cgiref` adapter.
 	"""
 	
-	warnings.warn("Interactive debugging and other persistence-based processes will not work.")
+	warnings.warn("Interactive debugging and other persistence-based processes will not work.", RuntimeWarning)
 	
 	# Bridge the current CGI request.
 	run_wsgi_app(application)

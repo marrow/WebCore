@@ -36,7 +36,7 @@ def cgi(application:WSGI) -> None:
 	"""
 	
 	if not __debug__:
-		warnings.warn("Interactive debugging and other persistence-based processes will not work.")
+		warnings.warn("Interactive debugging and other persistence-based processes will not work within this environment.", RuntimeWarning)
 	
 	# Instantiate the handler and begin bridging the application.
 	CGIHandler().run(application)
@@ -53,6 +53,6 @@ def iiscgi(application:WSGI) -> None:
 		print("Python 3.2 or newer is required.")
 	
 	if not __debug__:
-		warnings.warn("Interactive debugging and other persistence-based processes will not work.")
+		warnings.warn("Interactive debugging and other persistence-based processes will not work within this environment.", RuntimeWarning)
 	
 	IISCGIHandler().run(application)
