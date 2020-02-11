@@ -99,7 +99,7 @@ class WebExtensions(ExtensionManager):
 				ext.collect = ext.mutate
 			
 			self.feature.update(getattr(ext, 'provides', []))  # Enable those flags.
-			for signal in getattr(ext, 'signals', []): add_signal(signal)  # And those callbacks.
+			for signal in getattr(ext, 'signals', ()): add_signal(signal)  # And those callbacks.
 		
 		# Prepare the callback cache.
 		# This is done as a separate step to ensure we're aware of all callback sites prior to collecting them.

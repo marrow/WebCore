@@ -16,7 +16,7 @@ class AcceptFilenameExtension:
 	provides: Tags = {'request.accept'}
 	
 	def prepare(self, context:Context) -> None:
-		encoding: Optional[str], _ = guess_type(context.environ['PATH_INFO'])
+		encoding, _ = guess_type(context.environ['PATH_INFO'])
 		
 		if encoding:
 			context.request.accept = encoding + context.request.accept

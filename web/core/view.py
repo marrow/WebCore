@@ -117,7 +117,7 @@ class WebViews(PluginManager):
 		Otherwise unknown attributes of the view registry will attempt to look up a handler plugin by that name.
 		"""
 		if __debug__:  # In production this logging is completely skipped, regardless of logging level.
-			log.debug("Registering view handler.", extra=dict(type=name(kind), handler=safe_name(handler)))
+			log.debug("Registering view handler.", extra=dict(type=safe_name(kind), handler=safe_name(handler)))
 		
 		# Add the handler to the pool of candidates. This adds to a list instead of replacing the "dictionary item".
 		self._map.add(kind, handler)

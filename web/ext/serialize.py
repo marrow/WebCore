@@ -6,7 +6,7 @@ from collections import Mapping as MappingABC, Iterable as IterableABC
 from webob.exc import HTTPNotAcceptable
 from marrow.package.host import PluginManager
 
-from ..core.typing import Any, Optional, Iterable, Context
+from ..core.typing import Any, Callable, Context, Optional, Iterable, Tags, SerializationTypes, PositionalArgs, KeywordArgs
 from .args import ArgumentExtension
 
 try:
