@@ -52,6 +52,7 @@ class SerializationExtension(ArgumentExtension):
 	"""
 	
 	provides: Tags = {'serialization'}
+	uses: Tags = {'kwargs.get'}  # Request body overrides query string arguments.
 	extensions: Tags = {'web.serializer'}
 	context: Tags = {'serialize'}
 	
