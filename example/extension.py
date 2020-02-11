@@ -1,3 +1,7 @@
+from web.core.context import Context
+from web.core.typing import Any, Callable, Context, Environment, KeywordArgs, Path, PositionalArgs, Tags, WSGI
+
+
 class Extension:
 	"""A template for or example of a WebCore extension.
 	
@@ -9,24 +13,24 @@ class Extension:
 	arguments are unimportant; all values are passed positionally.
 	"""
 	
-	provides:Set[str] = set()  # A set of keywords usable in `uses` and `needs` declarations.
-	uses:Set[str] = set()  # Used for extension sorting and dependency graphing for optional dependnecies.
-	needs:Set[str] = set()  # Used for extension sorting and dependency graphing for required dependencies.
-	excludes:Set[str] = set()  # A set of `provides` tags that must not be present for this extension to be usable.
+	provides:Tags = set()  # A set of keywords usable in `uses` and `needs` declarations.
+	uses:Tags = set()  # Used for extension sorting and dependency graphing for optional dependencies.
+	needs:Tags = set()  # Used for extension sorting and dependency graphing for required dependencies.
+	excludes:Tags = set()  # A set of `provides` tags that must not be present for this extension to be usable.
 	
 	always:bool = False  # If truthy, always enable this extension.
 	never:bool = False  # If truthy, never allow this extension to be directly utilized.
 	first:bool = False  # Always try to be first: if truthy, become a dependency for all non-first extensions.
 	last:bool = False  # Always try to be last: if truthy, include all non-last extensions as a direct dependency.
 	
-	extensions:Set[str] = set()  # A set of entry_point namespaces to search for related plugin registrations.
+	extensions:Tags = set()  # A set of entry_point namespaces to search for related plugin registrations.
 	
-	def __init__(self, **config):
+	def __init__(self, **config) -> None:
 		"""Executed to configure the extension.
 		
 		No actions must be performed here, only configuration management.
 		
-		You can also update the class attributes here.  It only really makes sense to add dependencies.
+		You can also update the class attributes here. It only really makes sense to manage conditional dependencies.
 		"""
 		
 		super().__init__()
@@ -80,7 +84,7 @@ class Extension:
 		
 		The `consumed` argument is a Path object containing one or more path elements.
 		The `handler` argument is the literal object that was selected to process the consumed elements.
-		The `is_endpoint` argument is `True` if there will be no futher dispatch.
+		The `is_endpoint` argument is `True` if there will be no further dispatch.
 		
 		Generally called in series, like:
 		
@@ -118,24 +122,30 @@ class Extension:
 		"""
 		...
 	
-	def collect(self, context, handler, bound, args, kw):
+	def collect(self, context: Context, handler: Callable, args: PositionalArgs, kw: KeywordArgs) -> None:
 		"""Collect, inspect, and potentially mutate the target handler's arguments.
+		
+		Changed in 3.0: this callback was formerly called 'mutate', named so after the "mutation" use this callback
+		can facilitate, however, a majority of extension implementations utilizing this callback were found to only be
+		collecting/providing arguments to the endpoint, not mutating existing arguments, so it was re-named.
 		
 		The `args` list and `kw` dictionary may be freely modified, though invalid arguments to the handler will fail.
 		"""
 		...
 	
-		"""Transform outgoing values prior to view lookup."""
 	def transform(self, context: Context, handler: Any, result: Any) -> Any:
+		"""Transform outgoing values prior to view lookup, returning the value to consider as the result."""
 		...
+		
+		return result
 	
 	def done(self, context: Context) -> None:
 		"""Executed after the entire response has completed generating.
 		
 		This might seem to duplicate the purpose of `after`; the distinction is with iterable or generator WSGI bodies
-		whose processing is deferred until after WebCore has returned. This callback will be executed once iteration
-		of the body is complete whereas `after` is executed prior to iteration of the body, but after endpoint
-		execution.
+		whose processing is deferred until after the endpoint has returned. This callback will be executed once
+		iteration of the body is complete whereas `after` is executed prior to iteration of the body, but after
+		endpoint execution.
 		"""
 		...
 	
@@ -160,8 +170,8 @@ class TransactionalExtension:
 	
 	# New! These are callbacks only executed if the TransactionExtension has been configured.
 	
-		"""Do the work nessicary to begin a transaction.
 	def begin(self, context: Context) -> None:
+		"""Do the work necessary to begin a transaction.
 		
 		This happens during the `prepare` stage if automatic behaviour is indicated, prior to any extensions
 		dependency graphed to `need` or `use` yours executing, otherwise, it is only optionally begun upon
