@@ -52,14 +52,6 @@ class DebugExtension:
 		
 		super().__init__()
 	
-	def init_console(self):
-		"""Add variables to the console context."""
-		return dict()
-	
-	def init_debugger(self, environ):
-		"""Add variables to the debugger context."""
-		return dict(context=environ.get('context'))
-	
 	def __call__(self, context:Context, app:WSGI) -> WSGI:
 		"""Executed to wrap the application in middleware.
 		
@@ -70,12 +62,20 @@ class DebugExtension:
 		
 		if __debug__: log.debug("Wrapping application in debugger middleware.")
 		
+		def _populate(locals:dict, context:Context) -> dict:
+			"""Collect contributions from extensions to debugger/shell locals."""
+			
+			for ext in context.extension.signal.interactive:
+				locals.extend(ext(context) or {})
+			
+			return locals
+		
 		app = DebuggedApplication(
 				app,
 				evalex = __debug__,  # In production mode, this is a security no-no.
 				show_hidden_frames = self.verbose,
-				console_init_func = self.init_console,
-				context_injectors = [self.init_debugger],
+				console_init_func = lambda: _populate({'context': context}, context),
+				context_injectors = [lambda env: _populate({'context': context}, context)],
 			)
 		
 		context.debugger = app
