@@ -14,7 +14,7 @@ def serve(application:WSGI, host:HostBind='127.0.0.1', port:PortBind=8080) -> No
 	server = CherryPyWSGIServer((host, int(port)), application, server_name=host)
 	
 	# Try to be handy as many terminals allow clicking links.
-	print("serving on http://{0}:{1}".format(host, port))
+	print(f"serving on http://{host!s}:{port!s}")
 	
 	# Bind and launch the server; this is a blocking operation.
 	try:

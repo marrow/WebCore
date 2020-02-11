@@ -21,7 +21,7 @@ def simple(application:WSGI, host:HostBind='127.0.0.1', port:PortBind=8080) -> N
 	"""
 	
 	# Try to be handy as many terminals allow clicking links.
-	print("serving on http://{0}:{1}".format(host, port))
+	print(f"serving on http://{host!s}:{port!s}")
 	
 	# Bind and launch the server; this is a blocking operation.
 	make_server(str(host), int(port), application).serve_forever()
