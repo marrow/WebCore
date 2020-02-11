@@ -97,32 +97,24 @@ class BaseExtension:
 		request = context.request
 		
 		if __debug__:
-			log.debug("Handling dispatch event.", extra=dict(
-					request = id(context),
-					consumed = consumed,
-					handler = safe_name(handler),
-					endpoint = is_endpoint
-				))
+			data = {'request': id(context), **crumb.as_dict}
+			data['handler'] = safe_name(data['handler'])
+			log.debug("Handling dispatch event.", extra=data)
 		
 		# The leading path element (leading slash) requires special treatment.
-		if not consumed and context.request.path_info_peek() == '':
-			consumed = ['']
+		consumed = ('', ) if not crumb.path and request.path_info_peek() == '' else crumb.path.parts
 		
 		nConsumed = 0
-		if consumed:
-			# Migrate path elements consumed from the `PATH_INFO` to `SCRIPT_NAME` WSGI environment variables.
-			if not isinstance(consumed, (list, tuple)):
-				consumed = consumed.split('/')
-			
+		if consumed:  # Migrate path elements consumed from the `PATH_INFO` to `SCRIPT_NAME` WSGI environment variables.
 			for element in consumed:
-				if element == context.request.path_info_peek():
-					context.request.path_info_pop()
+				if element == request.path_info_peek():
+					request.path_info_pop()
 					nConsumed += 1
-				else:
+				else:  # The dispatcher has deviated. We abandon hope.
 					break
 		
 		# Update the breadcrumb list.
-		context.path.append(Crumb(handler, Path(request.script_name)))
+		context.path.append(crumb)
 		
 		if consumed:  # Lastly, update the remaining path element list.
 			request.remainder = request.remainder[nConsumed:]

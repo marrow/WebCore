@@ -80,11 +80,12 @@ class WebDispatchers(PluginManager):
 				starting = handler
 				
 				# Iterate dispatch events, issuing appropriate callbacks as we descend.
-				for consumed, handler, is_endpoint in dispatcher(context, handler, path):
-					if is_endpoint and not callable(handler) and hasattr(handler, '__dispatch__'):
-						is_endpoint = False
+				for crumb in dispatcher(context, handler, path):
+					if crumb.endpoint and not callable(crumb.handler) and hasattr(crumb.handler, '__dispatch__'):
+						crumb = crumb.replace(endpoint=False)
+					
 					# DO NOT add production logging statements (ones not wrapped in `if __debug__`) to this callback!
-					for ext in callbacks: ext(context, consumed, handler, is_endpoint)
+					for ext in callbacks: ext(context, crumb)
 				
 				# Repeat of earlier, we do this after extensions in case anything above modifies the environ path.
 				path = context.environ['PATH_INFO'].strip('/')
