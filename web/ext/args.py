@@ -98,7 +98,7 @@ class ValidateArgumentsExtension:
 	conflict occurs.
 	"""
 	
-	last: Tags = True
+	last: bool = True
 	provides: Tags = {'args.validation', 'kwargs.validation'}
 	uses: Tags = {'timing.prefix'}
 	
@@ -139,7 +139,7 @@ class ValidateArgumentsExtension:
 class ContextArgsExtension(ArgumentExtension):
 	"""Add the context as the first positional argument, possibly conditionally."""
 	
-	first: Tags = True
+	first: bool = True
 	provides: Tags = {'args.context'}
 	
 	def __init__(self, always=False):
@@ -163,7 +163,7 @@ class ContextArgsExtension(ArgumentExtension):
 class RemainderArgsExtension(ArgumentExtension):
 	"""Add any unprocessed path segments as positional arguments."""
 	
-	first: Tags = True
+	first: bool = True
 	needs: Tags = {'request'}
 	uses: Tags = {'args.context'}
 	provides: Tags = {'args', 'args.remainder'}
@@ -178,7 +178,7 @@ class RemainderArgsExtension(ArgumentExtension):
 class QueryStringArgsExtension(ArgumentExtension):
 	"""Add query string arguments ("GET") as keyword arguments."""
 	
-	first: Tags = True
+	first: bool = True
 	needs: Tags = {'request'}
 	provides: Tags = {'kwargs', 'kwargs.get'}
 	
@@ -189,7 +189,7 @@ class QueryStringArgsExtension(ArgumentExtension):
 class FormEncodedKwargsExtension(ArgumentExtension):
 	"""Add form-encoded or MIME mmultipart ("POST") arguments as keyword arguments."""
 	
-	first: Tags = True
+	first: bool = True
 	needs: Tags = {'request'}
 	uses: Tags = {'kwargs.get'}  # Query string values must be processed first, to be overridden.
 	provides: Tags = {'kwargs', 'kwargs.post'}
@@ -204,7 +204,7 @@ class JSONKwargsExtension(ArgumentExtension):
 	TODO: Generalize and isolate similar to outbound serialization, accepting inbound serializations via registry.
 	"""
 	
-	first: Tags = True
+	first: bool = True
 	needs: Tags = {'request'}
 	uses: Tags = {'kwargs.get'}  # We override values defined in the query string.
 	provides: Tags = {'kwargs', 'kwargs.json'}
