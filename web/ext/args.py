@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 """Argument handling extensions for WebCore applications.
 
 These allow you to customize the behaviour of the arguments passed to endpoints.
@@ -8,14 +6,14 @@ These allow you to customize the behaviour of the arguments passed to endpoints.
 from inspect import isroutine, ismethod, getcallargs
 
 from webob.exc import HTTPNotFound
-from web.core.util import safe_name
+from ..core.util import safe_name
 
 
 # A standard Python logger object.
 log = __import__('logging').getLogger(__name__)
 
 
-class ArgumentExtension(object):
+class ArgumentExtension:
 	"""Not for direct use."""
 	
 	@staticmethod
@@ -92,7 +90,7 @@ class ArgumentExtension(object):
 		kwargs.update(source)
 
 
-class ValidateArgumentsExtension(object):
+class ValidateArgumentsExtension:
 	"""Use this to enable validation of endpoint arguments.
 	
 	You can determine when validation is executed (never, always, or development) and what action is taken when a

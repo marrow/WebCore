@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 """The WebCore view registry.
 
 WebCore uses a registry of callables to transform values returned by controllers for use as a response. This
@@ -46,13 +44,11 @@ directly used as the response, but only if no more specific handlers are registe
 
 # ## Imports
 
-from __future__ import unicode_literals
-
 from webob.multidict import MultiDict
 from marrow.package.canonical import name
 from marrow.package.host import PluginManager
 
-from .compat import py3, pypy
+from ..core.util import safe_name
 
 
 # ## Module Globals
@@ -81,7 +77,7 @@ class WebViews(PluginManager):
 		The view registry is not meant to be instantiated by third-party software. Instead, access the registry as
 		an attribute of the the current `ApplicationContext` or `RequestContext`: `context.view`
 		"""
-		super(WebViews, self).__init__('web.view')
+		super().__init__('web.view')
 		self.__dict__['_map'] = MultiDict()
 	
 	def __repr__(self):
@@ -133,13 +129,9 @@ class WebViews(PluginManager):
 		Otherwise unknown attributes of the view registry will attempt to look up a handler plugin by that name.
 		"""
 		if __debug__:  # In production this logging is completely skipped, regardless of logging level.
-			if py3 and not pypy:  # Where possible, we shorten things to just the cannonical name.
-				log.debug("Registering view handler.", extra=dict(type=name(kind), handler=name(handler)))
-			else:  # Canonical name lookup is not entirely reliable on some combinations.
-				log.debug("Registering view handler.", extra=dict(type=repr(kind), handler=repr(handler)))
+			log.debug("Registering view handler.", extra=dict(type=name(kind), handler=safe_name(handler)))
 		
 		# Add the handler to the pool of candidates. This adds to a list instead of replacing the "dictionary item".
 		self._map.add(kind, handler)
 		
 		return handler
-

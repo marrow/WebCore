@@ -1,10 +1,6 @@
-# encoding: utf-8
-
 """WebCore common utilities."""
 
 # ## Imports
-
-from __future__ import unicode_literals
 
 import logging
 
@@ -30,7 +26,7 @@ def safe_name(thing):
 
 # ## Context-Related Utility Classes
 
-class lazy(object):
+class lazy:
 	"""Lazily record the result of evaluating a function and cache the result.
 	
 	This is a non-data descriptor which tells Python to allow the instance __dict__ to override. Intended to be used

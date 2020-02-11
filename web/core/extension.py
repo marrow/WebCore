@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 """WebCore extension management.
 
 This extension registry handles loading and access to extensions as well as the collection of standard WebCore
@@ -38,11 +36,9 @@ prefixed with a minus symbol (-) to request reverse ordering, simulating the exi
 
 # ## Imports
 
-from __future__ import unicode_literals
 
 from marrow.package.host import ExtensionManager
 
-from .compat import items
 from .context import Context
 
 
@@ -74,7 +70,6 @@ class WebExtensions(ExtensionManager):
 	
 	__isabstractmethod__ = False  # Work around a Python 3.4+ issue when attaching to the context.
 	
-	# ### \_\_init__(ctx: _ApplicationContext_)
 	def __init__(self, ctx):
 		"""Extension registry constructor.
 		
@@ -108,6 +103,7 @@ class WebExtensions(ExtensionManager):
 			for signal in getattr(ext, 'signals', []): add_signal(signal)  # And those callbacks.
 		
 		# Prepare the callback cache.
+		# This is done as a separate step to ensure we're aware of all callback sites prior to collecting them.
 		
 		for ext in all:
 			for signal in signals:  # Attach any callbacks that might exist.
@@ -123,7 +119,7 @@ class WebExtensions(ExtensionManager):
 			signals[signal].reverse()
 		
 		# Transform the signal lists into tuples to compact them.
-		self.signal = Context(**{k: tuple(v) for k, v in items(signals)})
+		self.signal = Context(**{k: tuple(v) for k, v in signals.items()})
 		
 		# This will save a chain() call on each request by pre-prepending the two lists.
 		# Attempts to add extensions during runtime are complicated by this optimization.
@@ -131,4 +127,3 @@ class WebExtensions(ExtensionManager):
 		
 		# Continue up the chain with the `ExtensionManager` initializer, using the `web.extension` namespace.
 		super(WebExtensions, self).__init__('web.extension')
-

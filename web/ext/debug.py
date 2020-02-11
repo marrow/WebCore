@@ -1,23 +1,16 @@
-# encoding: utf-8
-
 """Web-based REPL shell and interactive debugger extension."""
-
-# ## Imports
-
-from __future__ import unicode_literals
 
 from webob.exc import HTTPNotFound
 from backlash import DebuggedApplication
 
 
-# ## Module Globals
 
 log = __import__('logging').getLogger(__name__)
 
 
 # ## Controller Endpoint Utility
 
-class Console(object):
+class Console:
 	"""Attach a console to your web application at an arbitrary location."""
 	
 	__slots__ = ('debugger', 'request')
@@ -35,7 +28,7 @@ class Console(object):
 
 # ## Extension
 
-class DebugExtension(object):
+class DebugExtension:
 	"""Enable an interactive exception debugger and interactive console.
 	
 	Possible configuration includes:

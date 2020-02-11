@@ -1,11 +1,8 @@
-# encoding: utf-8
-
 from mimetypes import guess_type
 
 
-class AcceptFilenameExtension(object):
-	"""This pre-processes the incoming request URL, using the mimetype associated with the filename extension as the
-	Accept header."""
+class AcceptFilenameExtension:
+	"""Processes the request path, using the mimetype associated with the filename extension as the Accept header.
 	
 	first = True
 	

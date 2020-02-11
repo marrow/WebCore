@@ -1,23 +1,12 @@
-# encoding: utf-8
-
-# ## Imports
-
-from __future__ import unicode_literals
-
 from threading import local
 
 from marrow.package.loader import traverse
 
 
-# ## Module Globals
-
-# Standard logger object.
 log = __import__('logging').getLogger(__name__)
 
 
-# ## Extension
-
-class ThreadLocalExtension(object):
+class ThreadLocalExtension:
 	"""Provide the current context as a thread local global.
 	
 	This provides a convienent "superglobal" variable where you can store per-thread data.
@@ -36,7 +25,7 @@ class ThreadLocalExtension(object):
 		additional arbitrary data to this pool.
 		"""
 		
-		super(ThreadLocalExtension, self).__init__()
+		super().__init__()
 		
 		if __debug__:
 			log.debug("Initalizing ThreadLocal extension.")
@@ -89,4 +78,3 @@ class ThreadLocalExtension(object):
 			log.debug("Cleaning up thread local request context.")
 		
 		del self.local.context
-

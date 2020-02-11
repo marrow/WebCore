@@ -1,32 +1,17 @@
-# encoding: utf-8
-
 """The base extension providing request, response, and core views."""
 
-# ## Imports
-
-from __future__ import unicode_literals
-
-from io import IOBase
-try:
-	IOBase = (IOBase, file)
-except:
-	pass
-
-try:
-	from collections import Generator
-except ImportError:
-	def _tmp(): yield None  # pragma: no cover
-	Generator = type(_tmp())
-
-from os.path import getmtime
-from time import mktime, gmtime
-from datetime import datetime
-from mimetypes import init, add_type, guess_type
 from collections import namedtuple
+from collections.abc import Generator
+from datetime import datetime
+from io import IOBase
+from mimetypes import init, add_type, guess_type
+from os.path import getmtime
+from pathlib import PurePosixPath as Path
+from time import mktime, gmtime
 from webob import Request, Response
 
-from web.core.compat import str, unicode, Path
-from web.core.util import safe_name
+from ..core.util import safe_name
+from ..core.typing import Any, Context, Response, Tags
 
 
 # ## Module Globals
@@ -45,10 +30,9 @@ class Bread(list):
 		return self[-1].path
 
 
-
 # ## Extension
 
-class BaseExtension(object):
+class BaseExtension:
 	"""Base framework extension.
 	
 	This extension is not meant to be manually constructed or manipulated; use is automatic.
@@ -73,8 +57,8 @@ class BaseExtension(object):
 		register = context.view.register
 		register(type(None), self.render_none)
 		register(Response, self.render_response)
-		register(str, self.render_binary)
-		register(unicode, self.render_text)
+		register(bytes, self.render_binary)
+		register(str, self.render_text)
 		register(IOBase, self.render_file)
 		register(Generator, self.render_generator)
 	
@@ -181,7 +165,7 @@ class BaseExtension(object):
 		ct, ce = guess_type(result.name)
 		if not ct: ct = 'application/octet-stream'
 		response.content_type, response.content_encoding = ct, ce
-		response.etag = unicode(modified)
+		response.etag = str(modified)
 		
 		result.seek(0, 2)  # Seek to the end of the file.
 		response.content_length = result.tell()
@@ -202,4 +186,3 @@ class BaseExtension(object):
 				for i in result if i is not None  # Skip None values.
 			)
 		return True
-

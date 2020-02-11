@@ -1,11 +1,8 @@
 # encoding: utf-8
 
-from __future__ import unicode_literals
-
 from unittest import TestCase
 from webob import Request
 from web.core.context import Context
-from web.core.compat import unicode
 from web.core.view import WebViews
 
 
@@ -32,7 +29,7 @@ class TestWebViews(TestCase):
 	
 	def test_resolution(self):
 		cb = self.mock_view
-		self.view.register(unicode, cb)
+		self.view.register(str, cb)
 		self.view.register(int, object)
 		results = list(self.view("hi"))
 		assert len(results) == 1
@@ -42,4 +39,3 @@ class TestWebViews(TestCase):
 		assert repr(self.view) == "WebViews(0)"
 		self.view.register(dict, self.mock_view)
 		assert repr(self.view) == "WebViews(1)"
-

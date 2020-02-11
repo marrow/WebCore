@@ -1,10 +1,6 @@
-# encoding: utf-8
-
 """Basic static file delivery mechanism."""
 
 # ## Imports
-
-from __future__ import unicode_literals
 
 from os.path import abspath, normpath, exists, isfile, join as pathjoin, basename
 from webob.exc import HTTPForbidden, HTTPNotFound

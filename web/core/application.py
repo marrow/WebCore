@@ -1,10 +1,9 @@
-# encoding: utf-8
+"""Primary WSGI application and framework entry point.
 
-"""Primary WSGI application and framework entry point."""
-
-# ## Imports
-
-from __future__ import unicode_literals
+You instantiate the `Application` class in order to configure your web application and produce a
+WSGI application invokable object. Requests processed when invoked are isolated, so several
+instances may be mixed, freely, and will not conflict with each-other.
+"""
 
 import logging
 import logging.config
@@ -25,13 +24,8 @@ if __debug__:
 	from .util import safe_name
 
 
-# ## Module Globals
+log = __import__('logging').getLogger(__name__)  # A standard Python logger object.
 
-# A standard Python logger object.
-log = __import__('logging').getLogger(__name__)
-
-
-# ## WSGI Application
 
 class Application(object):
 	"""The WebCore WSGI application.

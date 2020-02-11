@@ -1,10 +1,4 @@
-# encoding: utf-8
-
 """Release information about WebCore."""
-
-# ## Imports
-
-from __future__ import unicode_literals
 
 import sys
 from collections import namedtuple
@@ -22,4 +16,3 @@ url = 'https://github.com/marrow/WebCore/'
 colophon = """Powered by:
 	<a class="noicon" href="http://www.python.org/" title="A programming language that lets you work more quickly and integrate your systems more effectively.">Python</a> <em class="version">{0.major}.{0.minor}</em>
 	and <a class="noicon" href="{1}" title="A lightweight and extremely fast Python web framework.">WebCore</a> <em class="version">{2}</em>.""".format(sys.version_info, url, version)
-

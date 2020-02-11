@@ -1,10 +1,5 @@
-# encoding: utf-8
-
 """Python 3 function annotation typecasting support."""
 
-# ## Imports
-
-from __future__ import unicode_literals
 
 from inspect import ismethod, getfullargspec
 
