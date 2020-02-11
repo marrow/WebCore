@@ -10,6 +10,7 @@ import logging.config
 
 from inspect import isfunction
 from webob.exc import HTTPException, HTTPNotFound, HTTPInternalServerError
+from marrow.package.host import ExtensionManager
 from marrow.package.loader import load
 
 from .context import Context
@@ -119,6 +120,16 @@ class Application:
 		required = {'request', 'response'}
 		fulfilled = set()
 		
+		extensions.append(self)  # Allow the application object itself to register callbacks.
+		
+		# Populate any "always enabled" extensions.
+		exts = ExtensionManager('web.extension')
+		for tag in exts.named:
+			ext = exts.named[tag]
+			if not getattr(ext, 'always', False): continue  # 
+			if any(isinstance(i, ext) for i in extensions): continue  # Already instantiated.
+			extensions.append(ext())  # TODO: Configuration...
+		
 		# Expand any named extension references, which will be instantiated.
 		for i, ext in enumerate(extensions):
 			if isinstance(ext, str):
@@ -137,18 +148,6 @@ class Application:
 				extensions.append(ext)
 				break  # Force re-calculation of missing dependencies.
 		
-		if not any(isinstance(ext, arguments.ArgumentExtension) for ext in config['extensions']):
-			# Prepare a default set of argument mutators.
-			config['extensions'].extend([
-					arguments.ValidateArgumentsExtension(),
-					arguments.ContextArgsExtension(),
-					arguments.RemainderArgsExtension(),
-					arguments.QueryStringArgsExtension(),
-					arguments.FormEncodedKwargsExtension(),
-					arguments.JSONKwargsExtension(),
-				])
-		
-		config['extensions'].append(self)  # Allow the application object itself to register callbacks.
 		
 		try:
 			addLoggingLevel('trace', logging.DEBUG - 5)
