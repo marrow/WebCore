@@ -75,6 +75,31 @@ class SerializationExtension(ArgumentExtension):
 		for kind in self.types:
 			context.view.register(kind, self.render_serialization)
 	
+	def collect(self, context:Context, endpoint:Callable, args:PositionalArgs, kw:KeywordArgs) -> None:
+		req: Request = context.request
+		mime: str = req.content_type.partition(';')[0]
+		
+		try:
+			loads: Deserializer = context.deserialize[mime]
+		except KeyError:
+			raise HTTPUnsupportedMediaType("\n".join(i for i in context.deserialize if '/' in i))  # https://httpstatuses.com/415
+		
+		body = context.request.body
+		
+		if context.request.charset:  # If the content is textual, e.g. JSON...
+			body = body.decode(req.charset)  # ... decode the binary to a Unicode string.
+		
+		try:  # Attempt deserialization using the matched deserialization callable.
+			body = loads(body)
+		except Exception as e:  # Mechanically unable to process incoming data. ("malformed request syntax")
+			raise HTTPBadRequest(str(e))  # https://httpstatuses.com/400
+		
+		if isinstance(body, MappingABC):  # E.g. JSON Object, YAML document, ...
+			self._process_rich_kwargs(body, kw)
+		elif isinstance(body, IterableABC):  # E.g. multi-record YAML, JSON Array, ...
+			args.extend(body)
+		else:  # Incoming data was mechanically valid, but unprocessable.
+			raise HTTPUnprocessableEntity("Must represent a mapping or iterable.")  # https://httpstatuses.com/422
 	
 	def render_serialization(self, context:Context, result:Any) -> bool:
 		"""Render serialized responses."""

@@ -207,19 +207,18 @@ class FormEncodedKwargsExtension(ArgumentExtension):
 class JSONKwargsExtension(ArgumentExtension):
 	"""Add JSON-encoded arguments from the request body as keyword arguments.
 	
-	TODO: Generalize and isolate similar to outbound serialization, accepting inbound serializations via registry.
+	Deprecated in favour of generalized RESTful content negotiation via SerializationExtension. That extension will
+	correctly handle error response if the body can not be decoded by any known handler, and generation of appropriate
+	responses to deserialization failures.
+	
+	This is now a deprecation proxy shim which only depends on the serialization extension and emits a warning.
 	"""
 	
-	first: bool = True
-	needs: Tags = {'request'}
-	uses: Tags = {'kwargs.get'}  # We override values defined in the query string.
+	needs: Tags = {'serialization'}
 	provides: Tags = {'kwargs', 'kwargs.json'}
 	
-	def collect(self, context, endpoint, args, kw):
-		if not context.request.content_type == 'application/json':
-			return
+	def __init__(self):
+		super().__init__()
 		
-		if not context.request.body:
-			return
-		
-		self._process_rich_kwargs(context.request.json, kw)
+		warn("Use of specialized JSONKwargsExtension is deprecated; SerializationExtension enabled instead.",
+				DeprecationWarning)

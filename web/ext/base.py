@@ -11,13 +11,18 @@ from time import mktime, gmtime
 from webob import Request, Response
 
 from ..core.util import safe_name
-from ..core.typing import Any, Context, Response, Tags
+from ..core.typing import Any, Context, Response, Tags, Iterable
 
 
 log = __import__('logging').getLogger(__name__)
 
 
 Crumb = namedtuple('Breadcrumb', ('handler', 'path'))
+
+
+def nop(body:str) -> Iterable:
+	"""A de-serializer no-operation to prevent contribution by this type, as it is handled separately."""
+	return ()  # More efficient to extend by an empty tuple than to involve mapping processing.
 
 
 class Bread(list):
