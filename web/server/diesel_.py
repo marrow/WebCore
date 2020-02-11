@@ -10,4 +10,4 @@ def serve(application, host:str='127.0.0.1', port:int=8080):
 	"""
 	
 	# Instantiate the server with a host/port configuration and our application.
-	WSGIApplication(application, port=int(port), iface=host).run()
+	WSGIApplication(application, port=int(port), iface=str(host)).run()

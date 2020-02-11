@@ -21,7 +21,7 @@ def simple(application, host:str='127.0.0.1', port:int=8080):
 	print("serving on http://{0}:{1}".format(host, port))
 	
 	# Bind and launch the server; this is a blocking operation.
-	make_server(host, int(port), application).serve_forever()
+	make_server(str(host), int(port), application).serve_forever()
 
 
 def cgi(application):

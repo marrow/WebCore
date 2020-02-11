@@ -32,7 +32,7 @@ class Extension:
 		super().__init__()
 		...
 	
-	def __call__(self, context, app):
+	def __call__(self, context: Context, app: WSGI) -> WSGI:
 		"""Executed to wrap the application in middleware.
 		
 		The first argument is the global context class, not request-local context instance.
@@ -43,7 +43,7 @@ class Extension:
 		
 		return app
 	
-	def start(self, context):
+	def start(self, context: Context) -> None:
 		"""Executed during application startup just after binding the server.
 		
 		The first argument is the global context class, not request-local context instance.
@@ -52,14 +52,14 @@ class Extension:
 		"""
 		...
 	
-	def stop(self, context):
+	def stop(self, context: Context) -> None:
 		"""Executed during application shutdown after the last request has been served.
 		
 		The first argument is the global context class, not request-local context instance.
 		"""
 		...
 	
-	def graceful(self, context, **config):
+	def graceful(self, context: Context, **config) -> None:
 		"""Called when a SIGHUP is sent to the application.
 		
 		The first argument is the global context class, not request-local context instance.
@@ -68,14 +68,14 @@ class Extension:
 		"""
 		...
 	
-	def prepare(self, context):
+	def prepare(self, context: Context) -> None:
 		"""Executed during request set-up to populate the thread-local `context` instance.
 		
 		The purpose of the extension ordering is to ensure that methods like these are executed in the correct order.
 		"""
 		...
 	
-	def dispatch(self, context, consumed, handler, is_endpoint):
+	def dispatch(self, context: Context, consumed: Path, handler: Any, is_endpoint: bool) -> None:
 		"""Executed as dispatch descends into a tier.
 		
 		The `consumed` argument is a Path object containing one or more path elements.
@@ -104,11 +104,11 @@ class Extension:
 		"""
 		...
 	
-	def before(self, context):
+	def before(self, context: Context) -> None:
 		"""Executed after all extension prepare methods have been called, prior to dispatch."""
 		...
 	
-	def after(self, context):
+	def after(self, context: Context) -> None:
 		"""Executed after dispatch has returned and the response populated, prior to anything being sent to the client.
 		
 		Similar to middleware, the first extension registered has its `after` method called last. Additionally, if
@@ -125,11 +125,11 @@ class Extension:
 		"""
 		...
 	
-	def transform(self, context, handler, result):
 		"""Transform outgoing values prior to view lookup."""
+	def transform(self, context: Context, handler: Any, result: Any) -> Any:
 		...
 	
-	def done(self, context):
+	def done(self, context: Context) -> None:
 		"""Executed after the entire response has completed generating.
 		
 		This might seem to duplicate the purpose of `after`; the distinction is with iterable or generator WSGI bodies
@@ -139,13 +139,13 @@ class Extension:
 		"""
 		...
 	
-	def interactive(self):
+	def interactive(self, context:Context) -> Environment:
 		"""Populate an interactive shell."""
 		...
 		
 		return dict()
 	
-	def inspect(self, context):
+	def inspect(self, context:Context):
 		"""Return an object conforming to the inspector panel API."""
 		...
 
@@ -160,43 +160,43 @@ class TransactionalExtension:
 	
 	# New! These are callbacks only executed if the TransactionExtension has been configured.
 	
-	def begin(self, context):
 		"""Do the work nessicary to begin a transaction.
+	def begin(self, context: Context) -> None:
 		
 		This happens during the `prepare` stage if automatic behaviour is indicated, prior to any extensions
 		dependency graphed to `need` or `use` yours executing, otherwise, it is only optionally begun upon
-		request during the endpoint and response generation lifecycle.
+		request during the endpoint and response generation life-cycle.
 		{move:OtM}, committed prior to the final WSGI application (WebOb) being executed and returned from our own.
 		"""
 		...
 	
-	def vote(self, context):
+	def vote(self, context: Context) -> Optional[bool]:
 		"""Called to ask extensions if the transaction is still valid."""
 		...
 	
-	def finish(self, context):
+	def finish(self, context: Context) -> None:
 		"""Called to complete a transaction, but only if the transaction is valid."""
 		...
 	
-	def abort(self, context):
+	def abort(self, context: Context) -> None:
 		"""Called if the vote failed, and the transaction is not valid at time of completion."""
 		...
 	
 	# Understanding behaviour, automatic transaction interactions with existing extension callbacks.
 	
-	def prepare(self, context):
+	def prepare(self, context: Context) -> None:
 		"""At this point the underlying machinery has been prepared.
 		
 		Code may be running under a transaction if automatic behaviour was indicated by configuration of the
 		`TransactionExtension`; currently the default is to automatically start a transaction during `prepare` and
 		commit on successful HTTP status codes, prior to final delivery of the response content.
 		
-		{move:TrEx}This has the consequence that in streaming usage, a failure in delivery, or failure in generation (i.e. by
+		This has the consequence that in streaming usage, a failure in delivery, or failure in generation (i.e. by
 		template engine) of that streamed content, is not an error in the processing of the endpoint itself. If the
 		original endpoint indicated success, the transaction is committed.
 		"""
 		...
 	
-	def done(self, context):
+	def done(self, context: Context) -> None:
 		"""The last chance to perform any work within an automatic managed transaction."""
 		...

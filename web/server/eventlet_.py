@@ -11,4 +11,4 @@ def serve(application, host:str='127.0.0.1', port:int=8080):
 	"""
 	
 	# Instantiate the server with a bound port and with our application.
-	server(listen(host, int(port)), application)
+	server(listen(str(host), int(port)), application)

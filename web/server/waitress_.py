@@ -14,4 +14,4 @@ def serve(application, host:str='127.0.0.1', port:int=8080, threads:int=4, **kw)
 	"""
 	
 	# Bind and start the server; this is a blocking process.
-	serve_(application, host=host, port=int(port), threads=int(threads), **kw)
+	serve_(application, host=str(host), port=int(port), threads=int(threads), **kw)
