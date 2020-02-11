@@ -4,10 +4,14 @@ from mimetypes import guess_type
 class AcceptFilenameExtension:
 	"""Processes the request path, using the mimetype associated with the filename extension as the Accept header.
 	
-	first = True
+	This is predominantly to permit less capable HTTP user agents not capable of independently assigning an Accept
+	header, such as typical browser user-agents with simple anchor references. This does not replace the existing
+	header, if present, it prepends any detected type to the list.
+	"""
 	
 	needs = {'request'}
 	provides = {'request.accept'}
+	first: bool = True
 	
 	def prepare(self, context):
 		encoding, compression = guess_type(context.environ['PATH_INFO'])

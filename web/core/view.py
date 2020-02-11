@@ -45,7 +45,6 @@ directly used as the response, but only if no more specific handlers are registe
 # ## Imports
 
 from webob.multidict import MultiDict
-from marrow.package.canonical import name
 from marrow.package.host import PluginManager
 
 from ..core.util import safe_name

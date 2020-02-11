@@ -198,7 +198,10 @@ class FormEncodedKwargsExtension(ArgumentExtension):
 
 
 class JSONKwargsExtension(ArgumentExtension):
-	"""Add JSON-encoded arguments from the request body as keyword arguments."""
+	"""Add JSON-encoded arguments from the request body as keyword arguments.
+	
+	TODO: Generalize and isolate similar to outbound serialization, accepting inbound serializations via registry.
+	"""
 	
 	first = True
 	needs = {'request'}
@@ -213,5 +216,3 @@ class JSONKwargsExtension(ArgumentExtension):
 			return
 		
 		self._process_rich_kwargs(context.request.json, kw)
-
-

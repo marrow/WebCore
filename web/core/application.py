@@ -27,7 +27,7 @@ if __debug__:
 log = __import__('logging').getLogger(__name__)  # A standard Python logger object.
 
 
-class Application(object):
+class Application:
 	"""The WebCore WSGI application.
 	
 	This glues together a few components:
@@ -37,9 +37,16 @@ class Application(object):
 	* Collection and execution of `web.extension` callbacks.
 	* WSGI middleware wrapping.
 	* The final WSGI application handling requests.
+	  * Issue a series of extension callbacks to `prepare` the request context.
+	  * Issue a series of extension callbacks to `collect` endpoint arguments, if executable.
+	  * Invoke a callable endpoint to retrieve the result, with additional callbacks to perform actions before
+	    or after execution of the endpoint, or treat the endpoint as the result.
+	  * Identify and execute the view callback associated with the result type to prepare the response.
+	  * Return the now prepared response.
+	  * After the response has been sent to the client, execute extension `done` callbacks.
 	
 	The application object is treated as an extension allowing per-application customization utilizing extension
-	callbacks (such as rendering custom views on startup) through subclassing.
+	callbacks (such as rendering custom views on startup) through sub-classing.
 	"""
 	
 	__slots__ = (
@@ -146,7 +153,7 @@ class Application(object):
 		"""Initiate a web server service to serve this application.
 		
 		You can always use the Application instance as a bare WSGI application, of course.  This method is provided as
-		a convienence.
+		a convenience.
 		
 		Pass in the name of the service you wish to use, and any additional configuration options appropriate for that
 		service.  Almost all services accept `host` and `port` options, some also allow you to specify an on-disk
@@ -263,10 +270,8 @@ class Application(object):
 		
 		for ext in signals.after: ext(context)
 		
-		def capture_done(response):
-			for chunk in response:
-				yield chunk
-			
+		def capture_done(response: WSGIResponse) -> WSGIResponse:
+			yield from response
 			for ext in signals.done: ext(context)
 		
 		# This is really long due to the fact we don't want to capture the response too early.

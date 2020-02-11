@@ -1,10 +1,4 @@
-# encoding: utf-8
-
 """An example, though quite usable extension to handle list and dictionary return values."""
-
-# ## Imports
-
-from __future__ import unicode_literals
 
 import pkg_resources
 from collections import Mapping

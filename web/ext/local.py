@@ -28,7 +28,7 @@ class ThreadLocalExtension:
 		super().__init__()
 		
 		if __debug__:
-			log.debug("Initalizing ThreadLocal extension.")
+			log.debug("Initializing ThreadLocal extension.")
 		
 		self.where = where
 		self.local = None

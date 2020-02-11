@@ -97,7 +97,7 @@ class WebExtensions(ExtensionManager):
 		# Populate the initial set of signals from our own.
 		for signal in self.SIGNALS: add_signal(signal)
 		
-		# Populate additional signals and general metadata provided by registered extensions.
+		# Populate additional signals and general metadata provided by registered extensions, and adapt to changes.
 		for ext in all:
 			self.feature.update(getattr(ext, 'provides', []))  # Enable those flags.
 			for signal in getattr(ext, 'signals', []): add_signal(signal)  # And those callbacks.

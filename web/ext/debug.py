@@ -21,7 +21,7 @@ class Console:
 	
 	def __call__(self, *args, **kw):
 		if not self.debugger:
-			raise HTTPNotFound()
+			raise HTTPNotFound("Debugger extension not enabled.")
 		
 		return self.debugger.display_console(self.request)
 

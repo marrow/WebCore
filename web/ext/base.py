@@ -45,8 +45,7 @@ class BaseExtension:
 	# ### Application-Level Callbacks
 	
 	def start(self, context):
-		if __debug__:
-			log.debug("Registering core return value handlers.")
+		if __debug__: log.debug("Registering core return value handlers.")
 		
 		# This prepares the mimetypes registry, and adds values typically missing from it.
 		init()
@@ -70,8 +69,7 @@ class BaseExtension:
 		This adds `request`, `response`, and `path` to the `RequestContext` instance.
 		"""
 		
-		if __debug__:
-			log.debug("Preparing request context.", extra=dict(request=id(context)))
+		if __debug__: log.debug("Preparing request context.", extra=dict(request=id(context)))
 		
 		# Bridge in WebOb `Request` and `Response` objects.
 		# Extensions shouldn't rely on these, using `environ` where possible instead.
@@ -153,8 +151,8 @@ class BaseExtension:
 	
 	def render_file(self, context, result):
 		"""Perform appropriate metadata wrangling for returned open file handles."""
-		if __debug__:
-			log.debug("Processing file-like object.", extra=dict(request=id(context), result=repr(result)))
+		
+		if __debug__: log.debug("Processing file-like object.", extra=dict(request=id(context), result=repr(result)))
 		
 		response = context.response
 		response.conditional_response = True

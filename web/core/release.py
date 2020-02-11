@@ -4,8 +4,6 @@ import sys
 from collections import namedtuple
 
 
-# ## Module Globals
-
 version_info = namedtuple('version_info', ('major', 'minor', 'micro', 'releaselevel', 'serial'))(2, 1, 0, 'beta', 1)
 version = ".".join([str(i) for i in version_info[:3]]) + ((version_info.releaselevel[0] + str(version_info.serial)) if version_info.releaselevel != 'final' else '')
 
