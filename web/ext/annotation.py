@@ -70,8 +70,8 @@ class AnnotationExtension:
 	
 	# ### Request-Local Callbacks
 	
-	def mutate(self, context, handler, args, kw):
-		"""Inspect and potentially mutate the given handler's arguments.
+	def collect(self, context, handler, args, kw):
+		"""Inspect and potentially mutate the arguments to the handler.
 		
 		The args list and kw dictionary may be freely modified, though invalid arguments to the handler will fail.
 		"""

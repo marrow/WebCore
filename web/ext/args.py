@@ -114,9 +114,9 @@ class ValidateArgumentsExtension:
 		"""
 		
 		if enabled is True or (enabled == 'development' and __debug__):
-			self.mutate = self._mutate
+			self.collect = self._collect
 	
-	def _mutate(self, context, endpoint, args, kw):
+	def _collect(self, context, endpoint, args, kw):
 		try:
 			if callable(endpoint) and not isroutine(endpoint):
 				endpoint = endpoint.__call__  # Handle instances that are callable.
@@ -126,7 +126,7 @@ class ValidateArgumentsExtension:
 		except TypeError as e:
 			# If the argument specification doesn't match, the handler can't process this request.
 			# This is one policy. Another possibility is more computationally expensive and would pass only
-			# valid arguments, silently dropping invalid ones. This can be implemented as a mutate handler.
+			# valid arguments, silently dropping invalid ones. This can be implemented as a collection handler.
 			log.error(str(e).replace(endpoint.__name__, safe_name(endpoint)), extra=dict(
 					request = id(context),
 					endpoint = safe_name(endpoint),
@@ -151,7 +151,7 @@ class ContextArgsExtension(ArgumentExtension):
 		"""
 		self.always = always
 	
-	def mutate(self, context, endpoint, args, kw):
+	def collect(self, context, endpoint, args, kw):
 		if not self.always:
 			# Instance methods were handed the context at class construction time via dispatch.
 			# The `not isroutine` bit here catches callable instances, a la "index.html" handling.
@@ -169,7 +169,7 @@ class RemainderArgsExtension(ArgumentExtension):
 	uses: Tags = {'args.context'}
 	provides: Tags = {'args', 'args.remainder'}
 	
-	def mutate(self, context, endpoint, args, kw):
+	def collect(self, context, endpoint, args, kw):
 		if not context.request.remainder:
 			return
 		
@@ -183,7 +183,7 @@ class QueryStringArgsExtension(ArgumentExtension):
 	needs: Tags = {'request'}
 	provides: Tags = {'kwargs', 'kwargs.get'}
 	
-	def mutate(self, context, endpoint, args, kw):
+	def collect(self, context, endpoint, args, kw):
 		self._process_flat_kwargs(context.request.GET, kw)
 
 
@@ -195,7 +195,7 @@ class FormEncodedKwargsExtension(ArgumentExtension):
 	uses: Tags = {'kwargs.get'}  # Query string values must be processed first, to be overridden.
 	provides: Tags = {'kwargs', 'kwargs.post'}
 	
-	def mutate(self, context, endpoint, args, kw):
+	def collect(self, context, endpoint, args, kw):
 		self._process_flat_kwargs(context.request.POST, kw)
 
 
@@ -210,7 +210,7 @@ class JSONKwargsExtension(ArgumentExtension):
 	uses: Tags = {'kwargs.get'}  # We override values defined in the query string.
 	provides: Tags = {'kwargs', 'kwargs.json'}
 	
-	def mutate(self, context, endpoint, args, kw):
+	def collect(self, context, endpoint, args, kw):
 		if not context.request.content_type == 'application/json':
 			return
 		

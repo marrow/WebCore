@@ -61,7 +61,7 @@ class WebExtensions(ExtensionManager):
 			'prepare',  # Executed during initial request processing.
 			'dispatch',  # Executed once for each dispatch event.
 			'before',  # Executed after all extension `prepare` methods have been called, prior to dispatch.
-			'mutate',  # Inspect and potentially mutate arguments to the handler prior to execution.
+			'collect',  # Collect, inspect, and potentially mutate arguments to the handler prior to execution.
 			'-after',  # Executed after dispatch has returned and the response populated.
 			'-transform',  # Transform the result returned by the handler and apply it to the response.
 			'-done',  # Executed after the response has been consumed by the client.
@@ -99,6 +99,10 @@ class WebExtensions(ExtensionManager):
 		
 		# Populate additional signals and general metadata provided by registered extensions, and adapt to changes.
 		for ext in all:
+			if hasattr(ext, 'mutate'):
+				warn(f"Extension {ext} using old 'mutate' callback, should provide 'collect' instead.", DeprecationWarning)
+				ext.collect = ext.mutate
+			
 			self.feature.update(getattr(ext, 'provides', []))  # Enable those flags.
 			for signal in getattr(ext, 'signals', []): add_signal(signal)  # And those callbacks.
 		
@@ -114,7 +118,7 @@ class WebExtensions(ExtensionManager):
 				signals['middleware'].append(ext)
 		
 		# Certain operations act as a stack, i.e. "before" are executed in dependency order, but "after" are executed
-		# in reverse dependency order.  This is also the case with "mutate" (incoming) and "transform" (outgoing).
+		# in reverse dependency order.  This is also the case with "collect" (incoming) and "transform" (outgoing).
 		for signal in inverse:
 			signals[signal].reverse()
 		
