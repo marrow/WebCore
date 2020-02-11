@@ -67,6 +67,16 @@ class AnnotationExtension:
 			set: lambda v: v.split(",") if isinstance(v, str) else set(v),
 		}
 	
+	def __init__(self, aliases:Optional[AnnotationAliases]=None, mapper:Optional[AnnotationMappers]=None):
+		"""Initialize the function annotation extension.
+		
+		You may pass in instance additions and overrides for the type aliases and type mappers if custom behavior is
+		desired.
+		"""
+		super().__init__()
+		
+		if aliases: self.aliases = {**self.aliases, **aliases}
+		if mapper: self.mapper = {**self.mapper, **mapper}
 	
 	# ### Request-Local Callbacks
 	
@@ -75,51 +85,51 @@ class AnnotationExtension:
 		
 		The args list and kw dictionary may be freely modified, though invalid arguments to the handler will fail.
 		"""
-		def cast(arg, val):
-			if arg not in annotations:
-				return
+		
+		spec = getfullargspec(handler)
+		arguments = list(spec.args)
+		if ismethod(handler): del arguments[0]  # Automatically remove `self` arguments from consideration.
+		
+		def cast(key, annotation, value):
+			"""Attempt to typecast data incoming from the web."""
 			
-			cast = annotations[key]
+			annotation = self.aliases.get(annotation, annotation)
+			if isinstance(annotation, type) and isinstance(value, annotation): return value  # Nothing to do.
+			annotation = self.mapper.get(annotation, annotation)
 			
 			try:
-				val = cast(val)
+				value = annotation(value)
 			except (ValueError, TypeError) as e:
-				parts = list(e.args)
-				parts[0] = parts[0] + " processing argument '{}'".format(arg)
-				e.args = tuple(parts)
-				raise
+				raise HTTPBadRequest(f"{e.__class__.__name__}: {e} while processing endpoint argument '{arg}'")
 			
-			return val
-			
-		annotations = getattr(handler.__func__ if hasattr(handler, '__func__') else handler, '__annotations__', None)
-		if not annotations:
-			return
+			return value
 		
-		argspec = getfullargspec(handler)
-		arglist = list(argspec.args)
+		# Process positional arguments.
+		for i, (key, annotation, value) in enumerate((k, spec.annotations.get(k), v) for k, v in zip(arguments, args)):
+			if not annotation: continue  # Skip right past non-annotated arguments.
+			args[i] = cast(key, annotation, value)
 		
-		if ismethod(handler):
-			del arglist[0]
-		
-		for i, value in enumerate(list(args)):
-			key = arglist[i]
-			if key in annotations:
-				args[i] = cast(key, value)
-		
-		# Convert keyword arguments
-		for key, value in list(items(kw)):
-			if key in annotations:
-				kw[key] = cast(key, value)
+		# Process keyword arguments.
+		for key, annotation, value in ((k, spec.annotations.get(k), v) for k, v in kw.items()):
+			if not annotation: continue  # Skip right past non-annotated arguments.
+			kw[key] = cast(key, annotation, value)
 	
 	def transform(self, context, handler, result):
-		"""Transform the value returned by the controller endpoint.
+		"""Transform the value returned by the controller endpoint, or transform the result into a 2-tuple.
 		
-		This extension transforms returned values if the endpoint has a return type annotation.
+		If the annotation is callable, run the result through the annotation, returning the result. Otherwise,
+		transform into 2-tuple of:
+		
+			(return_annotation, result)
+		
+		This is a common pattern for recognition and matching by certain views, such as general templating.
 		"""
+		
 		handler = handler.__func__ if hasattr(handler, '__func__') else handler
 		annotation = getattr(handler, '__annotations__', {}).get('return', None)
+		if not annotation: return result
 		
-		if annotation:
-			return (annotation, result)
+		if callable(annotation):
+			return annotation(result)
 		
-		return result
+		return (annotation, result)
