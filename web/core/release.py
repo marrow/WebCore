@@ -11,6 +11,6 @@ author = namedtuple('Author', ['name', 'email'])("Alice Bevan-McGregor", 'alice@
 description = "A powerful web development nanoframework so small it's not even a microframework."
 copyright = "2009-2020, Alice Bevan-McGregor and contributors"
 url = 'https://github.com/marrow/WebCore/'
-colophon = """Powered by:
-	<a class="noicon" href="http://www.python.org/" title="A programming language that lets you work more quickly and integrate your systems more effectively.">Python</a> <em class="version">{0.major}.{0.minor}</em>
-	and <a class="noicon" href="{1}" title="A lightweight and extremely fast Python web framework.">WebCore</a> <em class="version">{2}</em>.""".format(sys.version_info, url, version)
+colophon = f"""Powered by:
+	<a class="noicon" href="http://www.python.org/" title="A programming language that lets you work more quickly and integrate your systems more effectively.">Python</a> <em class="version">{sys.version_info.major}.{sys.version_info.minor}</em>
+	and <a class="noicon" href="{url}" title="A lightweight and extremely fast Python web framework.">WebCore</a> <em class="version">{version}</em>."""

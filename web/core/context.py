@@ -105,7 +105,7 @@ class ContextGroup(Context):
 			self.__dict__[name] = kw[name]
 	
 	def __repr__(self): 
-		return "{0.__class__.__name__}({1})".format(self, ', '.join(sorted(self)))
+		return f"{self.__class__.__name__}({', '.join(sorted(self))})"
 	
 	def __len__(self):
 		return len(self.__dict__)

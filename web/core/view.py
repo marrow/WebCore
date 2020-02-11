@@ -81,7 +81,7 @@ class WebViews(PluginManager):
 	
 	def __repr__(self):
 		"""Programmers' representation for development-time diagnostics."""
-		return "WebViews({})".format(len(self._map))
+		return f"WebViews({len(self._map)})"
 	
 	def __call__(self, result):
 		"""Identify view to use based on the type of result when our instance is called as a function.
