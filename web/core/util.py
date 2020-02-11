@@ -1,7 +1,5 @@
 """WebCore common utilities."""
 
-# ## Imports
-
 import logging
 
 from threading import RLock
@@ -9,8 +7,6 @@ from typing import Optional
 
 from marrow.package.canonical import name
 
-
-# ## Module Global Constants
 
 sentinel = object()  # A singleton value to allow `None` as a legal value.
 

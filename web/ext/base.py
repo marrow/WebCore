@@ -14,12 +14,8 @@ from ..core.util import safe_name
 from ..core.typing import Any, Context, Response, Tags
 
 
-# ## Module Globals
-
 log = __import__('logging').getLogger(__name__)
 
-
-# ## Helper Classes
 
 Crumb = namedtuple('Breadcrumb', ('handler', 'path'))
 
@@ -29,8 +25,6 @@ class Bread(list):
 	def current(self):
 		return self[-1].path
 
-
-# ## Extension
 
 class BaseExtension:
 	"""Base framework extension.
@@ -42,8 +36,6 @@ class BaseExtension:
 	always: bool = True  # Always enabled.
 	provides: Tags = ["base", "request", "response"]  # Export these symbols for use as other extension's dependencies.
 	uses: Tags = {'timing.prefix'}
-	
-	# ### Application-Level Callbacks
 	
 	def start(self, context:Context) -> None:
 		if __debug__: log.debug("Registering core return value handlers.")
@@ -61,8 +53,6 @@ class BaseExtension:
 		register(str, self.render_text)
 		register(IOBase, self.render_file)
 		register(Generator, self.render_generator)
-	
-	# ### Request-Level Callbacks
 	
 	def prepare(self, context:Context) -> None:
 		"""Add the usual suspects to the context.
@@ -118,8 +108,6 @@ class BaseExtension:
 		
 		if consumed:  # Lastly, update the remaining path element list.
 			request.remainder = request.remainder[nConsumed:]
-	
-	# ### Views
 	
 	def render_none(self, context:Context, result:None) -> bool:
 		"""Render empty responses."""

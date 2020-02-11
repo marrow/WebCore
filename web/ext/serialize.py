@@ -15,13 +15,8 @@ except ImportError:
 	import json
 
 
-# ## Module Globals
-
 log = __import__('logging').getLogger(__name__)
 json  # Satisfy linter.
-
-
-# ## Plugin Management
 
 
 class SerializationPlugins(PluginManager):
@@ -43,8 +38,6 @@ class SerializationPlugins(PluginManager):
 		except DistributionNotFound:
 			pass
 
-
-# ## Extension
 
 class SerializationExtension(ArgumentExtension):
 	"""Sample extension demonstrating integration of automatic bidirectional serialization, such as JSON.
@@ -68,8 +61,6 @@ class SerializationExtension(ArgumentExtension):
 		self.default = default
 		self.types = types
 	
-	# ### Application-Level Callbacks
-	
 	def start(self, context:Context) -> None:
 		if __debug__:
 			log.debug("Registering serialization return value handlers.")
@@ -83,7 +74,6 @@ class SerializationExtension(ArgumentExtension):
 		for kind in self.types:
 			context.view.register(kind, self.render_serialization)
 	
-	# ### Views
 	
 	def render_serialization(self, context:Context, result:Any) -> bool:
 		"""Render serialized responses."""

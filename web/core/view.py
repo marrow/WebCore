@@ -42,21 +42,16 @@ such as rendering a pretty error page.  By default these exceptions are treated 
 directly used as the response, but only if no more specific handlers are registered.
 """
 
-# ## Imports
-
 from webob.multidict import MultiDict
 from marrow.package.host import PluginManager
 
 from ..core.util import safe_name
 
 
-# ## Module Globals
-
 # A standard logger object.
 log = __import__('logging').getLogger(__name__)
 
 
-# ## View Registry
 
 class WebViews(PluginManager):
 	"""A `PluginManager` subclass to manage and search plugin and manually-registered views.
@@ -67,8 +62,6 @@ class WebViews(PluginManager):
 	"""
 	
 	__isabstractmethod__ = False  # Work around a Python 3.4+ issue, since our instances are callable.
-	
-	# ### Python Protocols
 	
 	def __init__(self, ctx):
 		"""View registry constructor.
@@ -101,8 +94,6 @@ class WebViews(PluginManager):
 			
 			if isinstance(result, kind):
 				yield candidate
-	
-	# ### Plugin Registration
 	
 	def register(self, kind, handler):
 		"""Register a handler for a given type, class, interface, or abstract base class.

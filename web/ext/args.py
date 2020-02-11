@@ -11,8 +11,7 @@ from ..core.typing import Tags
 from ..core.util import safe_name
 
 
-# A standard Python logger object.
-log = __import__('logging').getLogger(__name__)
+log = __import__('logging').getLogger(__name__)  # A standard Python logger object.
 
 
 class ArgumentExtension:

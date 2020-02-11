@@ -9,8 +9,6 @@ from ..core.typing import Context, Tags, WSGI
 log = __import__('logging').getLogger(__name__)
 
 
-# ## Controller Endpoint Utility
-
 class Console:
 	"""Attach a console to your web application at an arbitrary location."""
 	
@@ -26,8 +24,6 @@ class Console:
 		
 		return self.debugger.display_console(self.request)
 
-
-# ## Extension
 
 class DebugExtension:
 	"""Enable an interactive exception debugger and interactive console.

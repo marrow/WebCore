@@ -78,8 +78,6 @@ class AnnotationExtension:
 		if aliases: self.aliases = {**self.aliases, **aliases}
 		if mapper: self.mapper = {**self.mapper, **mapper}
 	
-	# ### Request-Local Callbacks
-	
 	def collect(self, context, handler, args, kw):
 		"""Inspect and potentially mutate the arguments to the handler.
 		

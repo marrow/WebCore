@@ -34,8 +34,6 @@ prefixed with a minus symbol (-) to request reverse ordering, simulating the exi
 
 """
 
-# ## Imports
-
 from warnings import warn
 
 from marrow.package.host import ExtensionManager
@@ -43,13 +41,8 @@ from marrow.package.host import ExtensionManager
 from .context import Context
 
 
-# ## Module Globals
+log = __import__('logging').getLogger(__name__)  # A standard Python logger object.
 
-# A standard Python logger object.
-log = __import__('logging').getLogger(__name__)
-
-
-# ## Extension Manager
 
 class WebExtensions(ExtensionManager):
 	"""Principal WebCore extension manager."""

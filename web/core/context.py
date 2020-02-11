@@ -1,15 +1,7 @@
-# encoding: utf-8
-
 """A `MutableMapping` subclass for use as a request-local context object."""
-
-# ## Imports
-
-from __future__ import unicode_literals
 
 from collections import MutableMapping
 
-
-# ## Mapping Class
 
 class Context(MutableMapping):
 	"""An attribute access dictionary, of a kind.
@@ -42,7 +34,7 @@ class Context(MutableMapping):
 		All keyword arguments are applied to the instance as attributes through direct assignment to `__dict__`.
 		"""
 		self.__dict__.update(kw)
-		super(Context, self).__init__()
+		super().__init__()
 	
 	def __len__(self):
 		"""Get a list of the public data attributes."""
@@ -147,4 +139,3 @@ class ContextGroup(Context):
 		del self.__dict__[name]
 
 ContextGroup._STANDARD_ATTRS = set(dir(ContextGroup()))
-
