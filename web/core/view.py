@@ -48,9 +48,7 @@ from marrow.package.host import PluginManager
 from ..core.util import safe_name
 
 
-# A standard logger object.
-log = __import__('logging').getLogger(__name__)
-
+log = __import__('logging').getLogger(__name__)  # A standard logger object.
 
 
 class WebViews(PluginManager):
