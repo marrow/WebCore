@@ -8,6 +8,8 @@ from ..core.typing import WSGI, HostBind, PortBind
 def serve(application:WSGI, host:HostBind='127.0.0.1', port:PortBind=8080) -> None:
 	"""CherryPy-based WSGI-HTTP server."""
 	
+	host = str(host)
+	
 	# Instantiate the server with our configuration and application.
 	server = CherryPyWSGIServer((host, int(port)), application, server_name=host)
 	
