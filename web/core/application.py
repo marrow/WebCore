@@ -115,11 +115,27 @@ class Application:
 		config = config or dict()
 		
 		# We really need this to be there.
-		if 'extensions' not in config: config['extensions'] = list()
+		extensions = config.setdefault('extensions', [])
+		required = {'request', 'response'}
+		fulfilled = set()
 		
-		if not any(isinstance(ext, BaseExtension) for ext in config['extensions']):
-			# Always make sure the BaseExtension is present since request/response objects are handy.
-			config['extensions'].insert(0, BaseExtension())
+		# Expand any named extension references, which will be instantiated.
+		for i, ext in enumerate(extensions):
+			if isinstance(ext, str):
+				ext = extensions[i] = load(ext, 'web.extension')(**config.get(ext, {}))
+			
+			required.update(getattr(ext, 'needs', ()))
+			fulfilled.update(getattr(ext, 'provides', ()))
+		
+		while required - fulfilled:
+			for missing in required - fulfilled:
+				ext = load(missing, 'web.extension')
+				ext = ext(**config.get(missing, {}))  # Instantiate.
+				
+				required.update(getattr(ext, 'needs', ()))
+				fulfilled.update(getattr(ext, 'provides', ()))
+				extensions.append(ext)
+				break  # Force re-calculation of missing dependencies.
 		
 		if not any(isinstance(ext, arguments.ArgumentExtension) for ext in config['extensions']):
 			# Prepare a default set of argument mutators.
