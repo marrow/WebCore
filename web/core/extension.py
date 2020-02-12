@@ -23,7 +23,7 @@ under the `web.extension` namespace:
 Your extension may define several additional properties:
 
 * `provides` -- declare a set of tags describing the features offered by the plugin
-* `needs` -- delcare a set of tags that must be present for this extension to function
+* `needs` -- declare a set of tags that must be present for this extension to function
 * `uses` -- declare a set of tags that must be evaluated prior to this extension, but aren't hard requirements
 * `first` -- declare that this extension is a dependency of all other non-first extensions if truthy
 * `last` -- declare that this extension depends on all other non-last extensions if truthy
