@@ -95,7 +95,7 @@ class WebExtensions(ExtensionManager):
 		# Populate additional signals and general metadata provided by registered extensions, and adapt to changes.
 		for ext in all:
 			if hasattr(ext, 'mutate'):
-				warn(f"Extension {ext} using old 'mutate' callback, should provide 'collect' instead.", DeprecationWarning)
+				warn(f"Extension {ext} using old 'mutate' callback, should use 'collect' instead.", DeprecationWarning)
 				ext.collect = ext.mutate
 			
 			self.feature.update(getattr(ext, 'provides', []))  # Enable those flags.
