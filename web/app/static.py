@@ -1,16 +1,33 @@
-"""Basic static file delivery mechanism."""
+"""A rudimentary static file delivery mechanism with support for extension-based view mapping.
 
-# ## Imports
+The single callable provided is a factory for a function usable as a callable endpoint under WebCore dispatch.
+Invoking this produces the object you use to serve files from the targeted base path. It is usable in nearly any
+context: as a bare function endpoint, a static method under object dispatch, etc.
 
+This utility endpoint factory is intended primarily for use in development environments; in production environments it
+is better (more efficient, secure, reliable, etc.) to serve your static content using a FELB (Front-End Load Balancer)
+such as Nginx, Apache, or Lighttpd. As a shortcut aid to development, it has not been extensively battle-tested
+against abuse by malicious actors when exposed directly to the internet.
+
+A configuration parameter for the base extension is provided to permit use of X-Sendfile or Nginx X-Accel-Redirect
+support when delivering named file handle content. The latter requires knowledge of the base internal path to use.
+
+As an example of use, using object dispatch, you might construct an "application root" ("entry point") object such as:
+
+	class MyAwesomeApplication:
+		public = static('static')
+
+If served, any request to a path below `/public/` will attempt to open a file below `./static/`, that is, the `static`
+directory below the application process' current working directory. As no mapping was provided, this will always
+either result in an HTTPError or an open handle to the appropriate on-disk file for view processing and delivery to
+the requesting client.
+
+"""
+
+from logging import getLogger, Logger
 from os.path import abspath, normpath, exists, isfile, join as pathjoin, basename
+
 from webob.exc import HTTPForbidden, HTTPNotFound
-
-
-# ## Module Globals
-
-# A standard logging object.
-log = __import__('logging').getLogger(__name__)
-
 
 # ## Static File Endpoint
 

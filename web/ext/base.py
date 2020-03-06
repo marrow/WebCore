@@ -43,7 +43,18 @@ class BaseExtension:
 	uses: Tags = {'timing.prefix'}
 	
 	def start(self, context:Context) -> None:
-		if __debug__: log.debug("Registering core return value handlers.")
+		"""Prepare the basic Application state upon web service startup.
+		
+		This registers core view handlers for most language-standard types that might be returned by an endpoint. It
+		also ensures YAML has a registered mimetype.
+		
+		This adds a descriptor to the context for use during the request cycle:
+		
+		* `remainder`
+		  Retrieve a `PurePosixPath` instance representing the remaining `request.path_info`.
+		"""
+		
+		if __debug__: self._log.debug("Registering core return value handlers.")
 		
 		# This prepares the mimetypes registry, and adds values typically missing from it.
 		init()
@@ -62,7 +73,18 @@ class BaseExtension:
 	def prepare(self, context:Context) -> None:
 		"""Add the usual suspects to the context.
 		
-		This adds `request`, `response`, and `path` to the `RequestContext` instance.
+		This prepares the `web.base` WSGI environment variable (initial `SCRIPT_NAME` upon reaching the application)
+		and adds the following to the `RequestContext`:
+		
+		* `request`
+		  A `webob.Request` instance encompassing the active WSGI request.
+		
+		* `response`
+		  A `webob.Response` object prepared from the initial request, to be populated for delivery to the client.
+		
+		* `path`
+		  An instance of `Bread`, a type of `list` which permits access to the final element by the attribute name
+		  `current`. This represents the steps of dispatch processing from initial request through to final endpoint.
 		"""
 		
 		if __debug__: log.debug("Preparing request context.", extra=dict(request=id(context)))
@@ -86,7 +108,8 @@ class BaseExtension:
 	def dispatch(self, context:Context, crumb:Crumb) -> None:
 		"""Called as dispatch descends into a tier.
 		
-		The base extension uses this to maintain the "current url".
+		The base extension uses this to maintain the "current path" and ensure path elements are migrated from the
+		WSGI `PATH_INFO` into `SCRIPT_NAME` as appropriate.
 		"""
 		
 		request = context.request
@@ -115,7 +138,10 @@ class BaseExtension:
 			request.remainder = request.remainder[nConsumed:]
 	
 	def render_none(self, context:Context, result:None) -> bool:
-		"""Render empty responses."""
+		"""Render empty responses.
+		
+		Applies a zero-length binary body to the response.
+		"""
 		
 		context.response.body = b''
 		del context.response.content_length
@@ -123,30 +149,44 @@ class BaseExtension:
 		return True
 	
 	def render_response(self, context:Context, result:Response) -> bool:
-		"""Allow direct returning of WebOb `Response` instances."""
+		"""Allow direct returning of WebOb `Response` instances.
+		
+		Replaces the `response` attribute of the context with a new `Response` instance.
+		"""
 		
 		context.response = result
 		
 		return True
 	
 	def render_binary(self, context:Context, result:bytes) -> bool:
-		"""Return binary responses unmodified."""
+		"""Return binary responses unmodified.
+		
+		Assign a single-element iterable containing the binary value as the WSGI body value in the response.
+		"""
 		
 		context.response.app_iter = iter((result, ))  # This wraps the binary string in a WSGI body iterable.
 		
 		return True
 	
 	def render_text(self, context:Context, result:str) -> bool:
-		"""Return textual responses, encoding as needed."""
+		"""Return textual responses, encoding as needed.
+		
+		Assign Unicode text to the response.
+		"""
 		
 		context.response.text = result
 		
 		return True
 	
 	def render_file(self, context:Context, result:IOBase) -> bool:
-		"""Perform appropriate metadata wrangling for returned open file handles."""
+		"""Extract applicable metadata from returned open file handles, and deliver the file content to the client.
 		
-		if __debug__: log.debug("Processing file-like object.", extra=dict(request=id(context), result=repr(result)))
+		If configured to do so, this will cause additional headers to be emitted to instruct a front-end load balancer
+		(FELB) to deliver the on-disk data more directly.
+		"""  # TODO: https://pythonhosted.org/xsendfile/howto.html#using-nginx-as-front-end-server
+		
+		if __debug__:
+			self._log.debug("Processing file-like object.", extra=dict(request=id(context), result=repr(result)))
 		
 		response = context.response
 		response.conditional_response = True
@@ -168,7 +208,7 @@ class BaseExtension:
 		return True
 	
 	def render_generator(self, context:Context, result:Generator) -> bool:
-		"""Attempt to serve generator responses through stream encoding.
+		"""Attempt to serve generator responses through stream encoding while protecting against None values.
 		
 		This allows for direct use of cinje template functions, which are generators, as returned views.
 		"""
