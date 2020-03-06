@@ -26,6 +26,8 @@ def nop(body:str) -> Iterable:
 
 
 class Bread(list):
+	"""A trivial derivative list that provides an accessor property to access the final element's path attribute."""
+	
 	@property
 	def current(self):
 		return self[-1].path
@@ -39,8 +41,48 @@ class BaseExtension:
 	
 	first: bool = True  # Must occur as early as possible in callback lists.
 	always: bool = True  # Always enabled.
-	provides: Tags = ["base", "request", "response"]  # Export these symbols for use as other extension's dependencies.
-	uses: Tags = {'timing.prefix'}
+	provides: Tags = {"base", "request", "response"}  # Export these symbols for use as dependencies.
+	uses: Tags = {'timing.prefix'}  # Ensure correct callback ordering for this sensitive core extension.
+	
+	_log: Logger = getLogger(__name__)
+	
+	sendfile: bool
+	accel: AccelRedirect = None
+	
+	def __init__(self, sendfile:bool=False, accel:AccelRedirect=None):
+		"""Initialize the WebCore web framework's underlying base extension.
+		
+		This accepts two arguments relating to the delivery of "open file handles" with resolvable names. Use of this
+		functionality will impact the security context of file access, as the Python application's open file handle
+		will go unused; the FELB will have to open the file itself, and so must have access.
+		
+		Due to these external restrictions, and potential information disclosure described below, these are not
+		enabled by default.
+		
+		* `sendfile:bool=False`
+		  
+		  For any named open file handle processed via the `render_file` view, emit an `X-Sendfile` header containing
+		  the resolved on-disk path to that file. When placed behind an appropriate front-end load balancer (FELB) the
+		  front-end will deliver the file efficiently, permitting the application to process the next request more
+		  rapidly. By default this is not emitted as without a FELB the header may contain sensitive or personally
+		  identifying information.
+		
+		* `accel:AccelRedirect=None`
+		  
+		  A 2-tuple in the form `(base_path, base_uri)` where `base_path` may be a `str` or `Path` instance, and
+		  `base_uri` may be a `str`, `PurePosixPath`, or `URI`. These represent the path prefix to remove from the
+		  file handle's path, indicating the "document root" as visible to the FELB, and the base internal URI Nginx
+		  will match to an `internal` server or location block, which will then resolve to that "document root".
+		
+		Both of these solutions obscure the true on-disk path to the file and do not permit direct access, only access
+		via the application. This compares to utilization of an HTTP redirection to an externally-accessible location
+		directive, which would be capture-able and bypass the application on subsequent requests.
+		"""
+		
+		self.sendfile = sendfile
+		
+		if accel is not None:  # Store normal forms and expand to absolute on-disk paths.
+			self.accel = Path(expandvars(str(accel[0]))).expanduser().resolve(), URI(accel[1])
 	
 	def start(self, context:Context) -> None:
 		"""Prepare the basic Application state upon web service startup.
@@ -87,7 +129,7 @@ class BaseExtension:
 		  `current`. This represents the steps of dispatch processing from initial request through to final endpoint.
 		"""
 		
-		if __debug__: log.debug("Preparing request context.", extra=dict(request=id(context)))
+		if __debug__: self._log.debug("Preparing request context.", extra=dict(request=id(context)))
 		
 		# Bridge in WebOb `Request` and `Response` objects.
 		# Extensions shouldn't rely on these, using `environ` where possible instead.
@@ -117,7 +159,7 @@ class BaseExtension:
 		if __debug__:
 			data = {'request': id(context), **crumb.as_dict}
 			data['handler'] = safe_name(data['handler'])
-			log.debug("Handling dispatch event.", extra=data)
+			self._log.debug("Handling dispatch event.", extra=data)
 		
 		# The leading path element (leading slash) requires special treatment.
 		consumed = ('', ) if not crumb.path and request.path_info_peek() == '' else crumb.path.parts
