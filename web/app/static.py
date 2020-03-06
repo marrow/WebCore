@@ -32,17 +32,16 @@ from webob.exc import HTTPForbidden, HTTPNotFound
 # ## Static File Endpoint
 
 def static(base, mapping=None, far=('js', 'css', 'gif', 'jpg', 'jpeg', 'png', 'ttf', 'woff')):
-	"""Serve files from disk.
-	
-	This utility endpoint factory is meant primarily for use in development environments; in production environments
-	it is better (more efficient, secure, etc.) to serve your static content using a front end load balancer such as
-	Nginx.
+	"""Factory to produce a callable capable of resolving and serving static assets (files) from disk.
 	
 	The first argument, `base`, represents the base path to serve files from. Paths below the attachment point for
 	the generated endpoint will combine this base path with the remaining path elements to determine the file to
 	serve.
 	
-	The second argument is an optional dictionary mapping filename extensions to template engines, for cooperation
+	The second argument is an optional mapping of filename extensions to the first component of the 2-tuple return
+	value, for cooperation with views matching tuple types.  The result of attempting to serve a mapped path is a
+	2-tuple of `(f'{mapping}:{path}', )`
+	
 	with the TemplateExtension.  (See: https://github.com/marrow/template)  The result of attempting to serve a
 	mapped path is a 2-tuple of `("{mapping}:{path}", dict())`. For example, to render all `.html` files as Mako
 	templates, you would attach something like the following:
