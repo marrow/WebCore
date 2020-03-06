@@ -4,9 +4,16 @@ from typing import Any, Callable, Dict, Generator, Iterable, List, Mapping, Opti
 from pathlib import Path, PurePosixPath
 
 from webob import Request, Response
+from uri import URI
 
 from ..dispatch.core import Crumb
 from .context import Context  # Make abstract?  :'(
+
+# Core application configuration components.
+
+AccelRedirectSourcePrefix = Union[str, Path]
+AccelRedirectSourceTarget = Union[str, PurePosixPath, URI]
+AccelRedirect = Optional[Tuple[AccelRedirectSourcePrefix, AccelRedirectSourceTarget]]
 
 
 # Types for WebCore extension component parts.

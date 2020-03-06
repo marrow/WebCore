@@ -1,20 +1,20 @@
 """The base extension providing request, response, and core views."""
 
+from logging import Logger, getLogger
 from collections import namedtuple
 from collections.abc import Generator
 from datetime import datetime
 from io import IOBase
 from mimetypes import init, add_type, guess_type
-from os.path import getmtime
-from pathlib import PurePosixPath as Path
+from os.path import expandvars, getmtime
+from pathlib import Path, PurePosixPath
 from time import mktime, gmtime
+
+from uri import URI
 from webob import Request, Response
 
 from ..core.util import safe_name
-from ..core.typing import Any, Context, Response, Tags, Iterable
-
-
-log = __import__('logging').getLogger(__name__)
+from ..core.typing import AccelRedirect, Any, Context, Response, Tags, Iterable
 
 
 Crumb = namedtuple('Breadcrumb', ('handler', 'path'))
