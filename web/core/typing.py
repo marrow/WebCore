@@ -1,6 +1,6 @@
 """Typing helpers."""
 
-from typing import Any, Callable, Dict, Generator, Iterable, List, Mapping, Optional, Set, Tuple, Union
+from typing import Any, Callable, Dict, Generator, Iterable, List, Mapping, Optional, Set, Tuple, Union, Text
 from pathlib import Path, PurePosixPath
 
 from webob import Request, Response
@@ -20,11 +20,11 @@ Environment = Dict[str, Any]  # An interactive shell REPL environment.
 # Types for WSGI component parts.
 
 # Passed to the WSGI application.
-WSGIEnvironment = Mapping[str, Any]
+WSGIEnvironment = Dict[Text, Any]
 
 # Passed to start_response.
 WSGIStatus = str
-WSGIHeaders = Iterable[Tuple[str, str]]
+WSGIHeaders = List[Tuple[str, str]]
 WSGIException = Optional[Tuple[Any, Any, Any]]
 
 # Returned by start_response.
