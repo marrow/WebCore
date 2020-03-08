@@ -66,6 +66,14 @@ class DebugExtension:
 			
 			return locals
 		
+		#def init_console() -> dict:
+		#	"""Add variables to the console context. REPL consoles operate at the application context scope."""
+		#	return _populate({'context': context}, context)
+		
+		#def init_debugger(self, environ):
+		#	"""Add variables to the debugger context. Debugger consoles operate at the request context scope."""
+		#	return _populate({'context': environ.get('context')}, locals['context'])
+		
 		app = DebuggedApplication(
 				app,
 				evalex = __debug__,  # In production mode, this is a security no-no.
