@@ -24,13 +24,23 @@ the requesting client.
 
 """
 
+from io import IOBase
 from logging import getLogger, Logger
 from os.path import abspath, normpath, exists, isfile, join as pathjoin, basename
 
 from webob.exc import HTTPForbidden, HTTPNotFound
 
+from ..core.typing import Callable, Context, Iterable, Mapping, Optional
 
-def static(base, mapping=None, far=('js', 'css', 'gif', 'jpg', 'jpeg', 'png', 'ttf', 'woff')):
+
+AnnotationMap = Mapping[str, str]
+FuturesCache = Iterable[str]
+Static = Callable[[Context, str, ...], IOBase]
+
+DEFAULT_FUTURES:FuturesCache = ('js', 'css', 'gif', 'jpg', 'jpeg', 'png', 'ttf', 'woff')
+
+
+def static(base, mapping:Optional[AnnotationMap]=None, far:Optional[FuturesCache]=DEFAULT_FUTURES) -> Static:
 	"""Factory to produce a callable capable of resolving and serving static assets (files) from disk.
 	
 	The first argument, `base`, represents the base path to serve files from. Paths below the attachment point for
@@ -56,15 +66,11 @@ def static(base, mapping=None, far=('js', 'css', 'gif', 'jpg', 'jpeg', 'png', 't
 	log: Logger = getLogger(__name__)
 	
 	@staticmethod
-	def static_handler(context, *parts, **kw):
+	def static_handler(context:Context, *parts:Iterable[str], **kw) -> IOBase:
 		path: str = normpath(pathjoin(base, *parts))
 		
 		if __debug__:
-			log.debug("Attempting to serve static file.", extra=dict(
-					request = id(context),
-					base = base,
-					path = path
-				))
+			log.debug("Attempting to serve static file.", extra={'base': base, 'path': path, **context.log_extra})
 		
 		if not path.startswith(base):  # Ensure we only serve files from the allowed path.
 			raise HTTPForbidden("Cowardly refusing to violate base path policy." if __debug__ else None)
