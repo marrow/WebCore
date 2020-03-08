@@ -72,10 +72,10 @@ class Application:
 		
 		* `root` -- the object to use as the starting point of dispatch on each request
 		* `logging` -- either `None` to indicate WebCore should not manipulate the logging configuration (the
-			default), a string representing the logging level to globally configure (such as `"debug"`), or a
-			dictionary configuration to pass to the Python standard `logging.dictConfig()` process.
+		  default), a string representing the logging level to globally configure (such as `"debug"`), or a
+		  dictionary configuration to pass to the Python standard logging `dictConfig()` process.
 		* `extensions` -- a list of configured extension instances, ignoring `BaseExtension` which is automatically
-			added to the extension set.
+		  added to the extension set.
 		"""
 		
 		self.config = self._configure(config)  # Prepare the configuration.
