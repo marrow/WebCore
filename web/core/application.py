@@ -116,7 +116,6 @@ class Application:
 		
 		For example, this ensures BaseExtension is included in the extension list, and populates the logging config.
 		"""
-		config = config or dict()
 		
 		# We really need this to be there.
 		extensions = config.setdefault('extensions', [])
