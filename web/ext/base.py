@@ -1,36 +1,20 @@
 """The base extension providing request, response, and core views."""
 
-from logging import Logger, getLogger
 from collections import namedtuple
 from collections.abc import Generator
 from datetime import datetime
 from io import IOBase
+from logging import Logger, getLogger
 from mimetypes import init, add_type, guess_type
-from os.path import expandvars, getmtime
+from os.path import expandvars
 from pathlib import Path, PurePosixPath
 from time import mktime, gmtime
 
 from uri import URI
 from webob import Request, Response
 
-from ..core.util import safe_name
-from ..core.typing import AccelRedirect, Any, Context, Response, Tags, Iterable
-
-
-Crumb = namedtuple('Breadcrumb', ('handler', 'path'))
-
-
-def nop(body:str) -> Iterable:
-	"""A de-serializer no-operation to prevent contribution by this type, as it is handled separately."""
-	return ()  # More efficient to extend by an empty tuple than to involve mapping processing.
-
-
-class Bread(list):
-	"""A trivial derivative list that provides an accessor property to access the final element's path attribute."""
-	
-	@property
-	def current(self):
-		return self[-1].path
+from ..core.util import Bread, Crumb, nop, safe_name
+from ..core.typing import AccelRedirect, Any, ClassVar, Context, Response, Tags, Iterable
 
 
 class BaseExtension:
