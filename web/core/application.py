@@ -5,9 +5,8 @@ WSGI application invokable object. Requests processed when invoked are isolated,
 instances may be mixed, freely, and will not conflict with each-other.
 """
 
-from logging import DEBUG, basicConfig
+from logging import DEBUG, Logger, basicConfig, getLogger
 from logging.config import dictConfig
-from logging import Logger, getLogger
 from inspect import isfunction
 
 from webob.exc import HTTPException, HTTPNotFound, HTTPInternalServerError
@@ -20,7 +19,7 @@ from ..ext.base import BaseExtension
 from .context import Context
 from .dispatch import WebDispatchers
 from .extension import WebExtensions
-from .typing import Callable, WSGIEnvironment, WSGIStartResponse, WSGIResponse, Union
+from .typing import Any, Callable, Dict, WSGIEnvironment, WSGIStartResponse, WSGIResponse, Union, Type
 from .util import addLoggingLevel
 from .view import WebViews
 
@@ -61,9 +60,14 @@ class Application:
 	
 	last: bool = True
 	
+	__context: Context
 	_log: Logger = getLogger(__name__)
 	
-	def __init__(self, root, **config):
+	config: dict
+	feature: set
+	RequestContext: Type[Context]
+	
+	def __init__(self, root:Any, **config) -> None:
 		"""Construct the initial ApplicationContext, populate, and prepare the WSGI stack.
 		
 		No actions other than configuration should happen during construction.
@@ -107,7 +111,7 @@ class Application:
 		
 		if __debug__: self._log.debug("WebCore application prepared.")
 	
-	def _configure(self, config):
+	def _configure(self, config:dict) -> dict:
 		"""Prepare the incoming configuration and ensure certain expected values are present.
 		
 		For example, this ensures BaseExtension is included in the extension list, and populates the logging config.
@@ -147,7 +151,6 @@ class Application:
 				extensions.append(ext)
 				break  # Force re-calculation of missing dependencies.
 		
-		
 		try:
 			addLoggingLevel('trace', DEBUG - 5)
 		except AttributeError:
@@ -164,7 +167,7 @@ class Application:
 	
 	# This is impractical to test due to the blocking nature of starting a web server interface.
 	# Individual adapters are hand-tested for basic operation prior to release.
-	def serve(self, service:Union[str,Callable]='auto', **options):  # pragma: no cover
+	def serve(self, service:Union[str,Callable]='auto', **options) -> None:  # pragma: no cover
 		"""Initiate a web server service to serve this application.
 		
 		You can always use the Application instance as a bare WSGI application, of course.  This method is provided as
@@ -185,7 +188,7 @@ class Application:
 		# Notify extensions that the service has returned and we are exiting.
 		for ext in self.__context.extension.signal.stop: ext(self.__context)
 	
-	def _execute_endpoint(self, context:Context, endpoint:Callable, signals):
+	def _execute_endpoint(self, context:Context, endpoint:Callable, signals) -> Any:
 		if not callable(endpoint):
 			# Endpoints don't have to be functions.
 			# They can instead point to what a function would return for view lookup.
