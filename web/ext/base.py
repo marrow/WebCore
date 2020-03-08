@@ -255,9 +255,10 @@ class BaseExtension:
 			response.last_modified = datetime.fromtimestamp(modified)
 			response.etag = str(modified)
 			
-			ct, ce = guess_type(result.name)
-			if not ct: ct = 'application/octet-stream'
-			response.content_type, response.content_encoding = ct, ce
+			if response.content_type == 'text/html':  # Unchanged default...
+				ct, ce = guess_type(result.name)
+				if not ct: ct = 'application/octet-stream'
+				response.content_type, response.content_encoding = ct, ce
 		
 		else:
 			if response.content_type == 'text/html':  # Unchanged default...
