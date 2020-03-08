@@ -50,12 +50,11 @@ class Application:
 	"""
 	
 	__slots__ = (
-			'config',  # Application configuration.
-			'feature',  # Feature tag announcement; populated by the `provides` of active extensions.
-			
-			'__context',  # Application context instance.
 			'RequestContext',  # Per-request context class.
 			'__call__',  # WSGI request handler.  Dynamically assigned.
+			'__context',  # Application context instance.
+			'config',  # Application configuration.
+			'feature',  # Feature tag announcement; populated by the `provides` of active extensions.
 		)
 	
 	last: bool = True  # Ensure the application callbacks are "last" in processing, dependent upon all extensions.
@@ -191,7 +190,7 @@ class Application:
 			# They can instead point to what a function would return for view lookup.
 			
 			if __debug__:
-				self._log.debug("Static endpoint located.", extra={'endpoint': repr(endpoint), context.log_extra})
+				self._log.debug("Static endpoint located.", extra={'endpoint': repr(endpoint), **context.log_extra})
 			
 			# Use the result directly, as if it were the result of calling a function or method.
 			return endpoint
