@@ -58,14 +58,14 @@ class Application:
 			'__call__',  # WSGI request handler.  Dynamically assigned.
 		)
 	
-	last: bool = True
+	last: bool = True  # Ensure the application callbacks are "last" in processing, dependent upon all extensions.
 	
-	__context: Context
-	_log: Logger = getLogger(__name__)
+	__context: Context  # The application-scoped context instance.
+	_log: Logger = getLogger(__name__)  # An application-scoped Logger instance.
 	
-	config: dict
-	feature: set
-	RequestContext: Type[Context]
+	config: dict  # The preserved configuration.
+	feature: set  # The set of available feature flags, as collected from enabled extensions.
+	RequestContext: Type[Context]  # The class to instantiate to represent the per-request context.
 	
 	def __init__(self, root:Any, **config) -> None:
 		"""Construct the initial ApplicationContext, populate, and prepare the WSGI stack.
@@ -74,16 +74,19 @@ class Application:
 		
 		Current configuration is limited to three arguments:
 		
-		* `root` -- the object to use as the starting point of dispatch on each request
-		* `logging` -- either `None` to indicate WebCore should not manipulate the logging configuration (the
-		  default), a string representing the logging level to globally configure (such as `"debug"`), or a
-		  dictionary configuration to pass to the Python standard logging `dictConfig()` process.
+		* `root`
+		  The object to use as the starting point of dispatch on each request.
+		
+		* `logging`
+		  Either `None` to indicate WebCore should not manipulate the logging configuration (the default), a string
+		  representing the logging level to globally configure (such as `"debug"`), or a dictionary configuration to
+		  pass to the Python standard logging `dictConfig()` process.
+		
 		* `extensions` -- a list of configured extension instances, ignoring `BaseExtension` which is automatically
 		  added to the extension set.
 		"""
 		
 		if __debug__: self._log.debug("Preparing WebCore application.")
-		
 		self.config = self._configure(config)  # Prepare the configuration.
 		
 		if isfunction(root):  # We need to armour against this turning into a bound method of the context.
