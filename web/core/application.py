@@ -5,28 +5,27 @@ WSGI application invokable object. Requests processed when invoked are isolated,
 instances may be mixed, freely, and will not conflict with each-other.
 """
 
-import logging
-import logging.config
-
+from logging import DEBUG, basicConfig
+from logging.config import dictConfig
+from logging import Logger, getLogger
 from inspect import isfunction
+
 from webob.exc import HTTPException, HTTPNotFound, HTTPInternalServerError
+
 from marrow.package.host import ExtensionManager
 from marrow.package.loader import load
 
+from ..ext import args as arguments
+from ..ext.base import BaseExtension
 from .context import Context
 from .dispatch import WebDispatchers
 from .extension import WebExtensions
-from .util import addLoggingLevel
 from .typing import Callable, WSGIEnvironment, WSGIStartResponse, WSGIResponse, Union
+from .util import addLoggingLevel
 from .view import WebViews
-from ..ext.base import BaseExtension
-from ..ext import args as arguments
 
 if __debug__:
 	from .util import safe_name
-
-
-log = __import__('logging').getLogger(__name__)  # A standard Python logger object.
 
 
 class Application:
@@ -62,6 +61,8 @@ class Application:
 	
 	last = True
 	
+	_log: Logger = getLogger(__name__)
+	
 	def __init__(self, root, **config):
 		"""Construct the initial ApplicationContext, populate, and prepare the WSGI stack.
 		
@@ -78,9 +79,8 @@ class Application:
 		"""
 		
 		self.config = self._configure(config)  # Prepare the configuration.
+		if __debug__: self._log.debug("Preparing WebCore application.")
 		
-		if __debug__:
-			log.debug("Preparing WebCore application.")
 		
 		if isfunction(root):  # We need to armour against this turning into a bound method of the context.
 			root = staticmethod(root)
@@ -105,8 +105,6 @@ class Application:
 		for ext in exts.signal.middleware: app = ext(context, app)
 		self.__call__ = app
 		
-		if __debug__:  # Mostly useful for timing calculations.
-			log.debug("WebCore application prepared.")
 	
 	def _configure(self, config):
 		"""Prepare the incoming configuration and ensure certain expected values are present.
@@ -150,16 +148,16 @@ class Application:
 		
 		
 		try:
-			addLoggingLevel('trace', logging.DEBUG - 5)
+			addLoggingLevel('trace', DEBUG - 5)
 		except AttributeError:
 			pass
 		
 		# Tests are skipped on these as we have no particular need to test Python's own logging mechanism.
 		level = config.get('logging', {}).get('level', None)
 		if level:  # pragma: no cover
-			logging.basicConfig(level=getattr(logging, level.upper()))
+			basicConfig(level=getattr(logging, level.upper()))
 		elif 'logging' in config:  # pragma: no cover
-			logging.config.dictConfig(config['logging'])
+			dictConfig(config['logging'])
 		
 		return config
 	
@@ -192,10 +190,7 @@ class Application:
 			# They can instead point to what a function would return for view lookup.
 			
 			if __debug__:
-				log.debug("Static endpoint located.", extra=dict(
-						request = id(context),
-						endpoint = repr(endpoint),
-					))
+				self._log.debug("Static endpoint located.", extra={'endpoint': repr(endpoint), context.log_extra})
 			
 			# Use the result directly, as if it were the result of calling a function or method.
 			return endpoint
@@ -213,7 +208,7 @@ class Application:
 			# If successful in accumulating arguments, finally call the endpoint.
 			
 			if __debug__:
-				log.debug("Callable endpoint located and arguments prepared.", extra=dict(
+				self._log.debug("Callable endpoint located and arguments prepared.", extra=dict(
 						request = id(context),
 						endpoint = safe_name(endpoint),
 						endpoint_args = args,
@@ -254,7 +249,7 @@ class Application:
 			try:
 				result = self._execute_endpoint(context, handler, signals)  # Process the endpoint.
 			except Exception as e:
-				log.exception("Caught exception attempting to execute the endpoint.")
+				self._log.exception("Caught exception attempting to execute the endpoint.")
 				result = HTTPInternalServerError(str(e) if __debug__ else "Please see the logs.")
 				
 				if 'debugger' in context.extension.feature:
@@ -266,7 +261,7 @@ class Application:
 			result = HTTPNotFound("Dispatch failed." if __debug__ else None)
 		
 		if __debug__:
-			log.debug("Result prepared, identifying view handler.", extra=dict(
+			self._log.debug("Result prepared, identifying view handler.", extra=dict(
 					request = id(context),
 					result = safe_name(type(result))
 				))
@@ -279,7 +274,7 @@ class Application:
 			raise TypeError("No view could be found to handle: " + repr(type(result)))
 		
 		if __debug__:
-			log.debug("View identified, populating response.", extra=dict(
+			self._log.debug("View identified, populating response.", extra=dict(
 					request = id(context),
 					view = repr(view),
 				))
