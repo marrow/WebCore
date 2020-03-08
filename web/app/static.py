@@ -29,7 +29,6 @@ from os.path import abspath, normpath, exists, isfile, join as pathjoin, basenam
 
 from webob.exc import HTTPForbidden, HTTPNotFound
 
-# ## Static File Endpoint
 
 def static(base, mapping=None, far=('js', 'css', 'gif', 'jpg', 'jpeg', 'png', 'ttf', 'woff')):
 	"""Factory to produce a callable capable of resolving and serving static assets (files) from disk.
@@ -54,6 +53,7 @@ def static(base, mapping=None, far=('js', 'css', 'gif', 'jpg', 'jpeg', 'png', 't
 	"""
 	
 	base: str = abspath(base)
+	log: Logger = getLogger(__name__)
 	
 	@staticmethod
 	def static_handler(context, *parts, **kw):
