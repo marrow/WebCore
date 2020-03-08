@@ -59,7 +59,7 @@ class Application:
 			'__call__',  # WSGI request handler.  Dynamically assigned.
 		)
 	
-	last = True
+	last: bool = True
 	
 	_log: Logger = getLogger(__name__)
 	
