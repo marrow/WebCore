@@ -23,10 +23,10 @@ class BaseExtension:
 	This extension is not meant to be manually constructed or manipulated; use is automatic.
 	"""
 	
-	first: bool = True  # Must occur as early as possible in callback lists.
-	always: bool = True  # Always enabled.
-	provides: Tags = {"base", "request", "response"}  # Export these symbols for use as dependencies.
-	uses: Tags = {'timing.prefix'}  # Ensure correct callback ordering for this sensitive core extension.
+	first: ClassVar[bool] = True  # Must occur as early as possible in callback lists.
+	always: ClassVar[bool] = True  # Always enabled.
+	provides: ClassVar[Tags] = {'base', 'request', 'response'}  # Export these symbols for use as dependencies.
+	uses: ClassVar[Tags] = {'timing.prefix'}  # Ensure correct callback ordering for this sensitive core extension.
 	
 	_log: Logger = getLogger(__name__)
 	
