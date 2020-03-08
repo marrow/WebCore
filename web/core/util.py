@@ -2,9 +2,10 @@
 
 import logging
 
-from threading import RLock
-from typing import Any, Callable, Optional, Type
+from collections import namedtuple
 from pathlib import PurePosixPath
+from threading import RLock
+from typing import Any, Callable, Optional, Type, Iterable
 
 from marrow.package.canonical import name
 

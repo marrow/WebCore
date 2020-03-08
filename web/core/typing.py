@@ -1,6 +1,6 @@
 """Typing helpers."""
 
-from typing import Any, Callable, Dict, Generator, Iterable, List, Mapping, Optional, Set, Tuple, Union, Text
+from typing import Any, Callable, ClassVar, Dict, Generator, Iterable, List, Mapping, Optional, Set, Tuple, Union, Text, Type
 from pathlib import Path, PurePosixPath
 
 from webob import Request, Response
