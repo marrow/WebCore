@@ -232,24 +232,35 @@ class BaseExtension:
 		(FELB) to deliver the on-disk data more directly.
 		"""  # TODO: https://pythonhosted.org/xsendfile/howto.html#using-nginx-as-front-end-server
 		
-		if __debug__:
-			self._log.debug("Processing file-like object.", extra=dict(request=id(context), result=repr(result)))
+		anonymous = not getattr(result, 'name', '')
+		path = None if anonymous else Path(result.name).expanduser().resolve()
 		
 		response = context.response
 		response.conditional_response = True
 		
-		modified = mktime(gmtime(getmtime(result.name)))
-		
-		response.last_modified = datetime.fromtimestamp(modified)
-		ct, ce = guess_type(result.name)
-		if not ct: ct = 'application/octet-stream'
-		response.content_type, response.content_encoding = ct, ce
-		response.etag = str(modified)
-		
 		result.seek(0, 2)  # Seek to the end of the file.
-		response.content_length = result.tell()
-		
+		response.content_length = result.tell()  # Report file length.
 		result.seek(0)  # Seek back to the start of the file.
+		
+		if __debug__:
+			self._log.debug(f"Applying a {response.content_length}-byte file-like object: {result!r}", extra={
+					'path': '<anonymous>' if anonymous else str(path),
+					**context.log_extra
+				})
+		
+		if not anonymous:
+			modified = mktime(gmtime(path.stat().st_mtime))
+			response.last_modified = datetime.fromtimestamp(modified)
+			response.etag = str(modified)
+			
+			ct, ce = guess_type(result.name)
+			if not ct: ct = 'application/octet-stream'
+			response.content_type, response.content_encoding = ct, ce
+		
+		else:
+			if response.content_type == 'text/html':  # Unchanged default...
+				response.content_type = 'application/octet-stream'
+		
 		response.body_file = result
 		
 		return True
