@@ -120,26 +120,21 @@ class Application:
 		For example, this ensures BaseExtension is included in the extension list, and populates the logging config.
 		"""
 		
-		# We really need this to be there.
+		exts = ExtensionManager('web.extension')
 		extensions = config.setdefault('extensions', [])
 		required = {'request', 'response'}
 		fulfilled = set()
 		
 		extensions.append(self)  # Allow the application object itself to register callbacks.
 		
-		# Populate any "always enabled" extensions.
-		exts = ExtensionManager('web.extension')
-		for tag in exts.named:
+		for tag in exts.named:  # Populate any "always enabled" extensions.
 			ext = exts.named[tag]
-			if not getattr(ext, 'always', False): continue  # 
-			if any(isinstance(i, ext) for i in extensions): continue  # Already instantiated.
-			extensions.append(ext())  # TODO: Configuration...
+			if not getattr(ext, 'always', False): continue  # We're looking for always-instantiate extensions.
+			if any(isinstance(i, ext) for i in extensions): continue  # This, or a derivative, already instantiated.
+			extensions.append(ext(**config.get(tag, {})))
 		
-		# Expand any named extension references, which will be instantiated.
-		for i, ext in enumerate(extensions):
-			if isinstance(ext, str):
-				ext = extensions[i] = load(ext, 'web.extension')(**config.get(ext, {}))
-			
+		for i, ext in enumerate(extensions):  # Expand any named extension references, which will be instantiated.
+			if isinstance(ext, str): ext = extensions[i] = load(ext, 'web.extension')(**config.get(ext, {}))
 			required.update(getattr(ext, 'needs', ()))
 			fulfilled.update(getattr(ext, 'provides', ()))
 		
