@@ -259,6 +259,14 @@ class BaseExtension:
 				ct, ce = guess_type(result.name)
 				if not ct: ct = 'application/octet-stream'
 				response.content_type, response.content_encoding = ct, ce
+			
+			if self.sendfile:
+				response.headers['X-Sendfile'] = str(path)
+			
+			if self.accel:
+				prefix, root = self.accel
+				if str(path).startswith(str(prefix)):
+					response.headers['X-Accel-Redirect'] = str(root / path.relative_to(prefix))
 		
 		else:
 			if response.content_type == 'text/html':  # Unchanged default...
