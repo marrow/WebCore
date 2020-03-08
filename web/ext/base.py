@@ -237,7 +237,6 @@ class BaseExtension:
 		path = None if anonymous else Path(result.name).expanduser().resolve()
 		
 		response = context.response
-		response.conditional_response = True
 		
 		result.seek(0, 2)  # Seek to the end of the file.
 		response.content_length = result.tell()  # Report file length.
@@ -249,7 +248,9 @@ class BaseExtension:
 					**context.log_extra
 				})
 		
-		if not anonymous:
+		if not anonymous:  # We can retrieve information like modification times, and likely mimetype.
+			response.conditional_response = True
+			
 			modified = mktime(gmtime(path.stat().st_mtime))
 			response.last_modified = datetime.fromtimestamp(modified)
 			response.etag = str(modified)
