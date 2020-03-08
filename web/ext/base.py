@@ -78,6 +78,10 @@ class BaseExtension:
 		
 		* `remainder`
 		  Retrieve a `PurePosixPath` instance representing the remaining `request.path_info`.
+		
+		* `log_extra`
+		  A dictionary of "extras" to include in logging statements. This dictionary forms the basis for the request-
+		  local shallow copy.
 		"""
 		
 		if __debug__: self._log.debug("Registering core return value handlers.")
@@ -95,6 +99,11 @@ class BaseExtension:
 		register(str, self.render_text)
 		register(IOBase, self.render_file)
 		register(Generator, self.render_generator)
+		
+		# Track the remaining (unprocessed) path elements.
+		context.remainder = property(lambda self: PurePosixPath(self.request.path_info))
+		
+		context.log_extra = {}
 	
 	def prepare(self, context:Context) -> None:
 		"""Add the usual suspects to the context.
@@ -111,22 +120,26 @@ class BaseExtension:
 		* `path`
 		  An instance of `Bread`, a type of `list` which permits access to the final element by the attribute name
 		  `current`. This represents the steps of dispatch processing from initial request through to final endpoint.
+		
+		* `log_extra`
+		  A dictionary of "extras" to include in logging statements. Contributions or modifications made within the
+		  request processing life cycle are limited to that request.
 		"""
 		
-		if __debug__: self._log.debug("Preparing request context.", extra=dict(request=id(context)))
+		le = context.log_extra = {'request': id(context), **context.log_extra}  # New instance for request scope.
+		if __debug__: self._log.debug("Preparing request context.", extra=le)
 		
 		# Bridge in WebOb `Request` and `Response` objects.
-		# Extensions shouldn't rely on these, using `environ` where possible instead.
-		context.request = Request(context.environ)
-		context.response = Response(request=context.request)
+		# Extensions shouldn't rely on these, using `environ` where possible instead; principle of least abstraction.
+		context.request = request = Request(context.environ)
+		context.response = Response(request=request)
 		
 		# Record the initial path representing the point where a front-end web server bridged to us.
-		context.environ['web.base'] = context.request.script_name
+		context.environ['web.base'] = request.script_name
 		
-		# Track the remaining (unprocessed) path elements.
-		context.request.remainder = context.request.path_info.split('/')
-		if context.request.remainder and not context.request.remainder[0]:
-			del context.request.remainder[0]
+		# Consume any number of extraneous leading separators.
+		while request.remainder and not request.remainder[0]:
+			del request.remainder[0]
 		
 		# Track the "breadcrumb list" of dispatch through distinct controllers.
 		context.path = Bread()
@@ -141,9 +154,9 @@ class BaseExtension:
 		request = context.request
 		
 		if __debug__:
-			data = {'request': id(context), **crumb.as_dict}
-			data['handler'] = safe_name(data['handler'])
-			self._log.debug("Handling dispatch event.", extra=data)
+			extras = {**context.log_extra, **crumb.as_dict}  # Aggregate logging extras.
+			extras['handler'] = safe_name(extras['handler'])  # Sanitize a value to make log-safe.
+			self._log.debug("Handling dispatch event.", extra=extras)  # Emit.
 		
 		# The leading path element (leading slash) requires special treatment.
 		consumed = ('', ) if not crumb.path and request.path_info_peek() == '' else crumb.path.parts
@@ -169,6 +182,8 @@ class BaseExtension:
 		Applies a zero-length binary body to the response.
 		"""
 		
+		if __debug__: self._log.debug("Applying literal None value as empty response.", extra=context.log_extra)
+		
 		context.response.body = b''
 		del context.response.content_length
 		
@@ -180,6 +195,8 @@ class BaseExtension:
 		Replaces the `response` attribute of the context with a new `Response` instance.
 		"""
 		
+		if __debug__: self._log.debug(f"Replacing request object with: {result!r}", extra=context.log_extra)
+		
 		context.response = result
 		
 		return True
@@ -190,6 +207,8 @@ class BaseExtension:
 		Assign a single-element iterable containing the binary value as the WSGI body value in the response.
 		"""
 		
+		if __debug__: self._log.debug(f"Applying {len(result)}-byte binary value.", extra=context.log_extra)
+		
 		context.response.app_iter = iter((result, ))  # This wraps the binary string in a WSGI body iterable.
 		
 		return True
@@ -199,6 +218,8 @@ class BaseExtension:
 		
 		Assign Unicode text to the response.
 		"""
+		
+		if __debug__: self._log.debug(f"Applying {len(result)}-character text value.", extra=context.log_extra)
 		
 		context.response.text = result
 		
