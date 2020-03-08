@@ -230,7 +230,8 @@ class BaseExtension:
 		
 		If configured to do so, this will cause additional headers to be emitted to instruct a front-end load balancer
 		(FELB) to deliver the on-disk data more directly.
-		"""  # TODO: https://pythonhosted.org/xsendfile/howto.html#using-nginx-as-front-end-server
+		"""
+		# TODO: https://pythonhosted.org/xsendfile/howto.html#using-nginx-as-front-end-server
 		
 		anonymous = not getattr(result, 'name', '')
 		path = None if anonymous else Path(result.name).expanduser().resolve()
