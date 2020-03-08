@@ -78,9 +78,9 @@ class Application:
 		  added to the extension set.
 		"""
 		
-		self.config = self._configure(config)  # Prepare the configuration.
 		if __debug__: self._log.debug("Preparing WebCore application.")
 		
+		self.config = self._configure(config)  # Prepare the configuration.
 		
 		if isfunction(root):  # We need to armour against this turning into a bound method of the context.
 			root = staticmethod(root)
@@ -105,6 +105,7 @@ class Application:
 		for ext in exts.signal.middleware: app = ext(context, app)
 		self.__call__ = app
 		
+		if __debug__: self._log.debug("WebCore application prepared.")
 	
 	def _configure(self, config):
 		"""Prepare the incoming configuration and ensure certain expected values are present.
