@@ -98,7 +98,7 @@ class BaseExtension(object):
 		context.environ['web.base'] = context.request.script_name
 		
 		# Track the remaining (unprocessed) path elements.
-		context.request.remainder = context.request.path_info.split('/')
+		context.request.remainder = context.request.path_info.strip('/').split('/')
 		if context.request.remainder and not context.request.remainder[0]:
 			del context.request.remainder[0]
 		
