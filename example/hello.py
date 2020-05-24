@@ -1,9 +1,7 @@
-# encoding: utf-8
-
 """A callable class example."""
 
 
-class Root(object):
+class Root:
 	def __init__(self, context):
 		self._ctx = context
 	
@@ -20,4 +18,3 @@ class Root(object):
 if __name__ == '__main__':
 	from web.core import Application
 	Application(Root).serve('wsgiref')
-

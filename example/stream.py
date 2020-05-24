@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 from random import randint
 from time import sleep
 from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError
@@ -54,4 +52,3 @@ if __name__ == '__main__':
 	
 	# wsgiref streams the chunks correctly, waitress buffers in 18000 byte chunks.
 	Application(root, logging={'level': 'debug'}).serve('waitress', send_bytes=1)
-

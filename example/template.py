@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 """Template rendering sample application.
 
 This renders the test.html file contained in the current working directory.
@@ -20,4 +18,3 @@ if __name__ == '__main__':
 	
 	# Start the development HTTP server.
 	app.serve('wsgiref')
-

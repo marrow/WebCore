@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 """Basic class-based demonstration application.
 
 Applications can be as simple or as complex and layered as your needs dictate.
@@ -10,7 +8,7 @@ import os
 from web.app.static import static
 
 
-class Another(object):  # On Python 3 you'd leave off the `(object)` bit everywhere you see it in this example.
+class Another:
 	"""A child controller class.
 	
 	This is "mounted" to the `Root` class, below, as an attribute named `child`; only the attribute name is
@@ -42,7 +40,7 @@ class Another(object):  # On Python 3 you'd leave off the `(object)` bit everywh
 		
 		return "I'm the baby!"
 	
-	def eat(self, food="pizza"):
+	def eat(self, food:str="pizza"):
 		"""
 		Executed if this endpoint is accessed.
 
@@ -54,7 +52,7 @@ class Another(object):  # On Python 3 you'd leave off the `(object)` bit everywh
 		return "Yum, I love {food}!".format(food=food)
 
 
-class Root(object):
+class Root:
 	"""A basic controller class.
 	
 	This effectively represents the root of the virtual filesystem that is your application. Attributes from this
@@ -73,7 +71,7 @@ class Root(object):
 	"""
 	
 	__slots__ = ('_ctx', )  # This is an optimization to tell CPython that our only instance attribute is `_ctx`.
-
+	
 	child = Another
 	
 	def __init__(self, context):
@@ -114,4 +112,3 @@ if __name__ == '__main__':
 	from web.core.application import Application
 	
 	Application(Root, logging={'level': 'info'}).serve('waitress', threads=15)
-

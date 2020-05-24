@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 from webob import Response
 from random import randint
 from time import sleep

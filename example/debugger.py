@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 """A one-function WebCore 2 demonstration application.
 
 Applications can be as simple or as complex and layered as your needs dictate.
@@ -16,4 +14,3 @@ if __name__ == '__main__':
 	from web.ext.debug import DebugExtension
 	
 	Application(basic, extensions=[DebugExtension()]).serve('waitress')
-

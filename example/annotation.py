@@ -1,6 +1,4 @@
-# encoding: utf-8
-
-"""Python 3 function annotation and AnnotationExtension example."""
+"""Python 3 function annotation typecasting example using `AnnotationExtension`."""
 
 from json import dumps
 
@@ -67,4 +65,3 @@ if __name__ == '__main__':
 	from web.ext.annotation import AnnotationExtension
 	
 	Application(Root, extensions=[SampleExtension(), AnnotationExtension()]).serve('wsgiref')
-
