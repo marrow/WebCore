@@ -164,8 +164,8 @@ class BaseExtension:
 		nConsumed = 0
 		if consumed:  # Migrate path elements consumed from the `PATH_INFO` to `SCRIPT_NAME` WSGI environment variables.
 			for element in consumed:
-				if element == request.path_info_peek():
-					request.path_info_pop()
+				if element == request.path_info_peek():  # WebOb itself skips repeated separators.
+					request.path_info_pop()  # But *will* shift them into SCRIPT_NAME for us, too, if present.
 					nConsumed += 1
 				else:  # The dispatcher has deviated. We abandon hope.
 					break
