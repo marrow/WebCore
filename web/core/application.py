@@ -199,7 +199,7 @@ class Application:
 		args, kwargs = [], {}
 		
 		try:
-			for ext in signals.mutate: ext(context, endpoint, args, kwargs)
+			for ext in signals.collect: ext(context, endpoint, args, kwargs)
 		
 		except HTTPException as e:
 			result = e
