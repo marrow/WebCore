@@ -159,7 +159,7 @@ class BaseExtension:
 		
 		consumed = ('', ) if not crumb.path or request.path_info_peek() == '' else crumb.path.parts
 		
-		nConsumed = 0
+		nConsumed = 0  # The number of 
 		if consumed:  # Migrate path elements consumed from the `PATH_INFO` to `SCRIPT_NAME` WSGI environment variables.
 			for element in consumed:
 				if element == request.path_info_peek():  # WebOb itself skips repeated separators.
