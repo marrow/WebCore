@@ -2,10 +2,12 @@
 
 import typing
 from collections import abc
+from re import compile as regex
+from io import StringIO
 
 from inspect import ismethod, getfullargspec
 
-from ..core.typing import Any, Callable, Mapping, Tags, Optional
+from ..core.typing import Any, Callable, Context, Dict, Mapping, Tags, List, Optional
 
 
 SPLIT = lambda v: ",".split(v) if isinstance(v, str) else list(v)
@@ -14,6 +16,127 @@ SPLIT = lambda v: ",".split(v) if isinstance(v, str) else list(v)
 AnnotationAliases = Mapping[type, type]
 Mapper = Callable[[str], Any]
 AnnotationMappers = Mapping[type, Mapper]
+
+
+# Helpers utilized in the aliases and mappings below.
+
+def die(type):
+	"""Handle the given ABC or typing hint by exploding."""
+	
+	def inner(value):
+		raise TypeError(f"Can not cast to {type!r}, concrete simple type references are preferred.")
+	
+	return inner
+
+def _nop(value):
+	"""A no-operation identity transformation if the abstract type implies or is satisfied by Unicode text.
+	
+	Use of this indicates a Unicode string is a suitable member of that abstract set.
+	"""
+	
+	return value
+
+
+# Typecasting assistance.
+
+def to_bytes(value:str) -> bytes:
+	return value.encode('utf8') if isinstance(value, str) else bytes(value),
+
+
+# Many type annotations are "abstract", so we map them to "concrete" types to permit casting on ingress.
+
+aliases:AnnotationAliases = {
+		# Core datatypes which may require some assistance to translate from the web.
+		bytes: to_bytes,
+		
+		# Map abstract base classes to their constructors.
+		abc.ByteString: bytes,
+		abc.Container: _nop,
+		abc.Hashable: _nop,
+		abc.Iterable: _nop,
+		abc.Iterator: iter,
+		abc.Mapping: dict,
+		abc.MutableMapping: dict,
+		abc.Reversible: _nop,
+		abc.Sequence: _nop,
+		abc.Set: set,
+		abc.Sized: _nop,
+		
+		# "Shallow" pseudo-types mapped to explosions, real types, or casting callables.
+		typing.Any: _nop,
+		typing.AnyStr: lambda v: str(v),
+		typing.AsyncContextManager: die(typing.AsyncContextManager),
+		typing.AsyncGenerator: die(typing.AsyncGenerator),
+		typing.AsyncIterable: die(typing.AsyncIterable),
+		typing.AsyncIterator: die(typing.AsyncIterator),
+		typing.Awaitable: die(typing.Awaitable),
+		typing.ByteString: to_bytes,
+		typing.Callable: die(typing.Callable),
+		typing.ChainMap: die(typing.ChainMap),
+		typing.ClassVar: die(typing.ClassVar),
+		typing.ContextManager: die(typing.ContextManager),
+		typing.Coroutine: die(typing.Coroutine),
+		typing.Counter: die(typing.Counter),
+		typing.DefaultDict: die(typing.DefaultDict),
+		typing.ForwardRef: die(typing.ForwardRef),
+		typing.Generator: die(typing.Generator),
+		typing.Generic: die(typing.Generic),
+		typing.Hashable: _nop,
+		typing.ItemsView: die(typing.ItemsView),  # TODO: dict and call .items()
+		typing.Iterator: die(typing.Iterator),  # TODO: automatically call .iter()
+		typing.KeysView: die(typing.KeysView),  # TODO: dict and call .keys
+		typing.MappingView: die(typing.MappingView),  # TODO: dict and call .values()
+		typing.Match: die(typing.Match),
+		typing.NamedTuple: die(typing.NamedTuple),
+		typing.Reversible: _nop,
+		typing.Sized: _nop,
+		typing.IO: StringIO,
+		typing.SupportsAbs: float,
+		typing.SupportsBytes: bytes,
+		typing.SupportsFloat: float,
+		typing.SupportsInt: int,
+		typing.SupportsRound: float,
+		typing.Pattern: regex,
+		
+		# Potentially nested / recursive / "complex" pseudo-types.
+		typing.AbstractSet: set,
+		typing.Collection: die(typing.Collection),
+		typing.Container: die(typing.Container),
+		typing.OrderedDict: dict,
+		typing.FrozenSet: frozenset,
+		typing.Iterable: _nop,
+		typing.List: list,
+		typing.Sequence: _nop,
+		typing.Mapping: dict,
+		typing.MutableMapping: dict,
+		typing.MutableSequence: list,
+		typing.MutableSet: set,
+		typing.Optional: die(typing.Optional),  # TODO: SPECIAL CASE TO UNPACK
+		typing.Set: set,
+		typing.Tuple: die(typing.Tuple),  # TODO: Container with possible nested types.
+		
+		# typing.: die(typing.),
+	}
+
+mapper:AnnotationMappers = {  # Mechanisms to produce the desired type from basic Unicode text input.
+		list: lambda v: v.split(",") if isinstance(v, str) else list(v),
+		set: lambda v: v.split(",") if isinstance(v, str) else set(v),
+		# dict: ...
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class AnnotationExtension:
@@ -34,12 +157,16 @@ class AnnotationExtension:
 	by the `web.template` package to define a template at the head of the function, returning data for the template
 	to consume:
 	
-		def hello(name="world"): -> 'mako:hello.html'
+		def hello(name="world") -> 'mako:hello.html':
 			return dict(name=name)
 	
 	If your editor has difficulty syntax highlighting such annotations, check for a Python 3 compatible update to your
 	editor's syntax definitions.
 	"""
+	
+	# Related:
+	# https://github.com/aldebaran/strong_typing/tree/master/strong_typing
+	# https://pypi.org/project/safe-cast/ (unmaintained) + https://github.com/StasTune/safe-cast
 	
 	provides:Tags = {'annotation', 'cast', 'typecast'}  # Export these symbols for other extensions to depend upon.
 	
@@ -47,27 +174,8 @@ class AnnotationExtension:
 	# {n: k.__origin__ for n, k in ((n, getattr(typing, n)) for n in dir(typing) if not n.startswith('_')) \
 	# if hasattr(k, '__origin__') and not inspect.isabstract(k.__origin__)}
 	
-	aliases:AnnotationAliases = {  # These type annotations are "abstract", so we map them to "concrete" types for casting.
-			abc.ByteString: bytes,
-			abc.Iterable: list,
-			abc.Mapping: dict,
-			abc.MutableMapping: dict,
-			typing.AbstractSet: set,
-			typing.ByteString: bytes,
-			typing.Iterable: list,
-			typing.Mapping: dict,
-			typing.MutableMapping: dict,
-			typing.MutableSequence: list,
-			typing.MutableSet: set,
-			typing.Sequence: list,
-		}
 	
-	mapper:AnnotationMappers = {  # Mechanisms to produce the desired type from basic Unicode text input.
-			list: lambda v: v.split(",") if isinstance(v, str) else list(v),
-			set: lambda v: v.split(",") if isinstance(v, str) else set(v),
-		}
-	
-	def __init__(self, aliases:Optional[AnnotationAliases]=None, mapper:Optional[AnnotationMappers]=None):
+	def __init__(self, aliases:Optional[AnnotationAliases]=None, mapper:Optional[AnnotationMappers]=None) -> None:
 		"""Initialize the function annotation extension.
 		
 		You may pass in instance additions and overrides for the type aliases and type mappers if custom behavior is
@@ -78,7 +186,7 @@ class AnnotationExtension:
 		if aliases: self.aliases = {**self.aliases, **aliases}
 		if mapper: self.mapper = {**self.mapper, **mapper}
 	
-	def collect(self, context, handler, args, kw):
+	def collect(self, context:Context, handler:Callable, args:List, kw:Dict[str,Any]) -> None:
 		"""Inspect and potentially mutate the arguments to the handler.
 		
 		The args list and kw dictionary may be freely modified, though invalid arguments to the handler will fail.
@@ -112,7 +220,7 @@ class AnnotationExtension:
 			if not annotation: continue  # Skip right past non-annotated arguments.
 			kw[key] = cast(key, annotation, value)
 	
-	def transform(self, context, handler, result):
+	def transform(self, context:Context, handler:Callable, result:Any):
 		"""Transform the value returned by the controller endpoint, or transform the result into a 2-tuple.
 		
 		If the annotation is callable, run the result through the annotation, returning the result. Otherwise,
