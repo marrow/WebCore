@@ -157,8 +157,7 @@ class BaseExtension:
 			extras['handler'] = safe_name(extras['handler'])  # Sanitize a value to make log-safe.
 			self._log.debug("Handling dispatch event.", extra=extras)  # Emit.
 		
-		# The leading path element (leading slash) requires special treatment.
-		consumed = ('', ) if not crumb.path and request.path_info_peek() == '' else crumb.path.parts
+		consumed = ('', ) if not crumb.path or request.path_info_peek() == '' else crumb.path.parts
 		
 		nConsumed = 0
 		if consumed:  # Migrate path elements consumed from the `PATH_INFO` to `SCRIPT_NAME` WSGI environment variables.
