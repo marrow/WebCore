@@ -17,4 +17,4 @@ class Root:
 
 if __name__ == '__main__':
 	from web.core import Application
-	Application(Root).serve('wsgiref')
+	Application(Root, extensions=['debugger']).serve('wsgiref')
