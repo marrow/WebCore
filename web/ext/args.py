@@ -6,7 +6,7 @@ These allow you to customize the behaviour of the arguments passed to endpoints.
 from inspect import isroutine, ismethod, getcallargs
 from warnings import warn
 
-from webob.exc import HTTPNotFound
+from webob.exc import HTTPBadRequest
 
 from ..core.typing import Tags
 from ..core.util import safe_name
@@ -96,8 +96,11 @@ class ValidateArgumentsExtension:
 	"""Use this to enable validation of endpoint arguments.
 	
 	You can determine when validation is executed (never, always, or development) and what action is taken when a
-	conflict occurs.
+	conflict occurs. Note that the default mode of operation is to only validate in development; impacting use "by
+	name" using `extensions` during Application instantiation.
 	"""
+	
+	__slots__ = ('collect', )
 	
 	always: bool = __debug__
 	last: bool = True
@@ -110,8 +113,8 @@ class ValidateArgumentsExtension:
 		If `enabled` is `True` validation will always be performed, if `False`, never. If set to `development` the
 		callback will not be assigned and no code will be executed during runtime.
 		
-		When `correct` is falsy (the default), an `HTTPNotFound` will be raised if a conflict occurs. If truthy the
-		conflicting arguments are removed, with positional taking precedence to keyword.
+		When `correct` is falsy (the default), an `HTTPBadRequest` will be raised if a conflict occurs. If truthy the
+		conflicting arguments are removed, with positional taking precedence to keyword. [TBD]
 		"""
 		
 		if enabled is True or (enabled == 'development' and __debug__):
@@ -135,7 +138,7 @@ class ValidateArgumentsExtension:
 					endpoint_kw = kw,
 				))
 			
-			raise HTTPNotFound("Incorrect endpoint arguments: " + str(e))
+			raise HTTPBadRequest("Incorrect endpoint arguments: " + str(e))
 
 
 class ContextArgsExtension(ArgumentExtension):
