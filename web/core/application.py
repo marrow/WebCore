@@ -50,11 +50,8 @@ class Application:
 	"""
 	
 	__slots__ = (
-			'RequestContext',  # Per-request context class.
-			'__call__',  # WSGI request handler.  Dynamically assigned.
-			'__context',  # Application context instance.
-			'config',  # Application configuration.
-			'feature',  # Feature tag announcement; populated by the `provides` of active extensions.
+			'RequestContext', '__context', 'config', 'feature',  # See below.
+			'__call__',  # WSGI request handler.  Dynamically assigned as the result of WSGI middleware wrapping.
 		)
 	
 	last: bool = True  # Ensure the application callbacks are "last" in processing, dependent upon all extensions.
