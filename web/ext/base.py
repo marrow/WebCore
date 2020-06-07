@@ -173,8 +173,8 @@ class BaseExtension:
 		# Update the breadcrumb list.
 		context.path.append(crumb)
 		
-		if consumed:  # Lastly, update the remaining path element list.
-			request.remainder = request.remainder[nConsumed:]
+		# Lastly, update the remaining path element list.
+		request.remainder = request.remainder[nConsumed:]  # If nothing consumed, shallow copy.
 	
 	def render_none(self, context:Context, result:None) -> bool:
 		"""Render empty responses.
