@@ -59,8 +59,8 @@ class Application:
 	__context: Context  # The application-scoped context instance.
 	_log: Logger = getLogger(__name__)  # An application-scoped Logger instance.
 	
-	config: dict  # The preserved configuration.
-	feature: set  # The set of available feature flags, as collected from enabled extensions.
+	config: dict  # The preserved initial application configuration.
+	feature: set  # The set of available feature flags, as collected from the `provides` of enabled extensions.
 	RequestContext: Type[Context]  # The class to instantiate to represent the per-request context.
 	
 	def __init__(self, root:Any, **config) -> None:
