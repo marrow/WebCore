@@ -70,7 +70,9 @@ class WebDispatchers(PluginManager):
 				
 				# Iterate dispatch events, issuing appropriate callbacks as we descend.
 				for crumb in dispatcher(context, handler, path):
-					if crumb.endpoint and not callable(crumb.handler) and hasattr(crumb.handler, '__dispatch__'):
+					is_endpoint, handler = crumb.endpoint, crumb.handler
+					
+					if is_endpoint and not callable(handler) and hasattr(handler, '__dispatch__'):
 						crumb = crumb.replace(endpoint=False)
 					
 					# DO NOT add production logging statements (ones not wrapped in `if __debug__`) to this callback!
