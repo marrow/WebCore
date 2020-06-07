@@ -131,15 +131,14 @@ class BaseExtension:
 		
 		# Bridge in WebOb `Request` and `Response` objects.
 		# Extensions shouldn't rely on these, using `environ` where possible instead; principle of least abstraction.
-		context.request = request = Request(context.environ)
+		req = context.request = request = Request(context.environ)
 		context.response = Response(request=request)
+		
+		# This naturally elides extraneous leading and trailing slashes.
+		req.remainder = context.request.path_info.strip('/').split('/')
 		
 		# Record the initial path representing the point where a front-end web server bridged to us.
 		context.environ['web.base'] = request.script_name
-		
-		# Consume any number of extraneous leading separators.
-		while request.remainder and not request.remainder[0]:
-			del request.remainder[0]
 		
 		# Track the "breadcrumb list" of dispatch through distinct controllers.
 		context.path = Bread()
