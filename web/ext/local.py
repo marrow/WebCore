@@ -2,6 +2,8 @@ from threading import local
 
 from marrow.package.loader import traverse
 
+from ..core.typing import Any, ClassVar, Context, ModuleType, Tags, Tuple, check_argument_types
+
 
 log = __import__('logging').getLogger(__name__)
 
@@ -14,10 +16,10 @@ class ThreadLocalExtension:
 	While the context itself is cleaned up after each call, any data you add won't be.  These are not request-locals.
 	"""
 	
-	first = True
-	provides = ['local', 'threadlocal']
+	first: bool = True
+	provides: Tags = {'local', 'threadlocal'}
 	
-	def __init__(self, where='web.core:local'):
+	def __init__(self, where:str='web.core:local'):
 		"""Initialize thread local storage for the context.
 		
 		By default the `local` object in the `web.core` package will be populated as a `threading.local` pool. The
@@ -34,13 +36,13 @@ class ThreadLocalExtension:
 		self.local = None
 		self.preserve = False
 	
-	def _lookup(self):
+	def _lookup(self) -> Tuple[ModuleType, str]:
 		module, _, name = self.where.rpartition(':')
 		module = traverse(__import__(module), '.'.join(module.split('.')[1:]), separator='.')
 		
 		return module, name
 	
-	def start(self, context):
+	def start(self, context:Context) -> None:
 		module, name = self._lookup()
 		
 		if __debug__:
@@ -55,7 +57,7 @@ class ThreadLocalExtension:
 		
 		self.local.context = context  # Main thread application context.
 	
-	def stop(self, context):
+	def stop(self, context:Context) -> None:
 		self.local = None
 		
 		if __debug__:
@@ -65,14 +67,14 @@ class ThreadLocalExtension:
 			module, name = self._lookup()
 			delattr(module, name)
 	
-	def prepare(self, context):
+	def prepare(self, context:Context) -> None:
 		"""Executed prior to processing a request."""
 		if __debug__:
 			log.debug("Assigning thread local request context.")
 		
 		self.local.context = context
 	
-	def done(self, result):
+	def done(self, result:Any) -> None:
 		"""Executed after the entire response has been sent to the client."""
 		if __debug__:
 			log.debug("Cleaning up thread local request context.")

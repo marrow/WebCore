@@ -3,7 +3,7 @@
 from webob.exc import HTTPNotFound
 from backlash import DebuggedApplication
 
-from ..core.typing import Context, Tags, WSGI
+from ..core.typing import Context, Optional, Tags, Request, WSGI
 
 
 log = __import__('logging').getLogger(__name__)
@@ -14,14 +14,15 @@ class Console:
 	
 	__slots__ = ('debugger', 'request')
 	
+	debugger: Optional[DebuggedApplication]
+	request: Request
+	
 	def __init__(self, context:Context) -> None:
 		self.debugger = context.get('debugger', None)
 		self.request = context.request
 	
 	def __call__(self, *args, **kw):
-		if not self.debugger:
-			raise HTTPNotFound("Debugger extension not enabled.")
-		
+		if not self.debugger: raise HTTPNotFound("Debugger extension not enabled.")
 		return self.debugger.display_console(self.request)
 
 
