@@ -101,7 +101,7 @@ class ValidateArgumentsExtension:
 	
 	You can determine when validation is executed (never, always, or development) and what action is taken when a
 	conflict occurs. Note that the default mode of operation is to only validate in development; impacting use "by
-	name" using `extensions` during Application instantiation.
+	name" within `extensions` during Application instantiation.
 	"""
 	
 	__slots__ = ('collect', )
@@ -115,16 +115,72 @@ class ValidateArgumentsExtension:
 		"""Configure when validation is performed and the action performed.
 		
 		If `enabled` is `True` validation will always be performed, if `False`, never. If set to `development` the
-		callback will not be assigned and no code will be executed during runtime.
+		callback will not be assigned and no code will be executed per-request during production (optimized) runtime.
 		
-		When `correct` is falsy (the default), an `HTTPBadRequest` will be raised if a conflict occurs. If truthy the
-		conflicting arguments are removed, with positional taking precedence to keyword. [TBD]
+		When `correct` is falsy an `HTTPBadRequest` will be raised if a conflict occurs. If truthy the conflicting
+		arguments are removed, with positional taking precedence to keyword. It is truthy by default when running in
+		development mode.
 		"""
 		
 		if enabled is True or (enabled == 'development' and __debug__):
-			self.collect = self._collect
+			if correct:
+				self.collect = self._correct
+			else:
+				self.collect = self._validate
 	
-	def _collect(self, context, endpoint, args, kw):
+	def _correct(self, context, endpoint, args, kw):
+		if callable(endpoint) and not isroutine(endpoint):
+			endpoint = endpoint.__call__  # Handle instances that are callable.
+		
+		spec = getfullargspec(endpoint)
+		
+		# First, process "positional arguments", typically consumed from unprocessed path elements.
+		
+		if not spec.varargs and len(args) > len(spec.args):
+			if __debug__:
+				difference = len(args) - len(spec.args)
+				(log.warning if flags.dev_mode else log.debug)(
+						f"Ignoring {difference} extraneous positional argument{'' if difference == 1 else 's'}.",
+						extra=dict(
+								request = id(context),
+								endpoint = safe_name(endpoint),
+							))
+			
+			del args[len(args):]
+		
+		matched = set(spec.args[:len(args)])  # Identify named arguments that have been populated positionally.
+		
+		# Next, we eliminate keyword arguments that would conflict with populated positional ones.
+		
+		conflicting = set()
+		for key in matched.intersection(kw):
+			conflicting.add(key)
+			del kw[key]
+		
+		if conflicting and __debug__:
+			(log.warning if flags.dev_mode else log.debug)(
+					f"Positional arguments duplicated by name: {', '.join(sorted(conflicting))}",
+					extra=dict(
+							request = id(context),
+							endpoint = safe_name(endpoint),
+						))
+		
+		# Lastly, we remove any named arguments that don't exist as named arguments.
+		
+		allowable = set(chain(spec.args, spec.kwonlyargs))
+		conflicting = set(kw).difference(allowable)
+		
+		for key in conflicting: del kw[key]
+		
+		if conflicting and __debug__:
+			(log.warning if flags.dev_mode else log.debug)(
+					f"Unknown named argument{'' if len(conflicting) == 1 else 's'}: {', '.join(sorted(conflicting))}",
+					extra=dict(
+							request = id(context),
+							endpoint = safe_name(endpoint),
+						))
+	
+	def _validate(self, context, endpoint, args, kw):
 		try:
 			if callable(endpoint) and not isroutine(endpoint):
 				endpoint = endpoint.__call__  # Handle instances that are callable.
@@ -225,7 +281,5 @@ class JSONKwargsExtension(ArgumentExtension):
 	provides: Tags = {'kwargs', 'kwargs.json'}
 	
 	def __init__(self):
-		super().__init__()
-		
 		warn("Use of specialized JSONKwargsExtension is deprecated; SerializationExtension enabled instead.",
 				DeprecationWarning)
