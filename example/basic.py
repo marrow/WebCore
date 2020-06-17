@@ -30,4 +30,6 @@ def basic(context, name:str="world") -> str:
 if __name__ == '__main__':
 	from web.core import Application
 	
-	Application(basic).serve('waitress', threads=16)
+	Application(basic, extensions=[
+			'kwargs.elision',
+		], logging={'level': 'debug'}).serve('waitress', threads=16)
