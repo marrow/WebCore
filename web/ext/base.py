@@ -8,6 +8,7 @@ from logging import Logger, getLogger
 from mimetypes import init, add_type, guess_type
 from os.path import expandvars
 from pathlib import Path, PurePosixPath
+from re import compile as re
 from time import mktime, gmtime
 
 from uri import URI
@@ -15,6 +16,9 @@ from webob import Request, Response
 
 from ..core.util import Bread, Crumb, nop, safe_name
 from ..core.typing import AccelRedirect, Any, ClassVar, Context, Response, Tags, Iterable
+
+
+HTML_LIKE = re(r"<!DOCTYPE html>|</?\s*[a-z-][^>]*\s*>|(\&(?:[\w\d]+|#\d+|#x[a-f\d]+);)")  # "Likely HTML" heuristic.
 
 
 class BaseExtension:
@@ -93,7 +97,7 @@ class BaseExtension:
 		
 		# Register the core views supported by the base framework.
 		register = context.view.register
-		register(type(None), self.render_none)
+		register(type(None), self.render_none)  # Special annotation case.
 		register(Response, self.render_response)
 		register(bytes, self.render_binary)
 		register(str, self.render_text)
@@ -154,7 +158,7 @@ class BaseExtension:
 		
 		if __debug__:
 			extras = {**context.log_extra, **crumb.as_dict}  # Aggregate logging extras.
-			extras['handler'] = safe_name(extras['handler'])  # Sanitize a value to make log-safe.
+			for k in ('handler', 'origin'): extras[k] = safe_name(extras[k]) # Sanitize a value to make log-safe.
 			self._log.debug("Handling dispatch event.", extra=extras)  # Emit.
 		
 		consumed = ('', ) if not crumb.path or request.path_info_peek() == '' else crumb.path.parts
@@ -182,6 +186,7 @@ class BaseExtension:
 		
 		if __debug__: self._log.debug("Applying literal None value as empty response.", extra=context.log_extra)
 		
+		context.response.content_type = 'text/plain'
 		context.response.body = b''
 		del context.response.content_length
 		
@@ -220,6 +225,9 @@ class BaseExtension:
 		if __debug__: self._log.debug(f"Applying {len(result)}-character text value.", extra=context.log_extra)
 		
 		context.response.text = result
+		
+		if resp.content_type == 'text/html' and not HTML_LIKE.search(result):
+			resp.content_type = 'text/plain'
 		
 		return True
 	

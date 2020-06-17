@@ -1,10 +1,14 @@
 """Typing helpers."""
 
-from typing import Any, Callable, ClassVar, Dict, Generator, Iterable, List, Mapping, Optional, Set, Tuple, Union, Text, Type
+from logging import Logger
 from pathlib import Path, PurePosixPath
+from types import ModuleType
+from typing import Any, Callable, ClassVar, Dict, Generator, Iterable, List, Mapping, Optional, Set, Tuple, Union, \
+		Text, Type, Pattern
 
-from webob import Request, Response
+from typeguard import check_argument_types
 from uri import URI
+from webob import Request, Response
 
 from ..dispatch.core import Crumb
 from .context import Context  # Make abstract?  :'(
@@ -63,3 +67,9 @@ WebServer = Callable[..., None]  # [WSGI, HostBind, PortBind, ...]
 SerializationTypes = Iterable[type]
 Serializer = Callable[[Any], str]
 Deserializer = Callable[[str], Any]
+
+
+# Specific utility forms.
+
+PatternString = Union[str, Pattern]
+PatternStrings = Iterable[PatternString]

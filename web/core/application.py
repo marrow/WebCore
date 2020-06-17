@@ -5,6 +5,7 @@ WSGI application invokable object. Requests processed when invoked are isolated,
 instances may be mixed, freely, and will not conflict with each-other.
 """
 
+import logging
 from logging import DEBUG, Logger, basicConfig, getLogger
 from logging.config import dictConfig
 from inspect import isfunction
@@ -271,7 +272,7 @@ class Application:
 			raise TypeError("No view could be found to handle: " + repr(type(result)))
 		
 		if __debug__:
-			self._log.debug("View identified, populating response.", extra=dict(
+			self._log.debug("Response populated by view.", extra=dict(
 					request = id(context),
 					view = repr(view),
 				))

@@ -4,7 +4,7 @@
 
 As it says on the label. Utilizes the default values for arguments to the endpoint, in this case defaulting `name` to `world`.
 
-+ Response 200 (text/html; charset=UTF-8)
++ Response 200 (text/plain; charset=UTF-8)
 
         Hello world.
 
@@ -15,7 +15,7 @@ As it says on the label. Utilizes the default values for arguments to the endpoi
 
 The `name` argument to the endpoint may be specified _positionally_, by utilizing a path element "below" the endpoint. Each otherwise unprocessed path element remaining in in the request when an endpoint is reached will be automatically utilized positionally.
 
-+ Response 200 (text/html; charset=UTF-8)
++ Response 200 (text/plain; charset=UTF-8)
 
         Hello Alice.
 
@@ -24,9 +24,9 @@ The `name` argument to the endpoint may be specified _positionally_, by utilizin
 
 **Passing by Name, Query String**
 
-The `name` argument to the endpoint alternatively be specified _by name_, as a _keyword argument_. These arguments may be sourced from several locations, such as **parsed query string arguments** ("GET" arguments), form-data encoded, or even JSON encoded "POST" bodies, and so forth.
+The `name` argument to the endpoint might alternatively be specified _by name_, as a _keyword argument_. These arguments may be sourced from several locations, such as **parsed query string arguments** ("GET" arguments), form-data encoded, or even JSON encoded "POST" bodies, and so forth.
 
-+ Response 200 (text/html; charset=UTF-8)
++ Response 200 (text/plain; charset=UTF-8)
 
         Hello Bob Dole.
 
@@ -41,7 +41,7 @@ The `name` argument to the endpoint alternatively be specified _by name_, as a _
 
         name=James+T.+Kirk
 
-+ Response 200 (text/html; charset=UTF-8)
++ Response 200 (text/plain; charset=UTF-8)
 
         Hello James T. Kirk.
 
