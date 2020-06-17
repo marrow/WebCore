@@ -3,7 +3,7 @@
 try:
 	from flup.server.fcgi import WSGIServer
 except ImportError:
-	print("You must install a 'flup' package such as 'flup6' to use FastCGI support.")
+	print("You must install a 'flup' package such as 'flup6' to use FastCGI support: pip install flup6")
 	raise
 
 from ..core.typing import WSGI, HostBind, PortBind, DomainBind

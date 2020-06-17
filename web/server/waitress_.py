@@ -3,7 +3,7 @@
 try:
 	from waitress import serve as serve_
 except ImportError:
-	print("You must install the 'waitress' package.")
+	print("You must install the 'waitress' package: pip install waitress")
 	raise
 
 from ..core.typing import WSGI, HostBind, PortBind
