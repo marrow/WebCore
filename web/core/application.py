@@ -16,7 +16,6 @@ from marrow.package.host import ExtensionManager
 from marrow.package.loader import load
 
 from ..ext import args as arguments
-from ..ext.base import BaseExtension
 from .context import Context
 from .dispatch import WebDispatchers
 from .extension import WebExtensions
