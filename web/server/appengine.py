@@ -4,7 +4,7 @@ import warnings
 
 from google.appengine.ext.webapp.util import run_wsgi_app
 
-from ..core.typing import WSGI
+from ..core.typing import WSGI, check_argument_types
 
 
 def appengine(application:WSGI) -> None:
@@ -12,6 +12,8 @@ def appengine(application:WSGI) -> None:
 	
 	Note: This adapter is essentially untested, and likely duplicates the `cgiref` adapter.
 	"""
+	
+	assert check_argument_types()
 	
 	warnings.warn("Interactive debugging and other persistence-based processes will not work.", RuntimeWarning)
 	

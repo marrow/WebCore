@@ -1,6 +1,6 @@
 from mimetypes import guess_type
 
-from ..core.typing import Context, Tags, Optional
+from ..core.typing import Context, Tags, check_argument_types
 
 
 class AcceptFilenameExtension:
@@ -16,6 +16,8 @@ class AcceptFilenameExtension:
 	provides: Tags = {'request.accept'}
 	
 	def prepare(self, context:Context) -> None:
+		assert check_argument_types()
+		
 		encoding, _ = guess_type(context.environ['PATH_INFO'])
 		
 		if encoding:

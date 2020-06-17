@@ -6,7 +6,7 @@ except ImportError:
 	print("You must install the 'waitress' package: pip install waitress")
 	raise
 
-from ..core.typing import WSGI, HostBind, PortBind
+from ..core.typing import WSGI, HostBind, PortBind, check_argument_types
 
 
 def serve(application:WSGI, host:HostBind='127.0.0.1', port:PortBind=8080, threads:int=4, **kw) -> None:
@@ -14,6 +14,8 @@ def serve(application:WSGI, host:HostBind='127.0.0.1', port:PortBind=8080, threa
 	
 	Note that this server performs additional buffering and will not honour chunked encoding breaks.
 	"""
+	
+	assert check_argument_types()
 	
 	# Bind and start the server; this is a blocking process.
 	serve_(application, host=str(host), port=int(port), threads=int(threads), **kw)

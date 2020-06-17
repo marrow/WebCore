@@ -27,6 +27,8 @@ class ThreadLocalExtension:
 		additional arbitrary data to this pool.
 		"""
 		
+		assert check_argument_types()
+		
 		super().__init__()
 		
 		if __debug__:
@@ -43,6 +45,8 @@ class ThreadLocalExtension:
 		return module, name
 	
 	def start(self, context:Context) -> None:
+		assert check_argument_types()
+		
 		module, name = self._lookup()
 		
 		if __debug__:
@@ -58,6 +62,8 @@ class ThreadLocalExtension:
 		self.local.context = context  # Main thread application context.
 	
 	def stop(self, context:Context) -> None:
+		assert check_argument_types()
+		
 		self.local = None
 		
 		if __debug__:
@@ -69,6 +75,9 @@ class ThreadLocalExtension:
 	
 	def prepare(self, context:Context) -> None:
 		"""Executed prior to processing a request."""
+		
+		assert check_argument_types()
+		
 		if __debug__:
 			log.debug("Assigning thread local request context.")
 		
@@ -76,6 +85,7 @@ class ThreadLocalExtension:
 	
 	def done(self, result:Any) -> None:
 		"""Executed after the entire response has been sent to the client."""
+		
 		if __debug__:
 			log.debug("Cleaning up thread local request context.")
 		

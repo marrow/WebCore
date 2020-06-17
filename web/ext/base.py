@@ -15,7 +15,7 @@ from uri import URI
 from webob import Request, Response
 
 from ..core.util import Bread, Crumb, nop, safe_name
-from ..core.typing import AccelRedirect, Any, ClassVar, Context, Response, Tags, Iterable
+from ..core.typing import AccelRedirect, Any, ClassVar, Context, Response, Tags, Iterable, check_argument_types
 
 
 HTML_LIKE = re(r"<!DOCTYPE html>|</?\s*[a-z-][^>]*\s*>|(\&(?:[\w\d]+|#\d+|#x[a-f\d]+);)")  # "Likely HTML" heuristic.
@@ -67,6 +67,8 @@ class BaseExtension:
 		directive, which would be capture-able and bypass the application on subsequent requests.
 		"""
 		
+		assert check_argument_types()
+		
 		self.sendfile = sendfile
 		
 		if accel is not None:  # Store normal forms and expand to absolute on-disk paths.
@@ -88,6 +90,7 @@ class BaseExtension:
 		  local shallow copy.
 		"""
 		
+		assert check_argument_types()
 		if __debug__: self._log.debug("Registering core return value handlers.")
 		
 		# This prepares the mimetypes registry, and adds values typically missing from it.
@@ -130,6 +133,8 @@ class BaseExtension:
 		  request processing life cycle are limited to that request.
 		"""
 		
+		assert check_argument_types()
+		
 		le = context.log_extra = {'request': id(context), **context.log_extra}  # New instance for request scope.
 		if __debug__: self._log.debug("Preparing request context.", extra=le)
 		
@@ -154,6 +159,7 @@ class BaseExtension:
 		WSGI `PATH_INFO` into `SCRIPT_NAME` as appropriate.
 		"""
 		
+		assert check_argument_types()
 		request = context.request
 		
 		if __debug__:
@@ -184,6 +190,7 @@ class BaseExtension:
 		Applies a zero-length binary body to the response.
 		"""
 		
+		assert check_argument_types()
 		if __debug__: self._log.debug("Applying literal None value as empty response.", extra=context.log_extra)
 		
 		context.response.content_type = 'text/plain'
@@ -198,6 +205,7 @@ class BaseExtension:
 		Replaces the `response` attribute of the context with a new `Response` instance.
 		"""
 		
+		assert check_argument_types()
 		if __debug__: self._log.debug(f"Replacing request object with: {result!r}", extra=context.log_extra)
 		
 		context.response = result
@@ -210,6 +218,7 @@ class BaseExtension:
 		Assign a single-element iterable containing the binary value as the WSGI body value in the response.
 		"""
 		
+		assert check_argument_types()
 		if __debug__: self._log.debug(f"Applying {len(result)}-byte binary value.", extra=context.log_extra)
 		
 		context.response.app_iter = iter((result, ))  # This wraps the binary string in a WSGI body iterable.
@@ -222,8 +231,10 @@ class BaseExtension:
 		Assign Unicode text to the response.
 		"""
 		
+		assert check_argument_types()
 		if __debug__: self._log.debug(f"Applying {len(result)}-character text value.", extra=context.log_extra)
 		
+		resp = context.response
 		context.response.text = result
 		
 		if resp.content_type == 'text/html' and not HTML_LIKE.search(result):
@@ -239,10 +250,11 @@ class BaseExtension:
 		"""
 		# TODO: https://pythonhosted.org/xsendfile/howto.html#using-nginx-as-front-end-server
 		
-		anonymous = not getattr(result, 'name', '')
-		path = None if anonymous else Path(result.name).expanduser().resolve()
+		assert check_argument_types()
 		
-		response = context.response
+		anonymous: bool = not getattr(result, 'name', '')
+		path: Optional[Path] = None if anonymous else Path(result.name).expanduser().resolve()
+		response: Response = context.response
 		
 		result.seek(0, 2)  # Seek to the end of the file.
 		response.content_length = result.tell()  # Report file length.
@@ -287,6 +299,9 @@ class BaseExtension:
 		
 		This allows for direct use of cinje template functions, which are generators, as returned views.
 		"""
+		
+		assert check_argument_types()
+		if __debug__: self._log.debug(f"Applying an unknown-length generator: {result!r}", extra=context.log_extra)
 		
 		context.response.encoding = 'utf-8'
 		context.response.app_iter = (

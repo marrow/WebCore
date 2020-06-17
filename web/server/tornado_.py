@@ -7,7 +7,7 @@ except ImportError:
 	raise
 
 
-from ..core.typing import WSGI, HostBind, PortBind
+from ..core.typing import WSGI, HostBind, PortBind, check_argument_types
 
 
 def serve(application:WSGI, host:HostBind='127.0.0.1', port:PortBind=8080, **options) -> None:
@@ -17,6 +17,8 @@ def serve(application:WSGI, host:HostBind='127.0.0.1', port:PortBind=8080, **opt
 	
 		http://www.tornadoweb.org/en/stable/httpserver.html#http-server
 	"""
+	
+	assert check_argument_types()
 	
 	# Wrap our our WSGI application (potentially stack) in a Tornado adapter.
 	container = tornado.wsgi.WSGIContainer(application)

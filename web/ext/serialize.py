@@ -6,7 +6,7 @@ from collections import Mapping as MappingABC, Iterable as IterableABC
 from webob.exc import HTTPNotAcceptable
 from marrow.package.host import PluginManager
 
-from ..core.typing import Any, Callable, Context, Optional, Iterable, Tags, SerializationTypes, PositionalArgs, KeywordArgs
+from ..core.typing import Any, Callable, Context, Optional, Iterable, Tags, SerializationTypes, PositionalArgs, KeywordArgs, check_argument_types
 from .args import ArgumentExtension
 
 try:
@@ -21,18 +21,24 @@ json  # Satisfy linter.
 
 class SerializationPlugins(PluginManager):
 	def __init__(self, namespace:str, folders:Optional[Iterable[str]]=None) -> None:
+		assert check_argument_types()
+		
 		super().__init__(namespace, folders)
 		
 		self.__dict__['names'] = set()
 		self.__dict__['types'] = set()
 	
 	def register(self, name:str, plugin:Any) -> None:
+		assert check_argument_types()
+		
 		super().register(name, plugin)
 		
 		self.names.add(name)
 		if '/' in name: self.types.add(name)
 	
 	def _register(self, dist:Distribution) -> None:
+		assert check_argument_types()
+		
 		try:  # Squelch the exception by simply not registering the plugin if dependencies are missing.
 			super()._register(dist)
 		except DistributionNotFound:
@@ -63,6 +69,8 @@ class SerializationExtension(ArgumentExtension):
 		self.types = types
 	
 	def start(self, context:Context) -> None:
+		assert check_argument_types()
+		
 		if __debug__:
 			log.debug("Registering serialization return value handlers.")
 		
@@ -76,6 +84,8 @@ class SerializationExtension(ArgumentExtension):
 			context.view.register(kind, self.render_serialization)
 	
 	def collect(self, context:Context, endpoint:Callable, args:PositionalArgs, kw:KeywordArgs) -> None:
+		assert check_argument_types()
+		
 		req: Request = context.request
 		mime: str = req.content_type.partition(';')[0]
 		
@@ -103,6 +113,8 @@ class SerializationExtension(ArgumentExtension):
 	
 	def render_serialization(self, context:Context, result:Any) -> bool:
 		"""Render serialized responses."""
+		
+		assert check_argument_types()
 		
 		resp = context.response
 		serial = context.serialize

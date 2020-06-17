@@ -3,7 +3,7 @@
 from wsgiref.handlers import CGIHandler, IISCGIHandler
 from wsgiref.simple_server import make_server
 
-from ..core.typing import WSGI, HostBind, PortBind
+from ..core.typing import WSGI, HostBind, PortBind, check_argument_types
 
 
 # We let people know it's a bad idea to use these in production.
@@ -23,6 +23,8 @@ def simple(application:WSGI, host:HostBind='127.0.0.1', port:PortBind=8080) -> N
 	This is not a production quality interface and will be have badly under load.
 	"""
 	
+	assert check_argument_types()
+	
 	# Try to be handy as many terminals allow clicking links.
 	print(f"serving on http://{host!s}:{port!s}")
 	
@@ -38,6 +40,8 @@ def cgi(application:WSGI) -> None:
 	diagnostic tool in development, however.
 	"""
 	
+	assert check_argument_types()
+	
 	if not __debug__: warn(WARN_NO_PERSISTENCE, RuntimeWarning)
 	
 	# Instantiate the handler and begin bridging the application.
@@ -49,6 +53,8 @@ def iiscgi(application:WSGI) -> None:
 	
 	This is not a production quality interface and will behave badly under load.
 	"""
+	
+	assert check_argument_types()
 	
 	if not __debug__: warn(WARN_NO_PERSISTENCE, RuntimeWarning)
 	

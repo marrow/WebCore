@@ -18,8 +18,10 @@ class Console:
 	request: Request
 	
 	def __init__(self, context:Context) -> None:
-		self.debugger = context.get('debugger', None)
+		assert check_argument_types()
+		
 		self.request = context.request
+		self.debugger = context.get('debugger', None)
 	
 	def __call__(self, *args, **kw):
 		if not self.debugger: raise HTTPNotFound("Debugger extension not enabled.")
@@ -42,6 +44,7 @@ class DebugExtension:
 	verbose: bool
 	
 	def __init__(self, path:str='/__console__', verbose:bool=False) -> None:
+		assert check_argument_types()
 		if __debug__: log.debug("Initializing debugger extension.")
 		
 		self.path = path
@@ -57,6 +60,7 @@ class DebugExtension:
 		Accepts a WSGI application as the second argument and must likewise return a WSGI app.
 		"""
 		
+		assert check_argument_types()
 		if __debug__: log.debug("Wrapping application in debugger middleware.")
 		
 		def _populate(locals:dict, context:Context) -> dict:
