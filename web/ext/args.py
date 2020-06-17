@@ -3,12 +3,16 @@
 These allow you to customize the behaviour of the arguments passed to endpoints.
 """
 
-from inspect import isroutine, ismethod, getcallargs
+from itertools import chain
+from inspect import getcallargs, getfullargspec, isroutine, ismethod
+from re import compile as re, escape as rescape
+from sys import flags
 from warnings import warn
 
 from webob.exc import HTTPBadRequest
 
-from ..core.typing import Tags
+from ..core.typing import Callable, Context, Iterable, Set, Tags, Optional, Pattern, PatternString, PatternStrings
+from ..core.typing import PositionalArgs, KeywordArgs
 from ..core.util import safe_name
 
 
@@ -19,7 +23,7 @@ class ArgumentExtension:
 	"""Not for direct use."""
 	
 	@staticmethod
-	def _process_flat_kwargs(source, kwargs):
+	def _process_flat_kwargs(source:dict, kwargs:KeywordArgs) -> None:
 		"""Apply a flat namespace transformation to recreate (in some respects) a rich structure.
 		
 		This applies several transformations, which may be nested:
@@ -87,7 +91,7 @@ class ArgumentExtension:
 			container.extend(value for name, value in sorted(elements.items()))
 	
 	@staticmethod
-	def _process_rich_kwargs(source, kwargs):
+	def _process_rich_kwargs(source:dict, kwargs:KeywordArgs) -> None:
 		"""Apply a nested structure to the current kwargs."""
 		kwargs.update(source)
 
@@ -102,12 +106,12 @@ class ValidateArgumentsExtension:
 	
 	__slots__ = ('collect', )
 	
-	always: bool = __debug__
+	always: bool = __debug__ or flags.dev_mode
 	last: bool = True
 	provides: Tags = {'args.validation', 'kwargs.validation'}
 	uses: Tags = {'timing.prefix'}
 	
-	def __init__(self, enabled='development', correct=False):
+	def __init__(self, enabled='development', correct=flags.dev_mode):
 		"""Configure when validation is performed and the action performed.
 		
 		If `enabled` is `True` validation will always be performed, if `False`, never. If set to `development` the
@@ -188,7 +192,7 @@ class QueryStringArgsExtension(ArgumentExtension):
 	always: bool = True
 	first: bool = True
 	needs: Tags = {'request'}
-	provides: Tags = {'kwargs', 'kwargs.get'}
+	provides: Tags = {'kwargs', 'kwargs.qs'}
 	
 	def collect(self, context, endpoint, args, kw):
 		self._process_flat_kwargs(context.request.GET, kw)
@@ -200,8 +204,8 @@ class FormEncodedKwargsExtension(ArgumentExtension):
 	always: bool = True
 	first: bool = True
 	needs: Tags = {'request'}
-	uses: Tags = {'kwargs.get'}  # Query string values must be processed first, to be overridden.
-	provides: Tags = {'kwargs', 'kwargs.post'}
+	uses: Tags = {'kwargs.qs'}  # Query string values must be processed first, to be overridden.
+	provides: Tags = {'kwargs', 'kwargs.form'}
 	
 	def collect(self, context, endpoint, args, kw):
 		self._process_flat_kwargs(context.request.POST, kw)
