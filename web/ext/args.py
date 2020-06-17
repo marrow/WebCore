@@ -96,6 +96,49 @@ class ArgumentExtension:
 		kwargs.update(source)
 
 
+class StripArgumentsExtension:
+	"""Always prevent certain named arguments from being passed to endpoints.
+	
+	Removals will be logged at the warning level in development mode, and at the debug level if Python is not invoked
+	in developer mode. Running with optimizations enabled will automatically remove the logging overhead. If no
+	patterns are defined explicitly, Google Analytics `utm_`-prefixed values will be stripped by default.
+	"""
+	
+	last: bool = True
+	provides: Tags = {'args.elision', 'kwargs.elision'}
+	uses: Tags = {'timing.prefix'}
+	
+	strip: Pattern  # The patterns to search for removal, combined into one expression.
+	
+	def __init__(self, *patterns: PatternString) -> None:
+		"""Identify specific arguments or name patterns to automatically remove."""
+		
+		if not patterns:
+			patterns = (re("^utm_"), )
+		
+		encoded = ((i.pattern if isinstance(i, Pattern) else f"^{rescape(i)}$") for i in patterns)
+		self.strip = re(f'({")|(".join(encoded)})')
+	
+	def collect(self, context:Context, endpoint:Callable, args:PositionalArgs, kw:KeywordArgs) -> None:
+		strip, pattern = set(), self.strip
+		
+		for arg in kw:
+			if pattern.search(arg):
+				strip.add(arg)
+		
+		if strip and __debug__:
+			(log.warning if flags.dev_mode else log.debug)(
+					f"Eliding endpoint argument{'' if len(strip) == 1 else 's'}: {', '.join(sorted(strip))}",
+					extra=dict(
+							request = id(context),
+							endpoint = safe_name(endpoint),
+							endpoint_args = args,
+							endpoint_kw = kw,
+						))
+		
+		for arg in strip: del kw[arg]
+
+
 class ValidateArgumentsExtension:
 	"""Use this to enable validation of endpoint arguments.
 	
