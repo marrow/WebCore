@@ -15,7 +15,7 @@ This illustrates an essential point: you can write a Python API first, and then 
 
 In all of these example cases, the mime-type is being defined by the "Unicode string" *view*—`BaseExtension.render_text`—not detecting any HTML in the returned text.  If it did detect HTML—likely tags, HTML entities—the mime-type would be defined as `text/html`, unless overridden prior to return. For more complete _negotiation_ of the returned content-type, please reference the `SerializationExtension`.
 
-> **Note:** If attempting to return XML as text, rather than returning an ElementTree object, for example, ensure you apply the correct mime-type before returning, or your XML may be delivered as HTML.
+> **Note:** If attempting to return XML as text (rather than returning an ElementTree object, for example) ensure you apply the correct mime-type before returning, or your XML may be delivered as HTML.
 
 
 # Group Example Invocations
