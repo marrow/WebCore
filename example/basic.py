@@ -32,4 +32,4 @@ if __name__ == '__main__':
 	
 	Application(basic, extensions=[
 			'kwargs.elision',
-		], logging={'level': 'debug'}).serve('waitress', threads=16)
+		], logging={'level': 'debug'}).serve('waitress', listen='127.0.0.1:8080 [::1]:8080', threads=16)
