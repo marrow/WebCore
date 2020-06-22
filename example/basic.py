@@ -20,6 +20,7 @@ def greet(context:Context, name:str="world") -> str:
 		curl -v 'http://localhost:8080/?bob=dole'
 		curl -v 'http://localhost:8080/?utm_source=web'
 		curl -v 'http://localhost:8080/Bob?name=Dole&utm_source=web'
+		curl -v 'http://localhost:8080/Bob/Dole'
 	
 	Try those again after re-launching the web server via:
 	
