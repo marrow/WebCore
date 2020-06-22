@@ -270,8 +270,8 @@ class Application:
 		if __debug__ and flags.dev_mode:
 			e = environ
 			cols = __import__('shutil').get_terminal_size().columns
-			message = f"{e['REMOTE_ADDR']} → {e['SERVER_PROTOCOL']} \033[1m{e['REQUEST_METHOD']}\033[m \033[4m{e['wsgi.url_scheme']}://{e['SERVER_NAME']}:{e['SERVER_PORT']}{e['SCRIPT_NAME']}{e['PATH_INFO']}{('?' + e['QUERY_STRING']) if e['QUERY_STRING'] else ''}\033[m"
-			rmessage = "——"
+			message = f"{e['REMOTE_ADDR']} → {e['SERVER_PROTOCOL']} \033[1m{e['REQUEST_METHOD']}\033[0;7m \033[4m{e['wsgi.url_scheme']}://{e['SERVER_NAME']}:{e['SERVER_PORT']}{e['SCRIPT_NAME']}{e['PATH_INFO']}{('?' + e['QUERY_STRING']) if e['QUERY_STRING'] else ''}\033[0;7m"
+			rmessage = ""
 			
 			if e.get('CONTENT_LENGTH', 0):
 				mime = e.get('CONTENT_TYPE', '')
@@ -281,7 +281,8 @@ class Application:
 					if not icon: icon = MIME_ICON.get(prefix, MIME_ICON['unknown'])
 					rmessage = f" {mime} {icon} {e.get('CONTENT_LENGTH', 0)} "
 			
-			print(f"—— {message} {'—' * (cols - len(message) - len(rmessage) - 8 + 16)}{rmessage}——")
+			# print("\033[2J\033[;H\033[0m", end="")
+			print(f"\033[7m {message} {' ' * (cols - len(message) - len(rmessage) - 8 + 26)}{rmessage}\033[m")
 		
 		# Announce the start of a request cycle. This executes `prepare` and `before` callbacks in the correct order.
 		for ext in signals.pre: ext(context)
