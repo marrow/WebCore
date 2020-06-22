@@ -330,6 +330,27 @@ class Application:
 			yield from response
 			for ext in signals.done: ext(context)
 		
+		if __debug__ and flags.dev_mode:
+			e = environ
+			cols = __import__('shutil').get_terminal_size().columns
+			status, _, message = context.response.status.partition(' ')
+			colour = {'2': '2', '3': '14', '4': '11', '5': '9'}[context.response.status[0]]
+			message = f"{e['REMOTE_ADDR']} ← \033[1m{status} {message}\033[0;38;5;232;48;5;{colour}m"
+			rmessage = ""
+			
+			if context.response.content_length:
+				mime = context.response.content_type
+				prefix, _, _ = mime.partition('/')
+				if mime:
+					icon = MIME_ICON.get(mime, None)
+					if not icon: icon = MIME_ICON.get(prefix, MIME_ICON['unknown'])
+					rmessage = f" {mime} {icon} {context.response.content_length} "
+			elif context.response.status[0] == '3':
+				message += f" ⤺ {context.response.location} "
+			
+			# print("\033[2J\033[;H\033[0m", end="")
+			print(f"\033[0;38;5;232;48;5;{colour}m {message}\033[0;38;5;232;48;5;{colour}m{' ' * (cols - len(message) - len(rmessage) + 23)}{rmessage}\033[m")
+		
 		# This is really long due to the fact we don't want to capture the response too early.
 		# We need anything up to this point to be able to simply replace `context.response` if needed.
 		return capture_done(context.response.conditional_response_app(environ, start_response))
