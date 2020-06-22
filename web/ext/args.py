@@ -189,7 +189,7 @@ class ValidateArgumentsExtension:
 								endpoint = safe_name(endpoint),
 							))
 			
-			del args[len(args):]
+			del args[len(spec.args):]
 		
 		matched = set(spec.args[:len(args)])  # Identify named arguments that have been populated positionally.
 		
