@@ -20,7 +20,8 @@ In all of these example cases, the mime-type is being defined by the "Unicode st
 
 # Group Example Invocations
 
-There are a few ways a given endpoint can be invoked, after being discovered through *dispatch*—the process of resolving a requested URI to some object it represents.
+There are a few ways a given endpoint can be invoked, after being discovered through *dispatch*—the process of resolving a requested URI to some object it represents. In our example case above there is essentially no dispatch step; regardless of the requested URI the function passed as the application root can not be "descended past", and will always be utilized to answer the request.
+
 
 ## Basic GET Request [/]
 
