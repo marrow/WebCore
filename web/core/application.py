@@ -52,6 +52,7 @@ if __debug__:
 				'application/zip': "\uf1c6",
 				'multipart/x-zip': "\uf1c6",
 				'text/csv': "\uf717",
+				'text/html': "\uf1c9",
 				'text/tsv': "\uf717",
 				'application/vnd.ms-fontobject': "\uf031",
 			}
