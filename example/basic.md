@@ -75,10 +75,14 @@ The `name` argument to the endpoint alternatively be specified *by name*, as a *
 
 	+ Headers
 
-        name=James+T.+Kirk
+		Accept: text/plain
+
+	+ Body
+
+		name=James+T.+Kirk
 
 + Response 200 (text/plain; charset=UTF-8)
 
-        Hello James T. Kirk.
+		Hello James T. Kirk.
 
 
