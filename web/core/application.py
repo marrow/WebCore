@@ -9,6 +9,7 @@ import logging
 from logging import DEBUG, Logger, basicConfig, getLogger
 from logging.config import dictConfig
 from inspect import isfunction
+from sys import flags
 
 from webob.exc import HTTPException, HTTPNotFound, HTTPInternalServerError
 
@@ -25,6 +26,35 @@ from .view import WebViews
 
 if __debug__:
 	from .util import safe_name
+	
+	if flags.dev_mode:
+		MIME_ICON = {
+				'application': "\uf1c9",
+				'audio': "\uf1c7",
+				'font': "\uf031",
+				'image': "\uf1c5",
+				'text': "\uf0f6",
+				'unknown': "\uf016",
+				'video': "\uf1c8",
+				'multipart': "\uf68e",
+				'message': "\uf865",
+				'model': "\ue706",
+				
+				'application/gzip': "\uf1c6",
+				'application/pdf': "\uf1c1",
+				'application/vnd.rar': "\uf1c6",
+				'application/x-7z-compressed': "\uf1c6",
+				'application/x-bzip2': "\uf1c6",
+				'application/x-rar': "\uf1c6",
+				'application/x-rar-compressed': "\uf1c6",
+				'application/x-tar': "\uf1c6",
+				'application/x-zip-compressed': "\uf1c6",
+				'application/zip': "\uf1c6",
+				'multipart/x-zip': "\uf1c6",
+				'text/csv': "\uf717",
+				'text/tsv': "\uf717",
+				'application/vnd.ms-fontobject': "\uf031",
+			}
 
 
 class Application:
@@ -235,6 +265,22 @@ class Application:
 		"""
 		context = environ['wc.context'] = self.RequestContext(environ=environ)
 		signals = context.extension.signal
+		
+		if __debug__ and flags.dev_mode:
+			e = environ
+			cols = __import__('shutil').get_terminal_size().columns
+			message = f"{e['REMOTE_ADDR']} → {e['SERVER_PROTOCOL']} \033[1m{e['REQUEST_METHOD']}\033[m \033[4m{e['wsgi.url_scheme']}://{e['SERVER_NAME']}:{e['SERVER_PORT']}{e['SCRIPT_NAME']}{e['PATH_INFO']}{('?' + e['QUERY_STRING']) if e['QUERY_STRING'] else ''}\033[m"
+			rmessage = "——"
+			
+			if e.get('CONTENT_LENGTH', 0):
+				mime = e.get('CONTENT_TYPE', '')
+				prefix, _, _ = mime.partition('/')
+				if mime:
+					icon = MIME_ICON.get(mime, None)
+					if not icon: icon = MIME_ICON.get(prefix, MIME_ICON['unknown'])
+					rmessage = f" {mime} {icon} {e.get('CONTENT_LENGTH', 0)} "
+			
+			print(f"—— {message} {'—' * (cols - len(message) - len(rmessage) - 8 + 16)}{rmessage}——")
 		
 		# Announce the start of a request cycle. This executes `prepare` and `before` callbacks in the correct order.
 		for ext in signals.pre: ext(context)
