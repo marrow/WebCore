@@ -10,6 +10,8 @@ from os.path import expandvars
 from pathlib import Path, PurePosixPath
 from re import compile as re
 from time import mktime, gmtime
+from xml.etree import ElementTree as ET
+from xml.dom import minidom
 
 from uri import URI
 from webob import Request, Response
@@ -106,6 +108,8 @@ class BaseExtension:
 		register(str, self.render_text)
 		register(IOBase, self.render_file)
 		register(Generator, self.render_generator)
+		register(ET.Element, self.render_element_tree_element)
+		register(minidom.Document, self.render_minidom)
 		
 		# Track the remaining (unprocessed) path elements.
 		context.remainder = property(lambda self: PurePosixPath(self.request.path_info))
@@ -308,5 +312,35 @@ class BaseExtension:
 				(i.encode('utf-8') if isinstance(i, bytes) else str(i))  # Stream encode Unicode chunks.
 				for i in result if i is not None  # Skip None values.
 			)
+		
+		return True
+	
+	def render_element_tree_element(self, context:Context, result:ET.Element) -> bool:
+		"""Render an ElementTree Element into the response.
+		
+		Automatically utilizes the pending response's `charset`, defaulting to UTF-8.
+		"""
+		
+		assert check_argument_types()
+		
+		if context.response.content_type == 'text/html':
+			context.response.content_type = 'application/xml'
+		
+		context.response.body = ET.tostring(result, encoding=context.response.charset, xml_declaration=True)
+		
+		return True
+	
+	def render_minidom(self, context:Context, result:minidom.Document) -> bool:
+		"""Render a 'minidom' Document into the response.
+		
+		Automatically utilizes the pending response's `charset`, defaulting to UTF-8.
+		"""
+		
+		assert check_argument_types()
+		
+		if context.response.content_type == 'text/html':
+			context.response.content_type = 'text/xml' if __debug__ else 'application/xml'
+		
+		context.response.body = (result.toprettyxml if __debug__ else result.toxml)(encoding=context.resopnse.charset)
 		
 		return True
