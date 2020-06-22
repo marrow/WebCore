@@ -3,8 +3,10 @@
 Applications can be as simple or as complex and layered as your needs dictate.
 """
 
+from web.core.typing import Context
 
-def basic(context, name:str="world") -> str:
+
+def greet(context:Context, name:str="world") -> str:
 	"""Say hello.
 	
 	This can be tested easily using cURL from the command line:
@@ -30,6 +32,6 @@ def basic(context, name:str="world") -> str:
 if __name__ == '__main__':
 	from web.core import Application
 	
-	Application(basic, extensions=[
+	Application(greet, extensions=[
 			'kwargs.elision',
 		], logging={'level': 'debug'}).serve('waitress', listen='127.0.0.1:8080 [::1]:8080', threads=16)
