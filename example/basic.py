@@ -9,15 +9,15 @@ def basic(context, name:str="world") -> str:
 	
 	This can be tested easily using cURL from the command line:
 	
-		curl http://localhost:8080/  # Default value via GET.
-		curl http://localhost:8080/Alice  # Positionally specified via GET.
-		curl -d name=Eve http://localhost:8080/  # Form-encoded value via POST.
+		curl -v http://localhost:8080/  # Default value via GET.
+		curl -v http://localhost:8080/Alice  # Positionally specified via GET.
+		curl -v -d name=Eve http://localhost:8080/  # Form-encoded value via POST.
 	
 	To demonstrate the utility extensions used here, try out the following and watch the server logs:
 	
-		curl 'http://localhost:8080/?bob=dole'
-		curl 'http://localhost:8080/?utm_source=web'
-		curl 'http://localhost:8080/Bob?name=Dole&utm_source=web'
+		curl -v 'http://localhost:8080/?bob=dole'
+		curl -v 'http://localhost:8080/?utm_source=web'
+		curl -v 'http://localhost:8080/Bob?name=Dole&utm_source=web'
 	
 	Try those again after re-launching the web server via:
 	
