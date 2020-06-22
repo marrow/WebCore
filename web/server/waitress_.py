@@ -34,6 +34,7 @@ def serve(application:WSGI, host:HostBind='127.0.0.1', port:PortBind=8080, threa
 		kw = {'host': host, 'port': port, **kw}
 	
 	kw['threads'] = threads
+	kw.setdefault('clear_untrusted_proxy_headers', True)  # We short-circuit a default change to silence a warning.
 	
 	# Bind and start the server; this is a blocking process.
 	serve_(application, **kw)
