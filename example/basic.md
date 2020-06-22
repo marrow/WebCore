@@ -52,7 +52,7 @@ The `name` argument to the endpoint may be specified *positionally*, by utilizin
 		Hello Alice.
 
 
-## Passing by Name, Query String [/?name=Bob%20Dole]
+## Passing by Name, Query String [/?name=Bob+Dole]
 
 The `name` argument to the endpoint might alternatively be specified *by name*, as a *keyword argument*. These arguments may be sourced from several locations, such as **parsed query string arguments** ("GET" arguments), form-data encoded, or even JSON encoded "POST" bodies, and so forth.
 
