@@ -217,8 +217,9 @@ class ValidateArgumentsExtension:
 		for key in conflicting: del kw[key]
 		
 		if conflicting and __debug__:
+			plural = '' if len(conflicting) == 1 else 's'
 			(log.warning if flags.dev_mode else log.debug)(
-					f"Unknown named argument{'' if len(conflicting) == 1 else 's'}: {', '.join(sorted(conflicting))}",
+					f"Unknown named argument{plural}: {', '.join(sorted(conflicting))}",
 					extra=dict(
 							request = id(context),
 							endpoint = safe_name(endpoint),
