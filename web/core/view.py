@@ -87,7 +87,7 @@ class WebViews(PluginManager):
 			yield candidate
 		
 		# More exhaustive search for potentially more crafty use such as ABC, zope.interface, marrow.interface, etc.
-		for kind, candidate in self._map.iteritems():
+		for kind, candidate in self._map.items():
 			if kind is rtype: continue  # We've already seen these.
 			
 			if isinstance(result, kind):
