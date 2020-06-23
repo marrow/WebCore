@@ -27,6 +27,13 @@ def greet(context:Context, name:str="world") -> str:
 		python3 -X dev example/basic.py
 	"""
 	
+	import logging
+	logging.debug("This is a diagnostic situation.")
+	logging.info("This is an informational situation.")
+	logging.warning("This is a warning situation.")
+	logging.error("This is an error situation.")
+	logging.critical("This is a critical situation.")
+	
 	return "Hello {name}.".format(name=name)
 
 
