@@ -270,7 +270,11 @@ class Application:
 		if __debug__ and flags.dev_mode:
 			e = environ
 			cols = __import__('shutil').get_terminal_size().columns
-			message = f"{e['REMOTE_ADDR']} → {e['SERVER_PROTOCOL']} \033[1m{e['REQUEST_METHOD']}\033[0;7m \033[4m{e['wsgi.url_scheme']}://{e['SERVER_NAME']}:{e['SERVER_PORT']}{e['SCRIPT_NAME']}{e['PATH_INFO']}{('?' + e['QUERY_STRING']) if e['QUERY_STRING'] else ''}\033[0;7m"
+			message = f"{e['REMOTE_ADDR']} → {e['SERVER_PROTOCOL']} " \
+					f"\033[1m{e['REQUEST_METHOD']}\033[0;7m " \
+					f"\033[4m{e['wsgi.url_scheme']}://{e['SERVER_NAME']}:{e['SERVER_PORT']}" \
+					f"{e['SCRIPT_NAME']}{e['PATH_INFO']}" \
+					f"{('?' + e['QUERY_STRING']) if e['QUERY_STRING'] else ''}\033[0;7m"
 			rmessage = ""
 			
 			if e.get('CONTENT_LENGTH', 0):
