@@ -334,7 +334,7 @@ class Application:
 			e = environ
 			cols = __import__('shutil').get_terminal_size().columns
 			status, _, message = context.response.status.partition(' ')
-			colour = {'2': '2', '3': '14', '4': '11', '5': '9'}[context.response.status[0]]
+			colour = {'2': '150', '3': '111', '4': '214', '5': '166'}[context.response.status[0]]
 			message = f"{e['REMOTE_ADDR']} ← \033[1m{status} {message}\033[0;38;5;232;48;5;{colour}m"
 			rmessage = ""
 			
@@ -349,7 +349,7 @@ class Application:
 				message += f" ⤺ {context.response.location} "
 			
 			# print("\033[2J\033[;H\033[0m", end="")
-			print(f"\033[0;38;5;232;48;5;{colour}m {message}\033[0;38;5;232;48;5;{colour}m{' ' * (cols - len(message) - len(rmessage) + 23)}{rmessage}\033[m")
+			print(f"\033[0;38;5;232;48;5;{colour}m {message}\033[0;38;5;232;48;5;{colour}m{' ' * (cols - len(message) - len(rmessage) + 25)}{rmessage}\033[m")
 		
 		# This is really long due to the fact we don't want to capture the response too early.
 		# We need anything up to this point to be able to simply replace `context.response` if needed.
