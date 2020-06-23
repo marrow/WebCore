@@ -180,12 +180,45 @@ class Application:
 		except AttributeError:
 			pass
 		
-		# Tests are skipped on these as we have no particular need to test Python's own logging mechanism.
-		level = config.get('logging', {}).get('level', None)
-		if level:  # pragma: no cover
+		level = config.get('logging', 'debug' if flags.dev_mode else ('info' if __debug__ else 'warn'))
+		
+		if isinstance(level, dict):
+			level = level.get('level', None)
+		
+		if level:
+			level = level.upper()
+			
+			config['logging'] = {
+					'version': 1,
+					'handlers': {
+							'console': {
+									'class': 'logging.StreamHandler',
+									'formatter': 'pretty',
+									'level': level,
+									'stream': 'ext://sys.stdout',
+								}
+						},
+					'loggers': {
+							'web': {
+									'level': level,
+									'handlers': ['console'],
+									'propagate': False,
+								},
+						},
+					'root': {
+							'level': level,
+							'handlers': ['console']
+						},
+					'formatters': {
+							'pretty': {
+									'()': 'web.core.pretty.PrettyFormatter',
+								}
+						},
+				}
+			
 			basicConfig(level=getattr(logging, level.upper()))
-		elif 'logging' in config:  # pragma: no cover
-			dictConfig(config['logging'])
+		
+		dictConfig(config['logging'])
 		
 		return config
 	
@@ -270,7 +303,7 @@ class Application:
 		if __debug__ and flags.dev_mode:
 			e = environ
 			cols = __import__('shutil').get_terminal_size().columns
-			message = f"{e['REMOTE_ADDR']} → {e['SERVER_PROTOCOL']} " \
+			message = f" {e['REMOTE_ADDR']} → {e['SERVER_PROTOCOL']} " \
 					f"\033[1m{e['REQUEST_METHOD']}\033[0;7m " \
 					f"\033[4m{e['wsgi.url_scheme']}://{e['SERVER_NAME']}:{e['SERVER_PORT']}" \
 					f"{e['SCRIPT_NAME']}{e['PATH_INFO']}" \
@@ -286,7 +319,7 @@ class Application:
 					rmessage = f" {mime} {icon} {e.get('CONTENT_LENGTH', 0)} "
 			
 			# print("\033[2J\033[;H\033[0m", end="")
-			print(f"\033[7m {message} {' ' * (cols - len(message) - len(rmessage) - 8 + 26)}{rmessage}\033[m")
+			print(f"\033[7m {message} {' ' * (cols - len(message) - len(rmessage) - 8 + 24)}{rmessage}\033[m")
 		
 		# Announce the start of a request cycle. This executes `prepare` and `before` callbacks in the correct order.
 		for ext in signals.pre: ext(context)
@@ -353,7 +386,7 @@ class Application:
 				message += f" ⤺ {context.response.location} "
 			
 			# print("\033[2J\033[;H\033[0m", end="")
-			print(f"\033[0;38;5;232;48;5;{colour}m {message}\033[0;38;5;232;48;5;{colour}m{' ' * (cols - len(message) - len(rmessage) + 25)}{rmessage}\033[m")
+			print(f"\033[0;38;5;232;48;5;{colour}m {message}\033[0;38;5;232;48;5;{colour}m{' ' * (cols - len(message) - len(rmessage) + 23)}{rmessage}\033[m")
 		
 		# This is really long due to the fact we don't want to capture the response too early.
 		# We need anything up to this point to be able to simply replace `context.response` if needed.
