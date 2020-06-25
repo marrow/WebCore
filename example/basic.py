@@ -29,7 +29,7 @@ def greet(context:Context, name:str="world") -> str:
 	
 	import logging
 	logging.debug("This is a diagnostic situation.")
-	logging.info("This is an informational situation.")
+	logging.info("This is an informational situation.", extra=dict(foo="bar", baz=27))
 	logging.warning("This is a warning situation.")
 	logging.error("This is an error situation.")
 	logging.critical("This is a critical situation.")
