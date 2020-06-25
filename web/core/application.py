@@ -386,7 +386,8 @@ class Application:
 				message += f" ⤺ {context.response.location} "
 			
 			# print("\033[2J\033[;H\033[0m", end="")
-			print(f"\033[0;38;5;232;48;5;{colour}m {message}\033[0;38;5;232;48;5;{colour}m{' ' * (cols - len(message) - len(rmessage) + 23)}{rmessage}\033[m")
+			print(f"\033[0;38;5;232;48;5;{colour}m {message}\033[0;38;5;232;48;5;{colour}m" \
+					f"{' ' * (cols - len(message) - len(rmessage) + 25)}{rmessage}\033[m")
 		
 		# This is really long due to the fact we don't want to capture the response too early.
 		# We need anything up to this point to be able to simply replace `context.response` if needed.
