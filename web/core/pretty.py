@@ -76,15 +76,23 @@ class PrettyFormatter(logging.Formatter):
 	}
 	
 	SYM = {
-			'CRITICAL': '\033[30;101m \033[5m\U0001f514 \033[m',
-			'ERROR': '\033[30;101m \U0001f6ab \033[m',
-			'WARNING': '\033[30;103m \u26a0\ufe0f  \033[m',
-			'INFO': '\033[30;103m \U0001f4ac \033[m',
+			'CRITICAL': '\033[30;48;5;196m \033[5m\U0001f514\033[25m',
+			'ERROR': '\033[30;48;5;208m \U0001f6ab',
+			'WARNING': '\033[30;48;5;220m \u26a0\ufe0f ',
+			'INFO': '\033[30;48;5;39m \U0001f4ac',
+			'DEBUG': '\033[97;48;5;243m \U0001f4ad',
+		}
+	COLOURS = {
+			'CRITICAL': '196',
+			'ERROR': '208',
+			'WARNING': '220',
+			'INFO': '39',
+			'DEBUG': '243',
 		}
 	
 	def __init__(self, highlight=None, indent=flags.dev_mode, **kwargs):
 		if __debug__ and stdin.isatty():
-			format = "{SYM} {name}::{funcName}:{lineno} {message}"
+			format = "{SYM}\033[1;38;5;232m {name} \033[0;38;5;{C};48;5;238m\ue0b0\033[38;5;255m {funcName} \033[30m\ue0b1\033[38;5;255m {lineno} \033[38;5;238;48;5;0m\ue0b0\033[m {message}"
 		else:
 			format = "{levelname}\t{name}::{funcName}:{lineno}\t{message}"
 		
@@ -136,6 +144,7 @@ class PrettyFormatter(logging.Formatter):
 			record.message = "Unable to retrieve log message: " + repr(e)
 		
 		record.SYM = self.SYM[record.levelname.upper()]
+		record.C = self.COLOURS[record.levelname.upper()]
 		
 		try:
 			formatted = super(PrettyFormatter, self).formatMessage(record)
