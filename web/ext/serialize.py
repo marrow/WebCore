@@ -1,7 +1,7 @@
 """An example, though quite usable extension to handle list and dictionary return values."""
 
 from pkg_resources import Distribution, DistributionNotFound
-from collections import Mapping as MappingABC, Iterable as IterableABC
+from collections.abc import Mapping as MappingABC, Iterable as IterableABC
 
 from webob.exc import HTTPNotAcceptable
 from marrow.package.host import PluginManager
