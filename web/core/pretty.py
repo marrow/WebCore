@@ -72,7 +72,7 @@ class PrettyFormatter(logging.Formatter):
 		'module', 'exc_info', 'exc_text', 'lineno', 'funcName', 'created',
 		'msecs', 'relativeCreated', 'thread', 'threadName', 'processName',
 		'process', 'getMessage', 'message', 'asctime',
-		'stack_info', 'SYM',
+		'stack_info', 'SYM', 'C',
 	}
 	
 	SYM = {
