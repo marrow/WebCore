@@ -118,8 +118,9 @@ class StripArgumentsExtension:
 		
 		encoded = ((i.pattern if isinstance(i, Pattern) else f"^{rescape(i)}$") for i in patterns)
 		self.strip = re(f'({")|(".join(encoded)})')
+		self.collect = self._elide  # Improve logging output by having a meaningful method name.
 	
-	def collect(self, context:Context, endpoint:Callable, args:PositionalArgs, kw:KeywordArgs) -> None:
+	def _elide(self, context:Context, endpoint:Callable, args:PositionalArgs, kw:KeywordArgs) -> None:
 		strip, pattern = set(), self.strip
 		
 		for arg in kw:
