@@ -303,11 +303,11 @@ class Application:
 		if __debug__ and flags.dev_mode:
 			e = environ
 			cols = __import__('shutil').get_terminal_size().columns
-			message = f" {e['REMOTE_ADDR']} → {e['SERVER_PROTOCOL']} " \
-					f"\033[1m{e['REQUEST_METHOD']}\033[0;7m " \
+			message = f"{e['REMOTE_ADDR']} \ue0b1 {e['SERVER_PROTOCOL']} \ue0b1 " \
+					f"\033[1m{e['REQUEST_METHOD']}\033[0;38;5;232;48;5;255m \ue0b1 " \
 					f"\033[4m{e['wsgi.url_scheme']}://{e['SERVER_NAME']}:{e['SERVER_PORT']}" \
 					f"{e['SCRIPT_NAME']}{e['PATH_INFO']}" \
-					f"{('?' + e['QUERY_STRING']) if e['QUERY_STRING'] else ''}\033[0;7m"
+					f"{('?' + e['QUERY_STRING']) if e['QUERY_STRING'] else ''}\033[24m"
 			rmessage = ""
 			
 			if e.get('CONTENT_LENGTH', 0):
@@ -316,10 +316,10 @@ class Application:
 				if mime:
 					icon = MIME_ICON.get(mime, None)
 					if not icon: icon = MIME_ICON.get(prefix, MIME_ICON['unknown'])
-					rmessage = f" {mime} {icon} {e.get('CONTENT_LENGTH', 0)} "
+					rmessage = f"{mime} {icon} {e.get('CONTENT_LENGTH', 0)} "
 			
 			# print("\033[2J\033[;H\033[0m", end="")
-			print(f"\033[7m {message} {' ' * (cols - len(message) - len(rmessage) - 8 + 24)}{rmessage}\033[m")
+			print(f"\033[38;5;232;48;5;255m {message} {' ' * (cols - len(message) - len(rmessage) - 8 + 39)}\ue0b3 {rmessage}\033[m")
 		
 		# Announce the start of a request cycle. This executes `prepare` and `before` callbacks in the correct order.
 		for ext in signals.pre: ext(context)
@@ -372,7 +372,7 @@ class Application:
 			cols = __import__('shutil').get_terminal_size().columns
 			status, _, message = context.response.status.partition(' ')
 			colour = {'2': '150', '3': '111', '4': '214', '5': '166'}[context.response.status[0]]
-			message = f"{e['REMOTE_ADDR']} ← \033[1m{status} {message}\033[0;38;5;232;48;5;{colour}m"
+			message = f"{e['REMOTE_ADDR']} \ue0b3 \033[1m{status} {message}\033[0;38;5;232;48;5;{colour}m"
 			rmessage = ""
 			
 			if context.response.content_length:
@@ -381,13 +381,13 @@ class Application:
 				if mime:
 					icon = MIME_ICON.get(mime, None)
 					if not icon: icon = MIME_ICON.get(prefix, MIME_ICON['unknown'])
-					rmessage = f" {mime} {icon} {context.response.content_length} "
+					rmessage = f"{mime} {icon} {context.response.content_length} "
 			elif context.response.status[0] == '3':
 				message += f" ⤺ {context.response.location} "
 			
 			# print("\033[2J\033[;H\033[0m", end="")
 			print(f"\033[0;38;5;232;48;5;{colour}m {message}\033[0;38;5;232;48;5;{colour}m" \
-					f"{' ' * (cols - len(message) - len(rmessage) + 25)}{rmessage}\033[m")
+					f"{' ' * (cols - len(message) - len(rmessage) + 23)}\ue0b1 {rmessage}\033[m")
 		
 		# This is really long due to the fact we don't want to capture the response too early.
 		# We need anything up to this point to be able to simply replace `context.response` if needed.
