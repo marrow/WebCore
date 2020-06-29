@@ -132,9 +132,7 @@ class StripArgumentsExtension:
 					f"Eliding endpoint argument{'' if len(strip) == 1 else 's'}: {', '.join(sorted(strip))}",
 					extra=dict(
 							request = id(context),
-							endpoint = safe_name(endpoint),
-							endpoint_args = args,
-							endpoint_kw = kw,
+							elided = {k: kw[k] for k in strip}
 						))
 		
 		for arg in strip: del kw[arg]
@@ -185,10 +183,7 @@ class ValidateArgumentsExtension:
 				difference = len(args) - len(spec.args)
 				(log.warning if flags.dev_mode else log.debug)(
 						f"Ignoring {difference} extraneous positional argument{'' if difference == 1 else 's'}.",
-						extra=dict(
-								request = id(context),
-								endpoint = safe_name(endpoint),
-							))
+						extra=context.log_extra)
 			
 			del args[len(spec.args):]
 		
@@ -196,35 +191,28 @@ class ValidateArgumentsExtension:
 		
 		# Next, we eliminate keyword arguments that would conflict with populated positional ones.
 		
-		conflicting = set()
-		for key in matched.intersection(kw):
-			conflicting.add(key)
-			del kw[key]
+		conflicting = matched.intersection(kw)
 		
 		if conflicting and __debug__:
 			plural = '' if len(conflicting) == 1 else 's'
 			(log.warning if flags.dev_mode else log.debug)(
 					f"Positional argument{plural} duplicated by name: {', '.join(sorted(conflicting))}",
-					extra=dict(
-							request = id(context),
-							endpoint = safe_name(endpoint),
-						))
+					extra={'elided': {k: kw[k] for k in conflicting}, **context.log_extra})
+		
+		for key in conflicting: del kw[key]
 		
 		# Lastly, we remove any named arguments that don't exist as named arguments.
 		
 		allowable = set(chain(spec.args, spec.kwonlyargs))
 		conflicting = set(kw).difference(allowable)
 		
-		for key in conflicting: del kw[key]
-		
 		if conflicting and __debug__:
 			plural = '' if len(conflicting) == 1 else 's'
 			(log.warning if flags.dev_mode else log.debug)(
 					f"Unknown named argument{plural}: {', '.join(sorted(conflicting))}",
-					extra=dict(
-							request = id(context),
-							endpoint = safe_name(endpoint),
-						))
+					extra={'elided': {k: kw[k] for k in conflicting}, **context.log_extra})
+		
+		for key in conflicting: del kw[key]
 	
 	def _validate(self, context, endpoint, args, kw):
 		try:
@@ -237,12 +225,12 @@ class ValidateArgumentsExtension:
 			# If the argument specification doesn't match, the handler can't process this request.
 			# This is one policy. Another possibility is more computationally expensive and would pass only
 			# valid arguments, silently dropping invalid ones. This can be implemented as a collection handler.
-			log.error(str(e).replace(endpoint.__name__, safe_name(endpoint)), extra=dict(
-					request = id(context),
-					endpoint = safe_name(endpoint),
-					endpoint_args = args,
-					endpoint_kw = kw,
-				))
+			log.error(str(e).replace(endpoint.__name__, safe_name(endpoint)), extra={
+					'endpoint': safe_name(endpoint),
+					'endpoint_args': args,
+					'endpoint_kw': kw,
+					**context.log_extra
+				})
 			
 			raise HTTPBadRequest("Incorrect endpoint arguments: " + str(e))
 
