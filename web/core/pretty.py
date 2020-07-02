@@ -159,7 +159,7 @@ class PrettyFormatter(logging.Formatter):
 			)
 			if stdin.isatty():
 				json = _highlight(json, JsonLexer(tabsize=4), Terminal256Formatter(style='monokai')).strip()
-			json = "\n".join(f" {line}" for line in json.split('\n')[1:-1])  # Strip off the leading and trailing lines.
+			json = "\n".join(json.split('\n')[1:-1])  # Strip off the leading and trailing lines.
 		except Exception as e:
 			formatted = "JSON serialization failed: " + repr(e)
 			json = None
