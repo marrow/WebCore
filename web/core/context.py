@@ -1,6 +1,6 @@
 """A `MutableMapping` subclass for use as a request-local context object."""
 
-from collections import MutableMapping
+from collections.abc import MutableMapping
 
 
 class Context(MutableMapping):
