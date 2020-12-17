@@ -107,7 +107,9 @@ class WebExtensions(ExtensionManager):
 		for ext in all:
 			for signal in signals:  # Attach any callbacks that might exist.
 				handler = getattr(ext, signal, None)
-				if handler: signals[signal].append(handler)
+				if handler and not callable(handler):
+					print("Non-callable handler ignored:", handler, "from", ext)
+				elif handler: signals[signal].append(handler)
 			
 			if hasattr(ext, '__call__'):  # This one is aliased; the extension itself is treated as WSGI middleware.
 				signals['middleware'].append(ext)
