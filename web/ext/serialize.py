@@ -72,7 +72,7 @@ class SerializationExtension(ArgumentExtension):
 		assert check_argument_types()
 		
 		if __debug__:
-			log.debug("Registering serialization return value handlers.")
+			log.info("Registering serialization return value handlers.")
 		
 		manager = SerializationPlugins('web.serialize')
 		manager.__dict__['__isabstractmethod__'] = False  # Resolve Python 2.6+ issue.

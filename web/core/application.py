@@ -113,7 +113,7 @@ class Application:
 		  added to the extension set.
 		"""
 		
-		if __debug__: self._log.debug("Preparing WebCore application.")
+		if __debug__: self._log.info("Preparing WebCore application.")
 		self.config = self._configure(config)  # Prepare the configuration.
 		
 		if isfunction(root):  # We need to armour against this turning into a bound method of the context.
@@ -139,7 +139,7 @@ class Application:
 		for ext in exts.signal.middleware: app = ext(context, app)
 		self.__call__ = app
 		
-		if __debug__: self._log.debug("WebCore application prepared.")
+		if __debug__: self._log.info("WebCore application prepared.")
 	
 	def _configure(self, config:dict) -> dict:
 		"""Prepare the incoming configuration and ensure certain expected values are present.
@@ -310,16 +310,19 @@ class Application:
 					f"{('?' + e['QUERY_STRING']) if e['QUERY_STRING'] else ''}\033[24m"
 			rmessage = ""
 			
-			if e.get('CONTENT_LENGTH', 0):
+			if e.get('CONTENT_LENGTH', 0):  # If data was submitted as the body, announce what and how large.
 				mime = e.get('CONTENT_TYPE', '')
 				prefix, _, _ = mime.partition('/')
 				if mime:
 					icon = MIME_ICON.get(mime, None)
 					if not icon: icon = MIME_ICON.get(prefix, MIME_ICON['unknown'])
-					rmessage = f"{mime} {icon} {e.get('CONTENT_LENGTH', 0)} "
+					rmessage = f"\ue0b1 {mime} {icon} {e.get('CONTENT_LENGTH', 0)} "
+			
+			kinds = e.get('HTTP_ACCEPT', '*/*').split(',')
+			rmessage += f"\ue0b1 {kinds[0]}{'' if len(kinds) == 1 else ', …'}{', */*' if len(kinds) > 1 and '*/*' in e.get('HTTP_ACCEPT', '*/*') else ''} \ue0b1 {e.get('HTTP_ACCEPT_LANGUAGE', '*-*')} "
 			
 			# print("\033[2J\033[;H\033[0m", end="")
-			print(f"\033[38;5;232;48;5;255m {message} {' ' * (cols - len(message) - len(rmessage) - 8 + 39)}\ue0b3 {rmessage}\033[m")
+			print(f"\033[38;5;232;48;5;255m {message} {' ' * (cols - len(message) - len(rmessage) - 6 + 39)}{rmessage}\033[m")
 		
 		# Announce the start of a request cycle. This executes `prepare` and `before` callbacks in the correct order.
 		for ext in signals.pre: ext(context)
@@ -387,7 +390,7 @@ class Application:
 			
 			# print("\033[2J\033[;H\033[0m", end="")
 			print(f"\033[0;38;5;232;48;5;{colour}m {message}\033[0;38;5;232;48;5;{colour}m" \
-					f"{' ' * (cols - len(message) - len(rmessage) + 23)}\ue0b1 {rmessage}\033[m")
+					f"{' ' * (cols - len(message) - len(rmessage) + 23)}\ue0b3 {rmessage}\033[m")
 		
 		# This is really long due to the fact we don't want to capture the response too early.
 		# We need anything up to this point to be able to simply replace `context.response` if needed.

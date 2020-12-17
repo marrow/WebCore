@@ -93,7 +93,7 @@ class BaseExtension:
 		"""
 		
 		assert check_argument_types()
-		if __debug__: self._log.debug("Registering core return value handlers.")
+		if __debug__: self._log.info("Registering core return value handlers.")
 		
 		# This prepares the mimetypes registry, and adds values typically missing from it.
 		init()
@@ -195,7 +195,7 @@ class BaseExtension:
 		"""
 		
 		assert check_argument_types()
-		if __debug__: self._log.debug("Applying literal None value as empty response.", extra=context.log_extra)
+		if __debug__: self._log.info("Applying literal None value as empty response.", extra=context.log_extra)
 		
 		context.response.content_type = 'text/plain'
 		context.response.body = b''
@@ -210,7 +210,7 @@ class BaseExtension:
 		"""
 		
 		assert check_argument_types()
-		if __debug__: self._log.debug(f"Replacing request object with: {result!r}", extra=context.log_extra)
+		if __debug__: self._log.info(f"Replacing context.response object with: {result!r}", extra=context.log_extra)
 		
 		context.response = result
 		
@@ -223,7 +223,7 @@ class BaseExtension:
 		"""
 		
 		assert check_argument_types()
-		if __debug__: self._log.debug(f"Applying {len(result)}-byte binary value.", extra=context.log_extra)
+		if __debug__: self._log.info(f"Applying {len(result)}-byte binary value.", extra=context.log_extra)
 		
 		context.response.app_iter = iter((result, ))  # This wraps the binary string in a WSGI body iterable.
 		
@@ -236,7 +236,7 @@ class BaseExtension:
 		"""
 		
 		assert check_argument_types()
-		if __debug__: self._log.debug(f"Applying {len(result)}-character text value.", extra=context.log_extra)
+		if __debug__: self._log.info(f"Applying {len(result)}-character text value.", extra=context.log_extra)
 		
 		resp = context.response
 		context.response.text = result
@@ -265,7 +265,7 @@ class BaseExtension:
 		result.seek(0)  # Seek back to the start of the file.
 		
 		if __debug__:
-			self._log.debug(f"Applying a {response.content_length}-byte file-like object: {result!r}", extra={
+			self._log.info(f"Applying a {response.content_length}-byte file-like object: {result!r}", extra={
 					'path': '<anonymous>' if anonymous else str(path),
 					**context.log_extra
 				})
@@ -305,7 +305,7 @@ class BaseExtension:
 		"""
 		
 		assert check_argument_types()
-		if __debug__: self._log.debug(f"Applying an unknown-length generator: {result!r}", extra=context.log_extra)
+		if __debug__: self._log.info(f"Applying an unknown-length generator: {result!r}", extra=context.log_extra)
 		
 		context.response.encoding = 'utf-8'
 		context.response.app_iter = (
@@ -322,6 +322,7 @@ class BaseExtension:
 		"""
 		
 		assert check_argument_types()
+		if __debug__: self._log.info(f"Applying an ElementTree object: {result!r}", extra=context.log_extra)
 		
 		if context.response.content_type == 'text/html':
 			context.response.content_type = 'application/xml'
@@ -337,6 +338,7 @@ class BaseExtension:
 		"""
 		
 		assert check_argument_types()
+		if __debug__: self._log.info(f"Applying a MiniDOM object: {result!r}", extra=context.log_extra)
 		
 		if context.response.content_type == 'text/html':
 			context.response.content_type = 'text/xml' if __debug__ else 'application/xml'

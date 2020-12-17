@@ -31,8 +31,7 @@ class ThreadLocalExtension:
 		
 		super().__init__()
 		
-		if __debug__:
-			log.debug("Initializing ThreadLocal extension.")
+		if __debug__: log.debug("Initializing ThreadLocal extension.")
 		
 		self.where = where
 		self.local = None
@@ -49,8 +48,7 @@ class ThreadLocalExtension:
 		
 		module, name = self._lookup()
 		
-		if __debug__:
-			log.debug("Preparing thread local storage and assigning main thread application context.")
+		if __debug__: log.debug("Preparing thread local storage and assigning main thread application context.")
 		
 		if hasattr(module, name):
 			self.local = getattr(module, name)
@@ -66,8 +64,7 @@ class ThreadLocalExtension:
 		
 		self.local = None
 		
-		if __debug__:
-			log.debug("Cleaning up thread local storage.")
+		if __debug__: log.debug("Cleaning up thread local storage.")
 		
 		if not self.preserve:
 			module, name = self._lookup()
@@ -78,15 +75,13 @@ class ThreadLocalExtension:
 		
 		assert check_argument_types()
 		
-		if __debug__:
-			log.debug("Assigning thread local request context.")
+		if __debug__: log.debug("Assigning thread local request context.")
 		
 		self.local.context = context
 	
 	def done(self, result:Any) -> None:
 		"""Executed after the entire response has been sent to the client."""
 		
-		if __debug__:
-			log.debug("Cleaning up thread local request context.")
+		if __debug__: log.debug("Cleaning up thread local request context.")
 		
 		del self.local.context

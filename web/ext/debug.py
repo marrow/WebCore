@@ -18,13 +18,13 @@ class Console:
 	request: Request
 	
 	def __init__(self, context:Context) -> None:
-		assert check_argument_types()
+		# assert check_argument_types()
 		
 		self.request = context.request
 		self.debugger = context.get('debugger', None)
 	
 	def __call__(self, *args, **kw):
-		if not self.debugger: raise HTTPNotFound("Debugger extension not enabled.")
+		if not self.debugger: raise HTTPNotFound("Debugger extension unavailable.")
 		return self.debugger.display_console(self.request)
 
 
@@ -44,7 +44,7 @@ class DebugExtension:
 	verbose: bool
 	
 	def __init__(self, path:str='/__console__', verbose:bool=False) -> None:
-		assert check_argument_types()
+		# assert check_argument_types()
 		if __debug__: log.debug("Initializing debugger extension.")
 		
 		self.path = path
@@ -60,8 +60,8 @@ class DebugExtension:
 		Accepts a WSGI application as the second argument and must likewise return a WSGI app.
 		"""
 		
-		assert check_argument_types()
-		if __debug__: log.debug("Wrapping application in debugger middleware.")
+		# assert check_argument_types()
+		if __debug__: log.info("Wrapping application in debugger middleware.")
 		
 		def _populate(locals:dict, context:Context) -> dict:
 			"""Collect contributions from extensions to debugger/shell locals."""

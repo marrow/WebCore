@@ -4,7 +4,7 @@ from logging import Logger
 from pathlib import Path, PurePosixPath
 from types import ModuleType
 from typing import Any, Callable, ClassVar, Dict, Generator, Iterable, List, Mapping, Optional, Set, Tuple, Union, \
-		Text, Type, Pattern
+		Text, Type, Pattern, MutableSet
 
 from typeguard import check_argument_types
 from uri import URI

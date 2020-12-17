@@ -18,7 +18,5 @@ class AcceptFilenameExtension:
 	def prepare(self, context:Context) -> None:
 		assert check_argument_types()
 		
-		encoding, _ = guess_type(context.environ['PATH_INFO'])
-		
-		if encoding:
+		if (encoding := guess_type(context.environ['PATH_INFO'])):
 			context.request.accept = encoding + context.request.accept
