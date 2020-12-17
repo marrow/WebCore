@@ -73,6 +73,11 @@ class TimingPrefix:
 	first: bool = True  # This extension goes "first" in the execution stack for each extension callback.
 	provides: Tags = {'timing.prefix'}  # Expose this symbol for other extensions to depend upon.
 	
+	def __init__(self, timing:str='all', header:str="Generation-Time", log:str='info'):
+		self.timing = timing
+		self.header = header
+		self.log = getattr(__import__('logging').getLogger(__name__), log) if log else None
+	
 	def __call__(self, context:Context, app:WSGI) -> WSGI:
 		"""Add the start time of request processing as early as possible, at the WSGI middleware stage."""
 		
@@ -92,7 +97,7 @@ class TimingPrefix:
 	
 	def transform(self, context:Context, endpoint:Callable, result:Any) -> Any:
 		"""Capture of the transformation stage timing, returning the unmodified result."""
-		context.milestone['transform'] = time()
+		context.milestone['transform-'] = time()
 		return result
 	
 	def after(self, context:Context) -> None:
@@ -169,7 +174,7 @@ class TimingExtension:
 	def transform(self, context:Context, endpoint:Callable, result:Any) -> Any:
 		"""Capture of the transformation stage timing, returning the unmodified result."""
 		
-		now = context.milestone['transform-'] = time()
+		now = context.milestone['transform'] = time()
 		delta = now - context.milestone['collect-']
 		if self.log: self.log(f"Endpoint executed in {delta} seconds.")
 		
