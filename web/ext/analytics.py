@@ -115,7 +115,7 @@ class TimingPrefix:
 				'total': now - m['init'],
 			}
 		
-		if self.log: self.log(f"Response prepared in {deltas['view'] * 1000} milliseconds.", extra=deltas)
+		if self.log: self.log(f"Response prepared in {int(deltas['view'] * 1000)} milliseconds.", extra=deltas)
 		if self.header: resp.headers[self.header] = str(deltas['total'])
 		if not self.timing: return
 		
@@ -137,7 +137,7 @@ class TimingPrefix:
 				'total': m['done-'] - m['init'],
 			**{k: m[f'{k}-'] - v for k, v in m.items() if f'{k}-' in m}}
 		
-		self.log(f"Response delivered in {deltas['send'] * 1000} milliseconds.", extra=deltas)
+		self.log(f"Response delivered in {int(deltas['send'] * 1000)} milliseconds.", extra=deltas)
 
 
 class TimingExtension:
