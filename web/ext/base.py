@@ -32,7 +32,7 @@ class BaseExtension:
 	first: ClassVar[bool] = True  # Must occur as early as possible in callback lists.
 	always: ClassVar[bool] = True  # Always enabled.
 	provides: ClassVar[Tags] = {'base', 'request', 'response'}  # Export these symbols for use as dependencies.
-	uses: ClassVar[Tags] = {'timing.prefix'}  # Ensure correct callback ordering for this sensitive core extension.
+	uses: ClassVar[Tags] = {'timing.prefix', 'waf'}  # Ensure correct callback ordering for this sensitive core extension.
 	
 	_log: Logger = getLogger(__name__)
 	
