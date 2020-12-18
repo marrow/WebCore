@@ -47,12 +47,13 @@ import datetime
 import logging
 
 from json import dumps
+from os import environ
 from sys import flags, stdin
 
 
 _highlight = None
 
-if __debug__ and stdin.isatty():
+if __debug__ and (flags.dev_mode or stdin.isatty()):
 	try:
 		from pygments import highlight as _highlight
 		from pygments.formatters import Terminal256Formatter
@@ -91,7 +92,7 @@ class PrettyFormatter(logging.Formatter):
 		}
 	
 	def __init__(self, highlight=None, indent=flags.dev_mode, **kwargs):
-		if __debug__ and stdin.isatty():
+		if __debug__ and (flags.dev_mode or stdin.isatty()):
 			format = "{SYM}\033[1;38;5;232m {name} \033[0;38;5;{C};48;5;238m\ue0b0\033[38;5;255m {funcName} \033[30m\ue0b1\033[38;5;255m {lineno} \033[38;5;238;48;5;0m\ue0b0\033[m {message}"
 		else:
 			format = "{levelname}\t{name}::{funcName}:{lineno}\t{message}"
@@ -157,7 +158,7 @@ class PrettyFormatter(logging.Formatter):
 				separators = (', ' if not self.indent else ',', ': ') if __debug__ else (',', ':'),
 				indent = "\t" if self.indent else None,
 			)
-			if stdin.isatty():
+			if flags.dev_mode or stdin.isatty():
 				json = _highlight(json, JsonLexer(tabsize=4), Terminal256Formatter(style='monokai')).strip()
 			json = "\n".join(json.split('\n')[1:-1])  # Strip off the leading and trailing lines.
 		except Exception as e:

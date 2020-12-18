@@ -6,6 +6,9 @@ from wsgiref.simple_server import make_server
 from ..core.typing import WSGI, HostBind, PortBind, check_argument_types
 
 
+log = __import__('logging').getLogger(__name__)  # A standard logger object.
+
+
 # We let people know it's a bad idea to use these in production.
 if not __debug__:
 	from warnings import warn
@@ -26,7 +29,7 @@ def simple(application:WSGI, host:HostBind='127.0.0.1', port:PortBind=8080) -> N
 	assert check_argument_types()
 	
 	# Try to be handy as many terminals allow clicking links.
-	print(f"serving on http://{host!s}:{port!s}")
+	log.warning(f"Listening on: http://{host!s}:{port!s}")
 	
 	# Bind and launch the server; this is a blocking operation.
 	make_server(str(host), int(port), application).serve_forever()
