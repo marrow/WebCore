@@ -265,6 +265,9 @@ class Application:
 		except HTTPException as e:
 			result = e
 		
+		except Exception as e:
+			result = HTTPBadRequest(f"Encountered error de-serializing the request: {context.request!r}")
+		
 		else:
 			# If successful in accumulating arguments, finally call the endpoint.
 			
