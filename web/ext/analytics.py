@@ -67,6 +67,13 @@ def _record(callback:str, *, debounce:bool=False) -> Callable:
 	return inner
 
 
+def safesub(map, left, right):
+	try:
+		return map[left] - map[right]
+	except KeyError:
+		return None
+
+
 class TimingPrefix:
 	"""Record the "start time" of each extension callback phase."""
 	
@@ -110,19 +117,21 @@ class TimingPrefix:
 		resp = context.response
 		m = context.milestone
 		deltas = {
-				'app': m['transform'] - m['collect-'],
-				'view': m['after'] - m['transform-'],
+				'app': safesub(m, 'transform', 'collect-'),
+				'view': safesub(m, 'after', 'transform-'),
 				'total': now - m['init'],
 			}
 		
-		if self.log: self.log(f"Response prepared in {int(deltas['view'] * 1000)} milliseconds.", extra=deltas)
+		if self.log and deltas['view']:
+			self.log(f"Response prepared in {int(deltas['view'] * 1000)} milliseconds.", extra=deltas)
+		
 		if self.header: resp.headers[self.header] = str(deltas['total'])
 		if not self.timing: return
 		
 		if self.timing == 'all':
 			deltas.update({k: m[f'{k}-'] - v for k, v in m.items() if f'{k}-' in m})
 		
-		resp.headers['Server-Timing'] = ', '.join(f'{k};dur={round(v * 1000, 1)}' for k, v in deltas.items())
+		resp.headers['Server-Timing'] = ', '.join(f'{k};dur={round(v * 1000, 1)}' for k, v in deltas.items() if v is not None)
 	
 	def done(self, context:Context) -> None:
 		context.milestone['done-'] = time()
@@ -131,10 +140,10 @@ class TimingPrefix:
 		
 		m = context.milestone
 		deltas = {
-				'app': m['transform'] - m['collect-'],
-				'view': m['after'] - m['transform-'],
-				'send': m['done'] - m['after-'],
-				'total': m['done-'] - m['init'],
+				'app': safesub(m, 'transform', 'collect-'),
+				'view': safesub(m, 'after', 'transform-'),
+				'send': safesub(m, 'done', 'after-'),
+				'total': safesub(m, 'done-', 'init'),
 			**{k: m[f'{k}-'] - v for k, v in m.items() if f'{k}-' in m}}
 		
 		self.log(f"Response delivered in {int(deltas['send'] * 1000)} milliseconds.", extra=deltas)

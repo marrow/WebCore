@@ -39,6 +39,7 @@ class DebugExtension:
 	
 	__slots__ = ('path', 'verbose')
 	provides: Tags = {'debugger', 'console'}
+	uses: Tags = {'waf'}
 	
 	path: str
 	verbose: bool
@@ -60,8 +61,7 @@ class DebugExtension:
 		Accepts a WSGI application as the second argument and must likewise return a WSGI app.
 		"""
 		
-		# assert check_argument_types()
-		if __debug__: log.info("Wrapping application in debugger middleware.")
+		log.warning("Wrapping application in debugger middleware.")
 		
 		def _populate(locals:dict, context:Context) -> dict:
 			"""Collect contributions from extensions to debugger/shell locals."""
