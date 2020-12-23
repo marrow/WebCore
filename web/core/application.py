@@ -147,6 +147,11 @@ class Application:
 		For example, this ensures BaseExtension is included in the extension list, and populates the logging config.
 		"""
 		
+		try:  # Add this very early on, to allow extensions and the managers to utilize this logging level.
+			addLoggingLevel('trace', DEBUG - 5)
+		except AttributeError:
+			pass
+		
 		exts = ExtensionManager('web.extension')
 		extensions = config.setdefault('extensions', [])
 		required = {'request', 'response'}
@@ -174,11 +179,6 @@ class Application:
 				fulfilled.update(getattr(ext, 'provides', ()))
 				extensions.append(ext)
 				break  # Force re-calculation of missing dependencies.
-		
-		try:
-			addLoggingLevel('trace', DEBUG - 5)
-		except AttributeError:
-			pass
 		
 		level = config.get('logging', 'debug' if flags.dev_mode else ('info' if __debug__ else 'warn'))
 		
