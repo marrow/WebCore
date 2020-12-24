@@ -11,7 +11,7 @@ from logging.config import dictConfig
 from inspect import isfunction
 from sys import flags
 
-from webob.exc import HTTPException, HTTPNotFound, HTTPInternalServerError
+from webob.exc import HTTPException, HTTPBadRequest, HTTPNotFound, HTTPInternalServerError
 
 from marrow.package.host import ExtensionManager
 from marrow.package.loader import load
@@ -120,7 +120,7 @@ class Application:
 			root = staticmethod(root)
 		
 		# This constructs a basic `ApplicationContext` containing a few of the passed-in values.
-		context = self.__context = Context(app=self, root=root)._promote('ApplicationContext')
+		context = self.__context = Context(app=self, root=root, id=None)._promote('ApplicationContext')
 		
 		# These can't really be deferred to extensions themselves, for fairly obvious chicken/egg reasons.
 		exts = context.extension = WebExtensions(context)  # Load extension registry and prepare callbacks.
@@ -139,7 +139,7 @@ class Application:
 		for ext in exts.signal.middleware: app = ext(context, app)
 		self.__call__ = app
 		
-		if __debug__: self._log.info("WebCore application prepared.")
+		if __debug__: self._log.info("WebCore application prepared.", extra=context.extra)
 	
 	def _configure(self, config:dict) -> dict:
 		"""Prepare the incoming configuration and ensure certain expected values are present.
@@ -148,7 +148,7 @@ class Application:
 		"""
 		
 		try:  # Add this very early on, to allow extensions and the managers to utilize this logging level.
-			addLoggingLevel('trace', DEBUG - 5)
+			addLoggingLevel('TRACE', DEBUG - 5)
 		except AttributeError:
 			pass
 		
@@ -251,7 +251,7 @@ class Application:
 			# They can instead point to what a function would return for view lookup.
 			
 			if __debug__:
-				self._log.debug("Static endpoint located.", extra={'endpoint': repr(endpoint), **context.log_extra})
+				self._log.debug("Static endpoint located.", extra={'endpoint': repr(endpoint), **context.extra})
 			
 			# Use the result directly, as if it were the result of calling a function or method.
 			return endpoint
@@ -266,18 +266,20 @@ class Application:
 			result = e
 		
 		except Exception as e:
+			self._log.exception(f"Caught {e.__class__.__name__} collecting endpoint arguments.",
+					exc_info=True, extra=context.extra)
 			result = HTTPBadRequest(f"Encountered error de-serializing the request: {context.request!r}")
 		
 		else:
 			# If successful in accumulating arguments, finally call the endpoint.
 			
 			if __debug__:
-				self._log.debug("Callable endpoint located and arguments prepared.", extra=dict(
-						request = id(context),
-						endpoint = safe_name(endpoint),
-						endpoint_args = args,
-						endpoint_kw = kwargs
-					))
+				self._log.debug("Callable endpoint located and arguments prepared.", extra={
+						'endpoint': safe_name(endpoint),
+						'endpoint_args': args,
+						'endpoint_kw': kwargs,
+						**context.extra
+					})
 			
 			try:
 				result = endpoint(*args, **kwargs)
@@ -300,6 +302,7 @@ class Application:
 		Most apps won't utilize middleware, the extension interface is preferred for most operations in WebCore.
 		They allow for code injection at various intermediary steps in the processing of a request and response.
 		"""
+		
 		context = environ['wc.context'] = self.RequestContext(environ=environ)
 		signals = context.extension.signal
 		
@@ -337,7 +340,8 @@ class Application:
 			try:
 				result = self._execute_endpoint(context, handler, signals)  # Process the endpoint.
 			except Exception as e:
-				self._log.exception("Caught exception attempting to execute the endpoint.")
+				self._log.exception(f"Caught {e!r} attempting to execute the endpoint.",
+						exc_info=True, extra=context.extra)
 				result = HTTPInternalServerError(str(e) if __debug__ else "Please see the logs.")
 				
 				if 'debugger' in context.extension.feature:
@@ -349,10 +353,10 @@ class Application:
 			result = HTTPNotFound("Dispatch failed." if __debug__ else None)
 		
 		if __debug__:
-			self._log.debug("Result prepared, identifying view handler.", extra=dict(
-					request = id(context),
-					result = safe_name(type(result))
-				))
+			self._log.debug("Result prepared, identifying view handler.", extra={
+					'result': safe_name(type(result)),
+					**context.extra
+				})
 		
 		# Identify a view capable of handling this result.
 		for view in context.view(result):
@@ -362,10 +366,10 @@ class Application:
 			raise TypeError("No view could be found to handle: " + repr(type(result)))
 		
 		if __debug__:
-			self._log.debug("Response populated by view.", extra=dict(
-					request = id(context),
-					view = repr(view),
-				))
+			self._log.debug("Response populated by view.", extra={
+					'view': repr(view),
+					**context.extra
+				})
 		
 		for ext in signals.after: ext(context)
 		

@@ -58,6 +58,7 @@ if __debug__ and (flags.dev_mode or stdin.isatty()):
 		from pygments import highlight as _highlight
 		from pygments.formatters import Terminal256Formatter
 		from pygments.lexers.data import JsonLexer
+		from pygments.lexers.python import PythonTracebackLexer
 	except ImportError:
 		pass
 
@@ -77,11 +78,12 @@ class PrettyFormatter(logging.Formatter):
 	}
 	
 	SYM = {
-			'CRITICAL': '\033[30;48;5;196m \033[5m\U0001f514\033[25m',
-			'ERROR': '\033[30;48;5;208m \U0001f6ab',
-			'WARNING': '\033[30;48;5;220m \u26a0\ufe0f ',
-			'INFO': '\033[30;48;5;39m \U0001f4ac',
-			'DEBUG': '\033[97;48;5;243m \U0001f4ad',
+			'CRITICAL': '\033[30;48;5;196m \033[5m\U0001f514\033[25m\033[1;38;5;232m',
+			'ERROR': '\033[30;48;5;208m \U0001f6ab\033[1;38;5;232m',
+			'WARNING': '\033[30;48;5;220m \u26a0\ufe0f \033[1;38;5;232m',
+			'INFO': '\033[30;48;5;39m \U0001f4ac\033[1;38;5;232m',
+			'DEBUG': '\033[97;48;5;243m \U0001f4ad\033[1;38;5;255m',
+			'TRACE': '\033[100m 👁‍🗨 \033[1;38;5;255m',
 		}
 	COLOURS = {
 			'CRITICAL': '196',
@@ -89,11 +91,12 @@ class PrettyFormatter(logging.Formatter):
 			'WARNING': '220',
 			'INFO': '39',
 			'DEBUG': '243',
+			'TRACE': '0;90',
 		}
 	
 	def __init__(self, highlight=None, indent=flags.dev_mode, **kwargs):
 		if __debug__ and (flags.dev_mode or stdin.isatty()):
-			format = "{SYM}\033[1;38;5;232m {name} \033[0;38;5;{C};48;5;238m\ue0b0\033[38;5;255m {funcName} \033[30m\ue0b1\033[38;5;255m {lineno} \033[38;5;238;48;5;0m\ue0b0\033[m {message}"
+			format = "{SYM} {name} \033[0;38;5;{C};48;5;238m\ue0b0\033[38;5;255m {funcName} \033[30m\ue0b1\033[38;5;255m {lineno} \033[38;5;238;48;5;0m\ue0b0\033[m {message}"
 		else:
 			format = "{levelname}\t{name}::{funcName}:{lineno}\t{message}"
 		
@@ -146,11 +149,25 @@ class PrettyFormatter(logging.Formatter):
 		
 		record.SYM = self.SYM[record.levelname.upper()]
 		record.C = self.COLOURS[record.levelname.upper()]
+		parts = []
 		
 		try:
-			formatted = super(PrettyFormatter, self).formatMessage(record)
+			parts.append(super(PrettyFormatter, self).formatMessage(record))
 		except Exception as e:
-			formatted = "Unable to format log message: " + repr(e)
+			parts.append("Unable to format log message: " + repr(e))
+		
+		if record.exc_info:
+			__import__('pudb').set_trace()
+			trace = self.formatException(record.exc_info)
+			if __debug__ and (flags.dev_mode or stdin.isatty()):
+				trace = _highlight(trace, PythonTracebackLexer(tabsize=4), Terminal256Formatter(style='monokai')).strip()
+			parts.append(trace)
+		
+		if record.exc_text:
+			parts.append(self.exc_text)
+		
+		if record.stack_info:
+			parts.append(self.formatStack(record.stack_info))
 		
 		try:
 			json = self.jsonify(
@@ -158,17 +175,11 @@ class PrettyFormatter(logging.Formatter):
 				separators = (', ' if not self.indent else ',', ': ') if __debug__ else (',', ':'),
 				indent = "\t" if self.indent else None,
 			)
-			if flags.dev_mode or stdin.isatty():
-				json = _highlight(json, JsonLexer(tabsize=4), Terminal256Formatter(style='monokai')).strip()
+			#if flags.dev_mode or stdin.isatty():
+			json = _highlight(json, JsonLexer(tabsize=4), Terminal256Formatter(style='monokai')).strip()
 			json = "\n".join(json.split('\n')[1:-1])  # Strip off the leading and trailing lines.
+			if json: parts.append(json)
 		except Exception as e:
-			formatted = "JSON serialization failed: " + repr(e)
-			json = None
+			parts.append("JSON serialization failed: " + repr(e))
 		
-		if json:
-			if self.highlight:
-				return '\n'.join([formatted, json])
-			
-			return '\n'.join([formatted, json]).strip()
-		
-		return formatted
+		return "\n".join(i.strip() for i in parts)

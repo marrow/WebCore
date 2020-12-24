@@ -16,6 +16,7 @@ from xml.dom import minidom
 from uri import URI
 from webob import Request, Response
 
+from ..core.rid import ObjectID
 from ..core.util import Bread, Crumb, nop, safe_name
 from ..core.typing import AccelRedirect, Any, ClassVar, Context, Response, Tags, Iterable, check_argument_types
 
@@ -87,7 +88,7 @@ class BaseExtension:
 		* `remainder`
 		  Retrieve a `PurePosixPath` instance representing the remaining `request.path_info`.
 		
-		* `log_extra`
+		* `extra`
 		  A dictionary of "extras" to include in logging statements. This dictionary forms the basis for the request-
 		  local shallow copy.
 		"""
@@ -114,13 +115,17 @@ class BaseExtension:
 		# Track the remaining (unprocessed) path elements.
 		context.remainder = property(lambda self: PurePosixPath(self.request.path_info))
 		
-		context.log_extra = {}
+		context.extra = {}
 	
 	def prepare(self, context:Context) -> None:
 		"""Add the usual suspects to the context.
 		
 		This prepares the `web.base` WSGI environment variable (initial `SCRIPT_NAME` upon reaching the application)
 		and adds the following to the `RequestContext`:
+		
+		* `id`
+		  An identifier for this request. Based on the MongoDB "ObjectID" structure, using the hardware MAC address as
+		  the "machine identifier".
 		
 		* `request`
 		  A `webob.Request` instance encompassing the active WSGI request.
@@ -132,15 +137,16 @@ class BaseExtension:
 		  An instance of `Bread`, a type of `list` which permits access to the final element by the attribute name
 		  `current`. This represents the steps of dispatch processing from initial request through to final endpoint.
 		
-		* `log_extra`
+		* `extra`
 		  A dictionary of "extras" to include in logging statements. Contributions or modifications made within the
 		  request processing life cycle are limited to that request.
 		"""
 		
 		assert check_argument_types()
 		
-		le = context.log_extra = {'request': id(context), **context.log_extra}  # New instance for request scope.
-		if __debug__: self._log.debug("Preparing request context.", extra=le)
+		context.id = ObjectID(hwid='mac')
+		context.extra['req'] = str(context.id)
+		if __debug__: self._log.debug("Preparing request context.", extra=context.extra)
 		
 		# Bridge in WebOb `Request` and `Response` objects.
 		# Extensions shouldn't rely on these, using `environ` where possible instead; principle of least abstraction.
@@ -167,9 +173,10 @@ class BaseExtension:
 		request = context.request
 		
 		if __debug__:
-			extras = {**context.log_extra, **crumb.as_dict}  # Aggregate logging extras.
+			extras = context.extra
+			extras.update(crumb.as_dict)
 			for k in ('handler', 'origin'): extras[k] = safe_name(extras[k]) # Sanitize a value to make log-safe.
-			self._log.debug("Handling dispatch event.", extra=extras)  # Emit.
+			self._log.trace("Handling dispatch event.", extra=extras)  # Emit.
 		
 		consumed = ('', ) if not crumb.path or request.path_info_peek() == '' else crumb.path.parts
 		
@@ -195,7 +202,7 @@ class BaseExtension:
 		"""
 		
 		assert check_argument_types()
-		if __debug__: self._log.info("Applying literal None value as empty response.", extra=context.log_extra)
+		if __debug__: self._log.trace("Applying literal None value as empty response.", extra=context.extra)
 		
 		context.response.content_type = 'text/plain'
 		context.response.body = b''
@@ -210,7 +217,7 @@ class BaseExtension:
 		"""
 		
 		assert check_argument_types()
-		if __debug__: self._log.info(f"Replacing context.response object with: {result!r}", extra=context.log_extra)
+		if __debug__: self._log.trace(f"Replacing context.response object with: {result!r}", extra=context.extra)
 		
 		context.response = result
 		
@@ -223,7 +230,7 @@ class BaseExtension:
 		"""
 		
 		assert check_argument_types()
-		if __debug__: self._log.info(f"Applying {len(result)}-byte binary value.", extra=context.log_extra)
+		if __debug__: self._log.trace(f"Applying {len(result)}-byte binary value.", extra=context.extra)
 		
 		context.response.app_iter = iter((result, ))  # This wraps the binary string in a WSGI body iterable.
 		
@@ -236,7 +243,7 @@ class BaseExtension:
 		"""
 		
 		assert check_argument_types()
-		if __debug__: self._log.info(f"Applying {len(result)}-character text value.", extra=context.log_extra)
+		if __debug__: self._log.trace(f"Applying {len(result)}-character text value.", extra=context.extra)
 		
 		resp = context.response
 		context.response.text = result
@@ -265,9 +272,9 @@ class BaseExtension:
 		result.seek(0)  # Seek back to the start of the file.
 		
 		if __debug__:
-			self._log.info(f"Applying a {response.content_length}-byte file-like object: {result!r}", extra={
+			self._log.trace(f"Applying a {response.content_length}-byte file-like object: {result!r}", extra={
 					'path': '<anonymous>' if anonymous else str(path),
-					**context.log_extra
+					**context.extra
 				})
 		
 		if not anonymous:  # We can retrieve information like modification times, and likely mimetype.
@@ -305,7 +312,7 @@ class BaseExtension:
 		"""
 		
 		assert check_argument_types()
-		if __debug__: self._log.info(f"Applying an unknown-length generator: {result!r}", extra=context.log_extra)
+		if __debug__: self._log.trace(f"Applying an unknown-length generator: {result!r}", extra=context.extra)
 		
 		context.response.encoding = 'utf-8'
 		context.response.app_iter = (
@@ -322,7 +329,7 @@ class BaseExtension:
 		"""
 		
 		assert check_argument_types()
-		if __debug__: self._log.info(f"Applying an ElementTree object: {result!r}", extra=context.log_extra)
+		if __debug__: self._log.trace(f"Applying an ElementTree object: {result!r}", extra=context.extra)
 		
 		if context.response.content_type == 'text/html':
 			context.response.content_type = 'application/xml'
@@ -338,7 +345,7 @@ class BaseExtension:
 		"""
 		
 		assert check_argument_types()
-		if __debug__: self._log.info(f"Applying a MiniDOM object: {result!r}", extra=context.log_extra)
+		if __debug__: self._log.trace(f"Applying a MiniDOM object: {result!r}", extra=context.extra)
 		
 		if context.response.content_type == 'text/html':
 			context.response.content_type = 'text/xml' if __debug__ else 'application/xml'
