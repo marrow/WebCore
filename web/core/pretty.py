@@ -175,8 +175,8 @@ class PrettyFormatter(logging.Formatter):
 				separators = (', ' if not self.indent else ',', ': ') if __debug__ else (',', ':'),
 				indent = "\t" if self.indent else None,
 			)
-			#if flags.dev_mode or stdin.isatty():
-			json = _highlight(json, JsonLexer(tabsize=4), Terminal256Formatter(style='monokai')).strip()
+			if flags.dev_mode or stdin.isatty():
+				json = _highlight(json, JsonLexer(tabsize=4), Terminal256Formatter(style='monokai')).strip()
 			json = "\n".join(json.split('\n')[1:-1])  # Strip off the leading and trailing lines.
 			if json: parts.append(json)
 		except Exception as e:
