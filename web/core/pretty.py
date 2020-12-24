@@ -157,7 +157,6 @@ class PrettyFormatter(logging.Formatter):
 			parts.append("Unable to format log message: " + repr(e))
 		
 		if record.exc_info:
-			__import__('pudb').set_trace()
 			trace = self.formatException(record.exc_info)
 			if __debug__ and (flags.dev_mode or stdin.isatty()):
 				trace = _highlight(trace, PythonTracebackLexer(tabsize=4), Terminal256Formatter(style='monokai')).strip()
