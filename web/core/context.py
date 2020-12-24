@@ -2,6 +2,8 @@
 
 from collections.abc import MutableMapping
 
+log = __import__('logging').getLogger(__name__)  # A standard logger object.
+
 
 class Context(MutableMapping):
 	"""An attribute access dictionary, of a kind.
@@ -9,21 +11,35 @@ class Context(MutableMapping):
 	This utility class is used to cooperatively construct the ApplicationContext (and subsequent RequestContext)
 	from the contributions of multiple extensions. The concept of "promotion to a class" is needed in order to enable
 	the use of descriptor protocol attributes; without promotion the protocol would not be utilized.
+	
+	While generally this class is completely unaware of its contents, if there is a component named "extras" present,
+	on any promotion that entry will be assumed to be a dictionary, and a new shallow copy will be constructed for use
+	within the promoted class, but only if instantiating.
 	"""
 	
 	# M-Morty! We're, *belch*, gonna have to go in deep, Morty!  Elbow deep!
-	def _promote(self, name, instantiate=True):
+	def _promote(self, name:str, instantiate:bool=True):
 		"""Create a new subclass of Context which incorporates instance attributes and new descriptors.
 		
 		This promotes an instance and its instance attributes up to being a class with class attributes, then
 		returns an instance of that class.
 		"""
 		
+		name = str(name)
 		metaclass = type(self.__class__)
 		contents = self.__dict__.copy()
-		cls = metaclass(str(name), (self.__class__, ), contents)
+		
+		if __debug__:
+			s = 's' if len(contents) != 1 else ''
+			log.trace(f'Promoting {type(self).__name__} instance to {name} with {len(contents)} attribute{s}.',
+					extra={'attributes': sorted(contents.keys())})
+		
+		cls = metaclass(name, (self.__class__, ), contents)
 		
 		if instantiate:
+			if 'extra' in contents:
+				contents['extra'] = contents['extra']['log'].copy()
+			
 			return cls()
 		
 		return cls
