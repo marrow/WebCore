@@ -94,7 +94,7 @@ class BaseExtension:
 		"""
 		
 		assert check_argument_types()
-		if __debug__: self._log.info("Registering core return value handlers.")
+		if __debug__: self._log.debug("Registering core return value handlers.")
 		
 		# This prepares the mimetypes registry, and adds values typically missing from it.
 		init()
@@ -173,7 +173,7 @@ class BaseExtension:
 		request = context.request
 		
 		if __debug__:
-			extras = context.extra
+			extras = context.extra.copy()
 			extras.update(crumb.as_dict)
 			for k in ('handler', 'origin'): extras[k] = safe_name(extras[k]) # Sanitize a value to make log-safe.
 			self._log.trace("Handling dispatch event.", extra=extras)  # Emit.
