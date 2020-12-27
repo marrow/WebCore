@@ -316,18 +316,20 @@ class Application:
 					f"{('?' + e['QUERY_STRING']) if e['QUERY_STRING'] else ''}\033[24m"
 			rmessage = ""
 			
+			kinds = e.get('HTTP_ACCEPT', '*/*').split(',')
+			rmessage += f"\ue0b3 {kinds[0]}{'' if len(kinds) == 1 else ', …'}" \
+					f"{', */*' if len(kinds) > 1 and '*/*' in e.get('HTTP_ACCEPT', '*/*') else ''} " \
+					f"\ue0b3 {e.get('HTTP_ACCEPT_LANGUAGE', '*-*')} "
+			
 			if e.get('CONTENT_LENGTH', 0):  # If data was submitted as the body, announce what and how large.
 				mime = e.get('CONTENT_TYPE', '')
+				mime, _, _ = mime.partition(';')
 				prefix, _, _ = mime.partition('/')
 				if mime:
 					icon = MIME_ICON.get(mime, None)
 					if not icon: icon = MIME_ICON.get(prefix, MIME_ICON['unknown'])
-					rmessage = f"\ue0b1 {mime} {icon} {e.get('CONTENT_LENGTH', 0)} "
+					rmessage += f"\ue0b1 {mime} {icon} {e.get('CONTENT_LENGTH', 0)} "
 			
-			kinds = e.get('HTTP_ACCEPT', '*/*').split(',')
-			rmessage += f"\ue0b1 {kinds[0]}{'' if len(kinds) == 1 else ', …'}{', */*' if len(kinds) > 1 and '*/*' in e.get('HTTP_ACCEPT', '*/*') else ''} \ue0b1 {e.get('HTTP_ACCEPT_LANGUAGE', '*-*')} "
-			
-			# print("\033[2J\033[;H\033[0m", end="")
 			print(f"\033[38;5;232;48;5;255m {message} {' ' * (cols - len(message) - len(rmessage) - 6 + 39)}{rmessage}\033[m")
 		
 		# Announce the start of a request cycle. This executes `prepare` and `before` callbacks in the correct order.
@@ -379,14 +381,14 @@ class Application:
 		
 		if __debug__ and flags.dev_mode:
 			e = environ
-			cols = __import__('shutil').get_terminal_size().columns
 			status, _, message = context.response.status.partition(' ')
-			colour = {'2': '150', '3': '111', '4': '214', '5': '166'}[context.response.status[0]]
+			colour = {'2': '150', '3': '111', '4': '220', '5': '166'}[context.response.status[0]]
 			message = f"{e['REMOTE_ADDR']} \ue0b3 \033[1m{status} {message}\033[0;38;5;232;48;5;{colour}m"
 			rmessage = ""
 			
 			if context.response.content_length:
 				mime = context.response.content_type
+				mime, _, _ = mime.partition(';')
 				prefix, _, _ = mime.partition('/')
 				if mime:
 					icon = MIME_ICON.get(mime, None)
