@@ -159,7 +159,7 @@ class PrettyFormatter(logging.Formatter):
 		if record.exc_info:
 			trace = self.formatException(record.exc_info)
 			if __debug__ and (flags.dev_mode or stdin.isatty()):
-				trace = _highlight(trace, PythonTracebackLexer(tabsize=4), Terminal256Formatter(style='monokai')).strip()
+				trace = _highlight(trace, PythonTracebackLexer(tabsize=4), Terminal256Formatter(style='native')).strip()
 			parts.append(trace)
 		
 		if record.exc_text:
