@@ -113,6 +113,7 @@ class TimingPrefix:
 		We augment the response with our performance analytic headers here.
 		"""
 		
+		#__import__('pudb').set_trace()
 		now = context.milestone['after-'] = time()
 		resp = context.response
 		m = context.milestone
@@ -146,7 +147,10 @@ class TimingPrefix:
 				'total': safesub(m, 'done-', 'init'),
 			**{k: m[f'{k}-'] - v for k, v in m.items() if f'{k}-' in m}}
 		
-		self.log(f"Response delivered in {int(deltas['send'] * 1000)} milliseconds.", extra=deltas)
+		if deltas['send']:
+			self.log(f"Response delivered in {int(deltas['send'] * 1000)} milliseconds.", extra=deltas)
+		else:
+			log.error("Unable to determine response delivery ('send') statistic for this request.", extra=deltas)
 
 
 class TimingExtension:
