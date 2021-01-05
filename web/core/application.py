@@ -11,6 +11,7 @@ from logging.config import dictConfig
 from inspect import isfunction
 from sys import flags
 
+from uri import URI
 from webob.exc import HTTPException, HTTPBadRequest, HTTPNotFound, HTTPInternalServerError
 
 from marrow.package.host import ExtensionManager
@@ -395,7 +396,8 @@ class Application:
 					if not icon: icon = MIME_ICON.get(prefix, MIME_ICON['unknown'])
 					rmessage = f"{mime} {icon} {context.response.content_length} "
 			elif context.response.status[0] == '3':
-				message += f" ⤺ {context.response.location} "
+				location = URI(context.request.url) / context.response.location
+				message += f" \ue0b1 {location} "
 			
 			# print("\033[2J\033[;H\033[0m", end="")
 			print(f"\033[0;38;5;232;48;5;{colour}m {message}\033[0;38;5;232;48;5;{colour}m" \
