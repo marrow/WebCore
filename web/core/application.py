@@ -383,25 +383,25 @@ class Application:
 		if __debug__ and flags.dev_mode:
 			e = environ
 			status, _, message = context.response.status.partition(' ')
-			colour = {'2': '150', '3': '111', '4': '220', '5': '166'}[context.response.status[0]]
+			colour = {'2': '150', '3': '111', '4': '220', '5': '166'}[status[0]]
 			message = f"{e['REMOTE_ADDR']} \ue0b3 \033[1m{status} {message}\033[0;38;5;232;48;5;{colour}m"
 			rmessage = ""
 			
-			if context.response.content_length:
+			if status[0] == '3':
+				location = URI(context.request.url) / context.response.location
+				message += f" \ue0b1 {location} "
+			elif context.response.content_length:
 				mime = context.response.content_type
 				mime, _, _ = mime.partition(';')
 				prefix, _, _ = mime.partition('/')
 				if mime:
 					icon = MIME_ICON.get(mime, None)
 					if not icon: icon = MIME_ICON.get(prefix, MIME_ICON['unknown'])
-					rmessage = f"{mime} {icon} {context.response.content_length} "
-			elif context.response.status[0] == '3':
-				location = URI(context.request.url) / context.response.location
-				message += f" \ue0b1 {location} "
+					rmessage = f"\ue0b3 {mime} {icon} {context.response.content_length} "
 			
 			# print("\033[2J\033[;H\033[0m", end="")
 			print(f"\033[0;38;5;232;48;5;{colour}m {message}\033[0;38;5;232;48;5;{colour}m" \
-					f"{' ' * (cols - len(message) - len(rmessage) + 23)}\ue0b3 {rmessage}\033[m")
+					f"{' ' * (cols - len(message) - len(rmessage) + 25)}{rmessage}\033[m")
 		
 		# This is really long due to the fact we don't want to capture the response too early.
 		# We need anything up to this point to be able to simply replace `context.response` if needed.
