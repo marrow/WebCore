@@ -24,6 +24,7 @@ from .extension import WebExtensions
 from .typing import Any, Callable, Dict, WSGIEnvironment, WSGIStartResponse, WSGIResponse, Union, Type
 from .util import addLoggingLevel
 from .view import WebViews
+from .rid import ObjectID
 
 if __debug__:
 	from .util import safe_name
@@ -305,12 +306,14 @@ class Application:
 		"""
 		
 		context = environ['wc.context'] = self.RequestContext(environ=environ)
+		rid = context.id = environ['_id'] = ObjectID(hwid='mac')
 		signals = context.extension.signal
 		
 		if __debug__ and flags.dev_mode:
 			e = environ
 			cols = __import__('shutil').get_terminal_size().columns
-			message = f"{e['REMOTE_ADDR']} \ue0b1 {e['SERVER_PROTOCOL']} \ue0b1 " \
+			rid = rid if cols >= 120 else ('...' + str(rid)[-8:])
+			message = f"{e['REMOTE_ADDR']} \ue0b1 {rid} \ue0b1 {e['SERVER_PROTOCOL']} \ue0b1 " \
 					f"\033[1m{e['REQUEST_METHOD']}\033[0;38;5;232;48;5;255m \ue0b1 " \
 					f"\033[4m{e['wsgi.url_scheme']}://{e['SERVER_NAME']}:{e['SERVER_PORT']}" \
 					f"{e['SCRIPT_NAME']}{e['PATH_INFO']}" \
@@ -384,7 +387,7 @@ class Application:
 			e = environ
 			status, _, message = context.response.status.partition(' ')
 			colour = {'2': '150', '3': '111', '4': '220', '5': '166'}[status[0]]
-			message = f"{e['REMOTE_ADDR']} \ue0b3 \033[1m{status} {message}\033[0;38;5;232;48;5;{colour}m"
+			message = f"{e['REMOTE_ADDR']} \ue0b3 {rid} \ue0b3 \033[1m{status} {message}\033[0;38;5;232;48;5;{colour}m"
 			rmessage = ""
 			
 			if status[0] == '3':
