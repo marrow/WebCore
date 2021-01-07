@@ -152,7 +152,9 @@ class PrettyFormatter(logging.Formatter):
 		parts = []
 		
 		try:
-			parts.append(super(PrettyFormatter, self).formatMessage(record))
+			record.message = record.getMessage()
+			if self.usesTime(): record.asctime = self.formatTime(record, self.datefmt)
+			parts.append(self.formatMessage(record))
 		except Exception as e:
 			parts.append("Unable to format log message: " + repr(e))
 		
