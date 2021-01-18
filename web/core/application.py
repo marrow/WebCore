@@ -386,7 +386,7 @@ class Application:
 		if __debug__ and flags.dev_mode:
 			e = environ
 			status, _, message = context.response.status.partition(' ')
-			colour = {'2': '150', '3': '111', '4': '220', '5': '166'}[status[0]]
+			colour = {'2': '150', '3': '111', '4': '220', '5': '196'}[status[0]]
 			message = f"{e['REMOTE_ADDR']} \ue0b3 {rid} \ue0b3 \033[1m{status} {message}\033[0;38;5;232;48;5;{colour}m"
 			rmessage = ""
 			
