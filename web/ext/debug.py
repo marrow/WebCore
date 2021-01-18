@@ -1,4 +1,8 @@
-"""Web-based REPL shell and interactive debugger extension."""
+"""Web-based REPL shell and interactive debugger extension.
+
+Please note that, depending on logging configuration, exceptions resulting in 500 Internal Server Errors may log the
+exception traceback twice if this extension is enabled.
+"""
 
 from webob.exc import HTTPNotFound
 from backlash import DebuggedApplication
@@ -56,9 +60,8 @@ class DebugExtension:
 	def __call__(self, context:Context, app:WSGI) -> WSGI:
 		"""Executed to wrap the application in middleware.
 		
-		The first argument is the application context, not request context.
-		
-		Accepts a WSGI application as the second argument and must likewise return a WSGI app.
+		The first argument is the application context, not request context. Accepts a WSGI application as the second
+		argument and must likewise return a WSGI app.
 		"""
 		
 		log.warning("Wrapping application in debugger middleware.")
