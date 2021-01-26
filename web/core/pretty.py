@@ -49,6 +49,7 @@ import logging
 from json import dumps
 from os import environ
 from sys import flags, stdin
+from textwrap import dedent
 
 
 _highlight = None
@@ -158,10 +159,23 @@ class PrettyFormatter(logging.Formatter):
 		except Exception as e:
 			parts.append("Unable to format log message: " + repr(e))
 		
+		try:
+			json = self.jsonify(
+				record,
+				separators = (', ' if not self.indent else ',', ': ') if __debug__ else (',', ':'),
+				indent = "\t" if self.indent else None,
+			)
+			json = dedent("\n".join(json.split('\n')[1:-1]))  # Strip off the leading and trailing lines.
+			if flags.dev_mode or stdin.isatty():
+				json = _highlight(json, JsonLexer(tabsize=2), Terminal256Formatter(style='monokai')).strip()
+			if json: parts.append(json)
+		except Exception as e:
+			parts.append("JSON serialization failed: " + repr(e))
+		
 		if record.exc_info:
 			trace = self.formatException(record.exc_info)
 			if __debug__ and (flags.dev_mode or stdin.isatty()):
-				trace = _highlight(trace, PythonTracebackLexer(tabsize=4), Terminal256Formatter(style='native')).strip()
+				trace = _highlight(trace, PythonTracebackLexer(tabsize=2), Terminal256Formatter(style='native')).strip()
 			parts.append(trace)
 		
 		if record.exc_text:
@@ -169,18 +183,5 @@ class PrettyFormatter(logging.Formatter):
 		
 		if record.stack_info:
 			parts.append(self.formatStack(record.stack_info))
-		
-		try:
-			json = self.jsonify(
-				record,
-				separators = (', ' if not self.indent else ',', ': ') if __debug__ else (',', ':'),
-				indent = "\t" if self.indent else None,
-			)
-			if flags.dev_mode or stdin.isatty():
-				json = _highlight(json, JsonLexer(tabsize=4), Terminal256Formatter(style='monokai')).strip()
-			json = "\n".join(json.split('\n')[1:-1])  # Strip off the leading and trailing lines.
-			if json: parts.append(json)
-		except Exception as e:
-			parts.append("JSON serialization failed: " + repr(e))
 		
 		return "\n".join(i.strip() for i in parts)
