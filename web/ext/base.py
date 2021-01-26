@@ -16,7 +16,6 @@ from xml.dom import minidom
 from uri import URI
 from webob import Request, Response
 
-from ..core.rid import ObjectID
 from ..core.util import Bread, Crumb, nop, safe_name
 from ..core.typing import AccelRedirect, Any, ClassVar, Context, Response, Tags, Iterable, check_argument_types
 
@@ -144,7 +143,6 @@ class BaseExtension:
 		
 		assert check_argument_types()
 		
-		context.id = ObjectID(hwid='mac')
 		context.extra['req'] = str(context.id)
 		if __debug__: self._log.debug("Preparing request context.", extra=context.extra)
 		
