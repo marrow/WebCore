@@ -184,13 +184,22 @@ If you would like to make changes and contribute them back to the project, fork 
 
 ### Application
 
-The `Application` class is the primary entry point for the web framework. You are free to subclass this to implement extension callbacks for customizations unique to your own application.
+The `Application` class is the primary entry point for the web framework. You are free to subclass this to implement extension callback methods for customizations unique to your own application.
 
 The constructor takes up to three arguments:
 
-- `root` -- the root object to use as the controller for `/` requests.
+<dl><dt><code>root</code>
+<dd>The object to use as the entry point for web application dispatch, <code>/</code>, and the only argument that can be supplied positionally.
+<dt><code>extensions</code>
+<dd>A list of extensions to use with your application.
+<dt><code>logging</code>
+<dd><code></code>
+</dl>
 
-- `extensions` -- a list of extensions to use with your application.
+
+- `root` -- `/` requests.
+
+- `extensions` -- 
 
 - `logging` -- the name of a logging level as a string, or a Python `logging` [dictionary configuration](https://docs.python.org/3/library/logging.config.html#dictionary-schema-details).
 
