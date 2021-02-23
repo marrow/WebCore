@@ -126,7 +126,7 @@ class SerializationExtension(ArgumentExtension):
 		
 		dumps = serial[match]
 		result = dumps(result)
-		resp.content_type = match
+		if not resp.content_type: resp.content_type = match
 		
 		if isinstance(result, bytes):
 			resp.body = result

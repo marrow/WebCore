@@ -150,6 +150,7 @@ class BaseExtension:
 		# Extensions shouldn't rely on these, using `environ` where possible instead; principle of least abstraction.
 		req = context.request = request = Request(context.environ)
 		context.response = Response(request=request)
+		context.response.content_type = None
 		
 		# This naturally elides extraneous leading and trailing slashes.
 		req.remainder = context.request.path_info.strip('/').split('/')
@@ -202,7 +203,7 @@ class BaseExtension:
 		assert check_argument_types()
 		if __debug__: self._log.trace("Applying literal None value as empty response.", extra=context.extra)
 		
-		context.response.content_type = 'text/plain'
+		if not context.response.content_type: context.response.content_type = 'text/plain'
 		context.response.body = b''
 		del context.response.content_length
 		
@@ -245,9 +246,7 @@ class BaseExtension:
 		
 		resp = context.response
 		context.response.text = result
-		
-		if resp.content_type == 'text/html' and not HTML_LIKE.search(result):
-			resp.content_type = 'text/plain'
+		if not resp.content_type: resp.content_type = 'text/html' if HTML_LIKE.search(result) else 'text/plain'
 		
 		return True
 	
@@ -282,9 +281,9 @@ class BaseExtension:
 			response.last_modified = datetime.fromtimestamp(modified)
 			response.etag = str(modified)
 			
-			if response.content_type == 'text/html':  # Unchanged default...
+			if not response.content_type:
 				ct, ce = guess_type(result.name)
-				if not ct: ct = 'application/octet-stream'
+				if not ct: ct = 'application/octet-stream'  # Ultimate fallback for unknown binary data.
 				response.content_type, response.content_encoding = ct, ce
 			
 			if self.sendfile:
@@ -295,9 +294,8 @@ class BaseExtension:
 				if str(path).startswith(str(prefix)):
 					response.headers['X-Accel-Redirect'] = str(root / path.relative_to(prefix))
 		
-		else:
-			if response.content_type == 'text/html':  # Unchanged default...
-				response.content_type = 'application/octet-stream'
+		elif not response.content_type:
+			response.content_type = 'application/octet-stream'
 		
 		response.body_file = result
 		
@@ -311,6 +309,10 @@ class BaseExtension:
 		
 		assert check_argument_types()
 		if __debug__: self._log.trace(f"Applying an unknown-length generator: {result!r}", extra=context.extra)
+		
+		if not context.response.content_type:
+			log.warn("Populate context.response.content_type when utilizing generator responses; assuming HTML.")
+			response.content_type = 'text/html'
 		
 		context.response.encoding = 'utf-8'
 		context.response.app_iter = (
@@ -329,7 +331,7 @@ class BaseExtension:
 		assert check_argument_types()
 		if __debug__: self._log.trace(f"Applying an ElementTree object: {result!r}", extra=context.extra)
 		
-		if context.response.content_type == 'text/html':
+		if not context.response.content_type:
 			context.response.content_type = 'application/xml'
 		
 		context.response.body = ET.tostring(result, encoding=context.response.charset, xml_declaration=True)
@@ -345,9 +347,9 @@ class BaseExtension:
 		assert check_argument_types()
 		if __debug__: self._log.trace(f"Applying a MiniDOM object: {result!r}", extra=context.extra)
 		
-		if context.response.content_type == 'text/html':
+		if not context.response.content_type:
 			context.response.content_type = 'text/xml' if __debug__ else 'application/xml'
 		
-		context.response.body = (result.toprettyxml if __debug__ else result.toxml)(encoding=context.resopnse.charset)
+		context.response.body = (result.toprettyxml if __debug__ else result.toxml)(encoding=context.response.charset)
 		
 		return True

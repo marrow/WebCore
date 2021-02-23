@@ -394,7 +394,7 @@ class Application:
 				location = URI(context.request.url) / context.response.location
 				message += f" \ue0b1 {location} "
 			elif context.response.content_length:
-				mime = context.response.content_type
+				mime = context.response.content_type or "unknown/invalid"
 				mime, _, _ = mime.partition(';')
 				prefix, _, _ = mime.partition('/')
 				if mime:
