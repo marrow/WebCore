@@ -225,7 +225,7 @@ class BaseExtension:
 					header.startswith('Content-') or \
 					header.startswith('X-') or \
 					'Origin' in header or \
-					header in ('Allow', 'Server', 'Strict-Transport-Security', 'Upgrade-Insecure-Requests'):
+					header in ('Allow', 'Server', 'Strict-Transport-Security', 'Upgrade-Insecure-Requests', 'Set-Cookie'):
 				result.headers[header] = value
 		
 		context.response = result
