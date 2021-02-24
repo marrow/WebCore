@@ -60,6 +60,9 @@ class Context(MutableMapping):
 		"""Iterate all valid (public) attributes/keys."""
 		return (i for i in (set(dir(self)) - self._STANDARD_ATTRS) if i[0] != '_')
 	
+	def __contains__(self, attr:str):
+		return hasattr(self, attr)
+	
 	def __getitem__(self, name):
 		"""Retrieve an attribute through dictionary access."""
 		try:

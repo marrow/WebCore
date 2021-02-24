@@ -129,8 +129,8 @@ class DeferredExecutor(object):
 			list(as_completed(futures, timeout=None if wait is True else wait))
 
 
-class DeferralExtension(object):
-	"""Provide a Futures-compatible backround task executor that defers until after the headers have been sent.
+class DeferralExtension:
+	"""Provide a Futures-compatible background task executor that defers until after the headers have been sent.
 	
 	This exposes two executors within the context: `executor` (generally a thread or process pool) and `defer`, a
 	task pool that submits the tasks to the real executor only after the headers have been sent to the client. In this
@@ -180,7 +180,7 @@ class DeferralExtension(object):
 	def done(self, context):
 		"""After request processing has completed, submit any deferred tasks to the real executor."""
 		
-		if 'defer' not in context.__dict__:
+		if 'defer' not in context:
 			if __debug__:
 				log.debug("Deferred tasks not accessed during this request; nothing to do.")
 			
