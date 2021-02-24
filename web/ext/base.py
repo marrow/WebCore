@@ -244,9 +244,11 @@ class BaseExtension:
 		assert check_argument_types()
 		if __debug__: self._log.trace(f"Applying {len(result)}-character text value.", extra=context.extra)
 		
-		resp = context.response
-		context.response.text = result
-		if not resp.content_type: resp.content_type = 'text/html' if HTML_LIKE.search(result) else 'text/plain'
+		response: Response = context.response
+		response.text = result
+		
+		if not resp.content_type:
+			resp.content_type = 'text/html' if HTML_LIKE.search(result) else 'text/plain'
 		
 		return True
 	
@@ -254,7 +256,16 @@ class BaseExtension:
 		"""Extract applicable metadata from returned open file handles, and deliver the file content to the client.
 		
 		If configured to do so, this will cause additional headers to be emitted to instruct a front-end load balancer
-		(FELB) to deliver the on-disk data more directly.
+		(FELB) to deliver the on-disk data more directly, currently supporting both Nginx `X-Sendfile` and
+		`X-Accel-Redirect`.
+		
+		Each of these has additional headers that can be utilized to customize behaviour, such as control over caching
+		and rate limiting.
+		
+		Ref:
+		
+		* https://www.nginx.com/resources/wiki/start/topics/examples/xsendfile/
+		* https://www.nginx.com/resources/wiki/start/topics/examples/x-accel/
 		"""
 		# TODO: https://pythonhosted.org/xsendfile/howto.html#using-nginx-as-front-end-server
 		
@@ -277,9 +288,11 @@ class BaseExtension:
 		if not anonymous:  # We can retrieve information like modification times, and likely mimetype.
 			response.conditional_response = True
 			
-			modified = mktime(gmtime(path.stat().st_mtime))
+			modified: float = mktime(gmtime(path.stat().st_mtime))
 			response.last_modified = datetime.fromtimestamp(modified)
 			response.etag = str(modified)
+			ct: str  # Content Type
+			ce: str  # Content Encoding
 			
 			if not response.content_type:
 				ct, ce = guess_type(result.name)
@@ -327,8 +340,11 @@ class BaseExtension:
 		
 		Automatically utilizes the pending response's `charset`, defaulting to UTF-8. The response mimetype defaults
 		to `application/xml` if left unspecified, using a `utf-8` encoding. However, this view detects the rendering
-		path to use based on the second component of the type, which must resolve to `xml` or `html`.
+		path to use based on the second component of the type, which must resolve to `xml` or `html`. The first
+		component will usually be `text/` or `application/`, and `+` annotations are also ignored.
 		"""
+		
+		ct: str  # Local alias for: context.response.content_type
 		
 		assert check_argument_types()
 		if __debug__: self._log.trace(f"Applying an ElementTree object: {result!r}", extra=context.extra)
@@ -337,7 +353,7 @@ class BaseExtension:
 			ct = context.response.content_type = 'application/xml'
 			context.response.charset = 'utf-8'
 		
-		method = ct.partition('/')[1].partition('+')[0]  # text/html, text/xml, application/xml, text/xml+rss, ...
+		method: str = ct.partition('/')[1].partition('+')[0]  # html of text/html, xml of text/xml+rss, ...
 		assert method in ('xml', 'html')  # The second MIME type component must always resolve to 'xml' or 'html'.
 		
 		context.response.body = ET.tostring(
@@ -360,8 +376,8 @@ class BaseExtension:
 		
 		if not context.response.content_type:
 			context.response.content_type = 'text/xml' if __debug__ else 'application/xml'
-			context.response.charset = 'utf-8'
+			cs: str = context.response.charset = 'utf-8'
 		
-		context.response.body = (result.toprettyxml if __debug__ else result.toxml)(encoding=context.response.charset)
+		context.response.body = (result.toprettyxml if cs.startswith('text/') else result.toxml)(encoding=cs)
 		
 		return True
