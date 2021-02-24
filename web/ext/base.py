@@ -218,6 +218,16 @@ class BaseExtension:
 		assert check_argument_types()
 		if __debug__: self._log.trace(f"Replacing context.response object with: {result!r}", extra=context.extra)
 		
+		# We migrate across certain response headers the developer may have assigned "too early".
+		for header, value in context.response.headers.items():
+			if header.startswith('Access-') or \
+					header.startswith('Cross-') or \
+					header.startswith('Content-') or \
+					header.startswith('X-') or \
+					'Origin' in header or \
+					header in ('Allow', 'Server', 'Strict-Transport-Security', 'Upgrade-Insecure-Requests'):
+				result.headers[header] = value
+		
 		context.response = result
 		
 		return True
@@ -247,8 +257,8 @@ class BaseExtension:
 		response: Response = context.response
 		response.text = result
 		
-		if not resp.content_type:
-			resp.content_type = 'text/html' if HTML_LIKE.search(result) else 'text/plain'
+		if not response.content_type:
+			response.content_type = 'text/html' if HTML_LIKE.search(result) else 'text/plain'
 		
 		return True
 	
@@ -374,10 +384,12 @@ class BaseExtension:
 		assert check_argument_types()
 		if __debug__: self._log.trace(f"Applying a MiniDOM object: {result!r}", extra=context.extra)
 		
-		if not context.response.content_type:
-			context.response.content_type = 'text/xml' if __debug__ else 'application/xml'
-			cs: str = context.response.charset = 'utf-8'
+		response: Response = context.response  # Local alias.
 		
-		context.response.body = (result.toprettyxml if cs.startswith('text/') else result.toxml)(encoding=cs)
+		if not response.content_type:
+			response.content_type = 'text/xml' if __debug__ else 'application/xml'
+			response.charset = 'utf-8'
+		
+		response.body = (result.toprettyxml if cs.startswith('text/') else result.toxml)(encoding=response.charset)
 		
 		return True
