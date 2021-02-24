@@ -325,16 +325,27 @@ class BaseExtension:
 	def render_element_tree_element(self, context:Context, result:ET.Element) -> bool:
 		"""Render an ElementTree Element into the response.
 		
-		Automatically utilizes the pending response's `charset`, defaulting to UTF-8.
+		Automatically utilizes the pending response's `charset`, defaulting to UTF-8. The response mimetype defaults
+		to `application/xml` if left unspecified, using a `utf-8` encoding. However, this view detects the rendering
+		path to use based on the second component of the type, which must resolve to `xml` or `html`.
 		"""
 		
 		assert check_argument_types()
 		if __debug__: self._log.trace(f"Applying an ElementTree object: {result!r}", extra=context.extra)
 		
-		if not context.response.content_type:
-			context.response.content_type = 'application/xml'
+		if not (ct := context.response.content_type):
+			ct = context.response.content_type = 'application/xml'
+			context.response.charset = 'utf-8'
 		
-		context.response.body = ET.tostring(result, encoding=context.response.charset, xml_declaration=True)
+		method = ct.partition('/')[1].partition('+')[0]  # text/html, text/xml, application/xml, text/xml+rss, ...
+		assert method in ('xml', 'html')  # The second MIME type component must always resolve to 'xml' or 'html'.
+		
+		context.response.body = ET.tostring(
+				result,
+				encoding = context.response.charset,
+				method = method,
+				xml_declaration = (method == 'xml')
+			)
 		
 		return True
 	
@@ -349,6 +360,7 @@ class BaseExtension:
 		
 		if not context.response.content_type:
 			context.response.content_type = 'text/xml' if __debug__ else 'application/xml'
+			context.response.charset = 'utf-8'
 		
 		context.response.body = (result.toprettyxml if __debug__ else result.toxml)(encoding=context.response.charset)
 		
