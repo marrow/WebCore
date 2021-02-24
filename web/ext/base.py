@@ -15,6 +15,7 @@ from xml.dom import minidom
 
 from uri import URI
 from webob import Request, Response
+from webob.exc import HTTPException
 
 from ..core.util import Bread, Crumb, nop, safe_name
 from ..core.typing import AccelRedirect, Any, ClassVar, Context, Response, Tags, Iterable, check_argument_types
@@ -219,14 +220,15 @@ class BaseExtension:
 		if __debug__: self._log.trace(f"Replacing context.response object with: {result!r}", extra=context.extra)
 		
 		# We migrate across certain response headers the developer may have assigned "too early".
-		for header, value in context.response.headers.items():
-			if header.startswith('Access-') or \
-					header.startswith('Cross-') or \
-					header.startswith('Content-') or \
-					header.startswith('X-') or \
-					'Origin' in header or \
-					header in ('Allow', 'Server', 'Strict-Transport-Security', 'Upgrade-Insecure-Requests', 'Set-Cookie'):
-				result.headers[header] = value
+		if isinstance(result, HTTPException):
+			for header, value in context.response.headers.items():
+				if header.startswith('Access-') or \
+						header.startswith('Cross-') or \
+						header.startswith('Content-') or \
+						header.startswith('X-') or \
+						'Origin' in header or \
+						header in ('Allow', 'Server', 'Strict-Transport-Security', 'Upgrade-Insecure-Requests', 'Set-Cookie'):
+					result.headers[header] = value
 		
 		context.response = result
 		
