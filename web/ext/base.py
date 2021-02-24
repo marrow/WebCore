@@ -108,6 +108,7 @@ class BaseExtension:
 		register(bytes, self.render_binary)
 		register(str, self.render_text)
 		register(IOBase, self.render_file)
+		register(Path, self.render_path)
 		register(Generator, self.render_generator)
 		register(ET.Element, self.render_element_tree_element)
 		register(minidom.Document, self.render_minidom)
@@ -325,6 +326,12 @@ class BaseExtension:
 		response.body_file = result
 		
 		return True
+	
+	def render_path(self, context:Context, result:Path) -> bool:
+		if not (result.exists() and result.is_file()):
+			return False
+		
+		return self.render_file(context, result.open('rb'))
 	
 	def render_generator(self, context:Context, result:Generator) -> bool:
 		"""Attempt to serve generator responses through stream encoding while protecting against None values.
