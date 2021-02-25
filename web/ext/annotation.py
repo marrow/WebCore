@@ -5,7 +5,7 @@ from collections import abc
 from re import compile as regex
 from io import StringIO
 
-from inspect import ismethod, getfullargspec
+from inspect import ismethod, getfullargspec, signature
 
 from ..core.typing import Any, Callable, Context, Dict, Mapping, Tags, List, Optional
 
@@ -175,7 +175,7 @@ class AnnotationExtension:
 	# if hasattr(k, '__origin__') and not inspect.isabstract(k.__origin__)}
 	
 	
-	def __init__(self, aliases:Optional[AnnotationAliases]=None, mapper:Optional[AnnotationMappers]=None) -> None:
+	def __init__(self, aliases:Optional[AnnotationAliases]=None, mapper:Optional[AnnotationMappers]=None, defaulting=False) -> None:
 		"""Initialize the function annotation extension.
 		
 		You may pass in instance additions and overrides for the type aliases and type mappers if custom behavior is
@@ -185,6 +185,7 @@ class AnnotationExtension:
 		
 		if aliases: self.aliases = {**self.aliases, **aliases}
 		if mapper: self.mapper = {**self.mapper, **mapper}
+		self.defaulting = defaulting  # Attempt to utilize default value on typecasting failure?
 	
 	def collect(self, context:Context, handler:Callable, args:List, kw:Dict[str,Any]) -> None:
 		"""Inspect and potentially mutate the arguments to the handler.
@@ -192,9 +193,9 @@ class AnnotationExtension:
 		The args list and kw dictionary may be freely modified, though invalid arguments to the handler will fail.
 		"""
 		
+		sig = signature(handler)  # TODO: Migrate to using signatures not fullargspec.
 		spec = getfullargspec(handler)
 		arguments = list(spec.args)
-		if ismethod(handler): del arguments[0]  # Automatically remove `self` arguments from consideration.
 		
 		def cast(key, annotation, value):
 			"""Attempt to typecast data incoming from the web."""
@@ -206,6 +207,7 @@ class AnnotationExtension:
 			try:
 				value = annotation(value)
 			except (ValueError, TypeError) as e:
+				# TODO: Handle defaulting fallback.
 				raise HTTPBadRequest(f"{e.__class__.__name__}: {e} while processing endpoint argument '{arg}'")
 			
 			return value
