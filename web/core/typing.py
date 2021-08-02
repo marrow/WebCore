@@ -63,6 +63,9 @@ PortBind = int
 DomainBind = Optional[Union[str,Path]]
 WebServer = Callable[..., None]  # [WSGI, HostBind, PortBind, ...]
 
+# Endpoint return value handlers.
+View = Callable[[Context,Any],bool]
+
 # Serialization extension related typing.
 SerializationTypes = Iterable[type]
 Serializer = Callable[[Any], str]

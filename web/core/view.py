@@ -45,10 +45,12 @@ directly used as the response, but only if no more specific handlers are registe
 from webob.multidict import MultiDict
 from marrow.package.host import PluginManager
 
+from ..core.typing import View
 from ..core.util import safe_name
 
 
 log = __import__('logging').getLogger(__name__)  # A standard logger object.
+
 
 
 class WebViews(PluginManager):
@@ -59,9 +61,11 @@ class WebViews(PluginManager):
 	produce a generator yielding candidate views registered to handle that type of object.
 	"""
 	
-	__isabstractmethod__ = False  # Work around a Python 3.4+ issue, since our instances are callable.
+	__isabstractmethod__: bool = False  # Work around a Python 3.4+ issue, since our instances are callable.
 	
-	def __init__(self, ctx):
+	_map: MultiDict
+	
+	def __init__(self, ctx:Context):
 		"""View registry constructor.
 		
 		The view registry is not meant to be instantiated by third-party software. Instead, access the registry as
@@ -93,7 +97,7 @@ class WebViews(PluginManager):
 			if isinstance(result, kind):
 				yield candidate
 	
-	def register(self, kind, handler):
+	def register(self, kind, handler:View):
 		"""Register a handler for a given type, class, interface, or abstract base class.
 		
 		View registration should happen within the `start` callback of an extension.  For example, to register the
