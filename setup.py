@@ -103,7 +103,7 @@ setup(
 	
 	install_requires = [
 			'marrow.package~=2.0.0',  # dynamic execution and plugin management
-			'web.dispatch>='
+			'web.dispatch~=3.0.1',  # endpoint discovery
 			'WebOb',  # HTTP request and response objects, and HTTP status code exceptions
 		],
 	
