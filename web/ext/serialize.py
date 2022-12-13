@@ -7,7 +7,7 @@
 from __future__ import unicode_literals
 
 import pkg_resources
-from collections import Mapping
+from typing import Mapping
 
 from marrow.package.host import PluginManager
 from web.core.compat import str

@@ -6,7 +6,7 @@
 
 from __future__ import unicode_literals
 
-from collections import MutableMapping
+from typing import MutableMapping
 
 
 # ## Mapping Class
@@ -99,6 +99,8 @@ class ContextGroup(Context):
 		if default is not None:
 			self.default = default
 			default.__name__ = 'default'
+		else:
+			self.default = default
 		
 		for name in kw:
 			kw[name].__name__ = name
