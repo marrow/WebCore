@@ -95,7 +95,7 @@ setup(
 	package_data = {'': ['README.rst', 'LICENSE.txt']},
 	zip_safe = False,
 	
-	python_requires = '~=3.6',
+	python_requires = '>=3.8',
 	
 	setup_requires = [
 			'pytest-runner',
