@@ -95,15 +95,15 @@ setup(
 	package_data = {'': ['README.rst', 'LICENSE.txt']},
 	zip_safe = False,
 	
-	python_requires = '~=3.6',
+	python_requires = '>=3.8',
 	
 	setup_requires = [
 			'pytest-runner',
 		] if {'pytest', 'test', 'ptr'}.intersection(argv) else [],
 	
 	install_requires = [
-			'marrow.package~=2.0.0',  # dynamic execution and plugin management
-			'web.dispatch>='
+			'marrow.package>=2.0.0',  # dynamic execution and plugin management
+			'web.dispatch>=3.0.1',  # endpoint discovery
 			'WebOb',  # HTTP request and response objects, and HTTP status code exceptions
 		],
 	

@@ -6,7 +6,7 @@
 
 from __future__ import unicode_literals
 
-from collections import MutableMapping
+from typing import MutableMapping
 
 
 # ## Mapping Class
@@ -96,9 +96,8 @@ class ContextGroup(Context):
 	default = None
 	
 	def __init__(self, default=None, **kw):
-		if default is not None:
-			self.default = default
-			default.__name__ = 'default'
+		if default:
+			self.__dict__['default'] = default  # Avoid attribute assignment protocol for this one.
 		
 		for name in kw:
 			kw[name].__name__ = name
@@ -128,7 +127,7 @@ class ContextGroup(Context):
 		del self.__dict__[name]
 	
 	def __getattr__(self, name):
-		if self.default is None:
+		if self.default is None or name.startswith('_'):
 			raise AttributeError()
 		
 		return getattr(self.default, name)

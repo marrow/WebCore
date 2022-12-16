@@ -80,11 +80,15 @@ class WebDispatchers(PluginManager):
 				starting = handler
 				
 				# Iterate dispatch events, issuing appropriate callbacks as we descend.
-				for consumed, handler, is_endpoint in dispatcher(context, handler, path):
+				for crumb in dispatcher(context, handler, path):
+					is_endpoint, handler = crumb.endpoint, crumb.handler
+					
 					if is_endpoint and not callable(handler) and hasattr(handler, '__dispatch__'):
-						is_endpoint = False
+						crumb = crumb.replace(endpoint=False)
+					
+					#__import__('wdb').set_trace()
 					# DO NOT add production logging statements (ones not wrapped in `if __debug__`) to this callback!
-					for ext in callbacks: ext(context, consumed, handler, is_endpoint)
+					for ext in callbacks: ext(context, str(crumb.path) if crumb.path else None, crumb.handler, crumb.endpoint)
 				
 				# Repeat of earlier, we do this after extensions in case anything above modifies the environ path.
 				path = context.environ['PATH_INFO'].strip('/')
