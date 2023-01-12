@@ -1,21 +1,10 @@
-# encoding: utf-8
-
-# ## Imports
-
-from __future__ import unicode_literals
-
 from collections import deque
 from inspect import isclass
 from marrow.package.host import PluginManager
 
 
-# ## Module Globals
+log = __import__('logging').getLogger(__name__)  # A standard logger object.
 
-# A standard logger object.
-log = __import__('logging').getLogger(__name__)
-
-
-# ## Dispatch Plugin Manager
 
 class WebDispatchers(PluginManager):
 	"""WebCore dispatch protocol adapter.
@@ -43,7 +32,7 @@ class WebDispatchers(PluginManager):
 		an attribute of the current Application or Request context: `context.dispatch`
 		"""
 		
-		super(WebDispatchers, self).__init__('web.dispatch')
+		super().__init__('web.dispatch')
 	
 	def __call__(self, context, handler, path):
 		"""Having been bound to an appropriate context, find a handler for the request path.
@@ -83,10 +72,6 @@ class WebDispatchers(PluginManager):
 				for crumb in dispatcher(context, handler, path):
 					is_endpoint, handler = crumb.endpoint, crumb.handler
 					
-					if is_endpoint and not callable(handler) and hasattr(handler, '__dispatch__'):
-						crumb = crumb.replace(endpoint=False)
-					
-					#__import__('wdb').set_trace()
 					# DO NOT add production logging statements (ones not wrapped in `if __debug__`) to this callback!
 					for ext in callbacks: ext(context, str(crumb.path) if crumb.path else None, crumb.handler, crumb.endpoint)
 				
