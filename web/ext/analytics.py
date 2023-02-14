@@ -63,7 +63,7 @@ class AnalyticsExtension(object):
 			context.response.headers[self.header] = delta
 		
 		if self.log:
-			self.log("Response generated in " + delta + " seconds.", extra=dict(
+			self.log("Response generated in " + delta + " milliseconds.", extra=dict(
 					duration = duration,
 					request = id(context)
 				))
