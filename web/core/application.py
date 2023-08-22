@@ -237,7 +237,7 @@ class Application(object):
 			try:
 				result = self._execute_endpoint(context, handler, signals)  # Process the endpoint.
 			except Exception as e:
-				log.exception("Caught exception attempting to execute the endpoint.")
+				log.error("Caught exception attempting to execute the endpoint.", exc_info=True)
 				result = HTTPInternalServerError(str(e) if __debug__ else "Please see the logs.")
 				
 				if 'debugger' in context.extension.feature:
