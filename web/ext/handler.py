@@ -21,11 +21,10 @@ Immediate declarative, rather than imperative configuration:
 """
 
 from os import environ, getenv as env
-from urllib.parse import unquote_plus
 from typing import Mapping, Optional, Union
 
 from typeguard import typechecked
-from webob import Request, Response
+from webob import Request
 from webob.exc import HTTPError
 
 from web.core.typing import Context, PathLike, StatusLike, \
