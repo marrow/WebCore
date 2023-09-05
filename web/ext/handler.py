@@ -96,7 +96,7 @@ class StatusHandlers:
 			
 			capture = []
 			
-			if self._maintenance:
+			if self._maintenance and 503 in self.handlers:
 				request = Request.blank(self.handlers[503])
 				result = request.send(app, catch_exc_info=True)
 				start_response(b'503 Service Unavailable', result.headerlist)
