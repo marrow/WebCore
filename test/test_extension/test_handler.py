@@ -21,9 +21,16 @@ def app():
 		})])
 
 
-def test_handlers(app):
-	assert getattr(mock_endpoint, 'state', None) is None
+def test_notfound(app):
+	with MockRequest('/404') as request:
+		response = request.send(app)
 	
+	assert response.text == 'notfound'
+	assert response.status_int == 404
+	assert mock_endpoint.state == 'notfound'
+
+
+def test_maintenance(app):
 	with MockRequest('/404') as request:
 		response = request.send(app)
 	
