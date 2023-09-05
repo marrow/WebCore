@@ -40,7 +40,7 @@ class StatusHandlers:
 	def __init__(self, handlers:Optional[Mapping[int, str]]=None):
 		self.handlers = handlers or {}
 	
-	def __normalize(self, status:StatusLike) -> int:
+	def _normalize(self, status:StatusLike) -> int:
 		status = getattr(status, 'status_int', getattr(status, 'code', status))
 		if not isinstance(status, int): raise TypeError("HTTP status code must be an integer, Response-, or HTTPException-compatible type.")
 		return status
@@ -63,12 +63,12 @@ class StatusHandlers:
 	
 	def __setitem__(self, status:StatusLike, handler:str) -> None:
 		"""Assign a new handler path for the given status code or HTTPException."""
-		status = self.__normalize(status)
+		status = self._normalize(status)
 		self.handlers[status] = handler
 	
 	def __delitem__(self, status:StatusLike) -> None:
 		"""Remove a handler for the specified status code or HTTPException."""
-		status = self.__normalize(status)
+		status = self._normalize(status)
 		del self.handlers[status]
 	
 	# WebCore extension WSGI middleware hook.
@@ -77,6 +77,8 @@ class StatusHandlers:
 		"""Decorate the WebCore application object with middleware to interpose and internally redirect by status."""
 		
 		def middleware(environ:WSGIEnvironment, start_response:WSGIStartResponse) -> WSGIResponse:
+			"""Interposing WSGI middleware to capture start_response and internally redirect if needed."""
+			
 			capture = []
 			
 			if self._maintenance:
@@ -86,6 +88,8 @@ class StatusHandlers:
 				return result.app_iter
 			
 			def local_start_response(status:WSGIStatus, headers:WSGIHeaders, exc_info:WSGIException=None) -> WSGIWriter:
+				"""Capture the arguments to start_response, forwarding if not configured to internally redirect."""
+				
 				status = status if isinstance(status, str) else status.decode('ascii')
 				status_code = int(status.partition(' ')[0])
 				
@@ -95,7 +99,6 @@ class StatusHandlers:
 				capture.extend((status, headers, exc_info, self.handlers.get(status_code, None)))
 			
 			result = app(environ, local_start_response)
-			
 			if not capture: return result
 			
 			request = Request.blank(capture[-1])
