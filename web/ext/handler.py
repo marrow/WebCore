@@ -38,9 +38,12 @@ class StatusHandlers:
 		self.handlers = {self._normalize(k): str(v) for k, v in handlers.items()} if handlers else {}
 	
 	@typechecked
-	def _normalize(self, status:StatusLike) -> int:
-		status = getattr(status, 'status_int', getattr(status, 'code', status))
-		if not isinstance(status, int): raise TypeError(f"Status must be an integer, Response-, or HTTPException-compatible type, not: {status!r} ({type(status)})")
+	def _normalize(self, status:Union[str, StatusLike]) -> int:
+		status = getattr(status, 'status_int', getattr(status, 'code', int(status.partition(' ')[0])))
+		
+		if not isinstance(status, int):
+			raise TypeError(f"Status must be an integer, integer-prefixed string, Response-, or HTTPException-compatible type, not: {status!r} ({type(status)})")
+		
 		return status
 	
 	@property
@@ -79,6 +82,11 @@ class StatusHandlers:
 		"""Remove a handler for the specified status code or HTTPException."""
 		status = self._normalize(status)
 		del self.handlers[status]
+	
+	@typechecked
+	def __len__(self) -> int:
+		"""Return the count of defined status handlers."""
+		return len(self.handlers)
 	
 	# WebCore extension WSGI middleware hook.
 	
