@@ -56,6 +56,13 @@ class StatusHandlers:
 		return bool(env('MAINTENANCE', False)) and not __debug__
 	
 	# Proxy dictionary-like access through to the underlying status code mapping, normalizing on integer keys.
+	# These primarily exist to perform automatic extraction of the integer status code from HTTPError subclasses.
+	
+	@typechecked
+	def __contains__(self, status:StatusLike) -> bool:
+		"""Determine if an internal redirection has been specified for the given status."""
+		status = self._normalize(status)
+		return status in self.handlers
 	
 	@typechecked
 	def __getitem__(self, status:StatusLike) -> str:
@@ -78,7 +85,10 @@ class StatusHandlers:
 	
 	@typechecked
 	def __call__(self, context:Context, app:WSGI) -> WSGI:
-		"""Decorate the WebCore application object with middleware to interpose and internally redirect by status."""
+		"""Decorate the WebCore application object with middleware to interpose and internally redirect by status.
+		
+		This can be directly invoked to wrap any WSGI application, even non-WebCore ones.
+		"""
 		
 		@typechecked
 		def middleware(environ:WSGIEnvironment, start_response:WSGIStartResponse) -> WSGIResponse:
