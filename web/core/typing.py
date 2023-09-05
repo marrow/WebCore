@@ -13,6 +13,7 @@ from webob import Request, Response
 from ..dispatch.core import Crumb
 from .context import Context  # Make abstract?  :'(
 
+
 # Core application configuration components.
 
 AccelRedirectSourcePrefix = Union[str, Path]
@@ -26,6 +27,7 @@ Tags = Set[str]  # Extension feature and dependency tags.
 PositionalArgs = List[Any]  # Positional arguments to the endpoint callable.
 KeywordArgs = Dict[str, Any]  # Keyword arguments to the endpoint callable.
 Environment = Dict[str, Any]  # An interactive shell REPL environment.
+StatusLike = Union[int, Response, HTTPError]  # Objects usable as an HTTP status.
 
 
 # Types for WSGI component parts.

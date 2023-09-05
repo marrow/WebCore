@@ -24,28 +24,28 @@ from os import environ, getenv as env
 from urllib.parse import unquote_plus
 from typing import Mapping, Optional, Union
 
+from typeguard import typechecked
 from webob import Request, Response
 from webob.exc import HTTPError
 
-from web.core.typing import Context, PathLike, \
+from web.core.typing import Context, PathLike, StatusLike, \
 		WSGI, WSGIEnvironment, WSGIStartResponse, WSGIStatus, WSGIHeaders, WSGIException, WSGIWriter
-
-
-StatusLike = Union[int, Response, HTTPError]
 
 
 class StatusHandlers:
 	handlers: Mapping[int, str]
 	
-	def __init__(self, handlers:Optional[Mapping[int, str]]=None):
-		self.handlers = handlers or {}
+	def __init__(self, handlers:Optional[Mapping[StatusLike, PathLike]]=None):
+		self.handlers = {self._normalize(k): str(v) for k, v in handlers.items()} if handlers else {}
 	
+	@typechecked
 	def _normalize(self, status:StatusLike) -> int:
 		status = getattr(status, 'status_int', getattr(status, 'code', status))
-		if not isinstance(status, int): raise TypeError("HTTP status code must be an integer, Response-, or HTTPException-compatible type.")
+		if not isinstance(status, int): raise TypeError(f"Status must be an integer, Response-, or HTTPException-compatible type, not: {status!r} ({type(status)})")
 		return status
 	
 	@property
+	@typechecked
 	def _maintenance(self) -> bool:
 		"""Identify if the application is running in "maintenance mode".
 		
@@ -57,15 +57,18 @@ class StatusHandlers:
 	
 	# Proxy dictionary-like access through to the underlying status code mapping, normalizing on integer keys.
 	
+	@typechecked
 	def __getitem__(self, status:StatusLike) -> str:
 		"""Retrieve the path specified for handling a specific status code or HTTPException."""
 		return self.handlers[status]
 	
+	@typechecked
 	def __setitem__(self, status:StatusLike, handler:PathLike) -> None:
 		"""Assign a new handler path for the given status code or HTTPException."""
 		status = self._normalize(status)
 		self.handlers[status] = str(handler)
 	
+	@typechecked
 	def __delitem__(self, status:StatusLike) -> None:
 		"""Remove a handler for the specified status code or HTTPException."""
 		status = self._normalize(status)
@@ -73,9 +76,11 @@ class StatusHandlers:
 	
 	# WebCore extension WSGI middleware hook.
 	
+	@typechecked
 	def __call__(self, context:Context, app:WSGI) -> WSGI:
 		"""Decorate the WebCore application object with middleware to interpose and internally redirect by status."""
 		
+		@typechecked
 		def middleware(environ:WSGIEnvironment, start_response:WSGIStartResponse) -> WSGIResponse:
 			"""Interposing WSGI middleware to capture start_response and internally redirect if needed."""
 			
