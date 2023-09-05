@@ -102,6 +102,7 @@ class StatusHandlers:
 				start_response(b'503 Service Unavailable', result.headerlist)
 				return result.app_iter
 			
+			@typechecked
 			def local_start_response(status:WSGIStatus, headers:WSGIHeaders, exc_info:WSGIException=None) -> WSGIWriter:
 				"""Capture the arguments to start_response, forwarding if not configured to internally redirect."""
 				
