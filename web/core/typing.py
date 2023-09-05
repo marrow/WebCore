@@ -16,7 +16,7 @@ from .context import Context  # Make abstract?  :'(
 # Core application configuration components.
 
 AccelRedirectSourcePrefix = Union[str, Path]
-AccelRedirectSourceTarget = Union[str, PurePosixPath, URI]
+AccelRedirectSourceTarget = PathLike = Union[str, PurePosixPath, URI]
 AccelRedirect = Optional[Tuple[AccelRedirectSourcePrefix, AccelRedirectSourceTarget]]
 
 
@@ -76,3 +76,4 @@ Deserializer = Callable[[str], Any]
 
 PatternString = Union[str, Pattern]
 PatternStrings = Iterable[PatternString]
+

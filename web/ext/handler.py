@@ -27,7 +27,7 @@ from typing import Mapping, Optional, Union
 from webob import Request, Response
 from webob.exc import HTTPError
 
-from web.core.typing import Context, \
+from web.core.typing import Context, PathLike, \
 		WSGI, WSGIEnvironment, WSGIStartResponse, WSGIStatus, WSGIHeaders, WSGIException, WSGIWriter
 
 
@@ -61,10 +61,10 @@ class StatusHandlers:
 		"""Retrieve the path specified for handling a specific status code or HTTPException."""
 		return self.handlers[status]
 	
-	def __setitem__(self, status:StatusLike, handler:str) -> None:
+	def __setitem__(self, status:StatusLike, handler:PathLike) -> None:
 		"""Assign a new handler path for the given status code or HTTPException."""
 		status = self._normalize(status)
-		self.handlers[status] = handler
+		self.handlers[status] = str(handler)
 	
 	def __delitem__(self, status:StatusLike) -> None:
 		"""Remove a handler for the specified status code or HTTPException."""
