@@ -114,7 +114,7 @@ class StatusHandlers:
 				capture.extend((status, headers, exc_info, self.handlers.get(status_code, None)))
 			
 			result = app(environ, local_start_response)
-			if not capture: return result
+			if not capture or not capture[-1]: return result
 			
 			request = Request.blank(capture[-1])
 			result = request.send(app, catch_exc_info=True)
