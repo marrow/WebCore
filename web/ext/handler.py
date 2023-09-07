@@ -39,7 +39,8 @@ class StatusHandlers:
 	
 	@typechecked
 	def _normalize(self, status:Union[str, StatusLike]) -> int:
-		status = getattr(status, 'status_int', getattr(status, 'code', int(status.partition(' ')[0])))
+		if isinstance(status, str): status = int(status.partition(' ')[0])))  # Handle strings like "404 Not Found".
+		else: status = getattr(status, 'status_int', getattr(status, 'code', status))  # Process everything else.
 		
 		if not isinstance(status, int):
 			raise TypeError(f"Status must be an integer, integer-prefixed string, Response-, or HTTPException-compatible type, not: {status!r} ({type(status)})")
