@@ -5,7 +5,7 @@ from uri import URI, Bucket
 from web.auth import authenticate, deauthenticate
 from web.core import local
 from webob import Request, Response
-from webob.exc import HTTPOk
+from webob.exc import HTTPException, HTTPOk
 
 
 
@@ -26,8 +26,14 @@ class MockRequest:
 	data: Optional[Mapping]
 	user: Any
 	
-	def __init__(self, verb='GET', endpoint='', data=None, user=None, **kw):
-		self.uri = URI("http://localhost:8080/") / endpoint
+	def __init__(self, verb:str='GET', path:str='', data:Optional[Mapping]=None, user:Optional[str]=None, /, **kw):
+		"""Construct the components necessary to request a given endpoint directly from a WSGI application.
+		
+		Form-encoded body data is specified by way of the `data` argument; keyword arguments are added to the endpoint
+		URI as query string arguments. Active user mocking exposes a `web.account` WSGI environment variable.
+		"""
+		
+		self.uri = URI("http://localhost/") / path
 		self.verb = verb
 		self.data = data
 		self.user = user
@@ -36,23 +42,28 @@ class MockRequest:
 			self.uri.query.buckets.append(Bucket(k ,v))
 	
 	def __enter__(self):
+		"""Populate and hand back a populated mock WebOb Request object, ready to be invoked."""
 		req = Request.blank(str(self.uri), POST=self.data, environ={'REQUEST_METHOD': self.verb})
 		if self.user: req.environ['web.account'] = self.user
 		return req
-
-
-def validate(app, verb, path, data=None, user=None, expect=None):
-	if expect is None: expect = HTTPOk
-	location = None
 	
-	print(f"Issuing {verb} request to {path} as {user}, expecting: {expect}")
-	
-	with MockRequest(verb, path, user=user, **((data or {}) if verb == 'GET' else {'data': data})) as request:
-		response = request.send(app)
-	
-	if isinstance(expect, tuple): expect, location = expect
-	assert response.status_int == expect.code
-	if location: assert response.location == 'http://localhost:8080' + location
-	
-	return response
+	@classmethod
+	def send(MockRequest, app:WSGI, verb:str='GET', path:str='', data:Optional[Mapping]=None, user:Optional[str]=None,
+				expect:Optional[HTTPException]=None) -> Response:
+		"""Populate, then invoke a populated WebOb Request instance against the given application.
+		
+		This returns the resulting WebOb Response instance.
+		"""
+		
+		if expect is None: expect = HTTPOk
+		location = None
+		
+		with MockRequest(verb, path, user=user, **((data or {}) if verb == 'GET' else {'data': data})) as request:
+			response = request.send(app)
+		
+		if isinstance(expect, tuple): expect, location = expect
+		assert response.status_int == expect.code
+		if location: assert response.location == 'http://localhost:8080' + location
+		
+		return response
 
