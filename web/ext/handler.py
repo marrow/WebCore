@@ -104,14 +104,15 @@ class StatusHandlers:
 			"""Interposing WSGI middleware to capture start_response and internally redirect if needed."""
 			
 			capture = []
+			_maintenance: bool = self._maintenance  # Calculate this only once.
 			
-			if self._maintenance and 503 in self.handlers:
+			if _maintenance and 503 in self.handlers:
 				request = Request.blank(self.handlers[503])
 				result = request.send(app, catch_exc_info=True)
 				start_response(b'503 Service Unavailable', result.headerlist)
 				return result.app_iter
 			
-			elif self._maintenance:
+			elif _maintenance:
 				warn("Maintenance mode enabled with no 503 handler available.", RuntimeWarning)
 			
 			@typechecked
