@@ -22,6 +22,7 @@ Immediate declarative, rather than imperative configuration:
 
 from os import environ, getenv as env
 from typing import Mapping, Optional, Union
+from warnings import warn
 
 from typeguard import typechecked
 from webob import Request
@@ -109,6 +110,9 @@ class StatusHandlers:
 				result = request.send(app, catch_exc_info=True)
 				start_response(b'503 Service Unavailable', result.headerlist)
 				return result.app_iter
+			
+			elif self._maintenance:
+				warn("Maintenance mode enabled with no 503 handler available.", RuntimeWarning)
 			
 			@typechecked
 			def local_start_response(status:WSGIStatus, headers:WSGIHeaders, exc_info:WSGIException=None) -> WSGIWriter:
