@@ -126,6 +126,8 @@ class StatusHandlers:
 					return start_response(status, headers)
 				
 				capture.extend((status, headers, exc_info, self.handlers.get(status_code, None)))
+				
+				# TODO: How to handle WSGIWriter return in the "not captured" case?
 			
 			result = app(environ, local_start_response)
 			if not capture or not capture[-1]: return result
