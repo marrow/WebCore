@@ -14,6 +14,8 @@ scheduling execution within the main thread with active event loop, or a dedicat
 event loop. E.g.:
 
 	async def hello(name): return f"Hello {name}!"
+	future = self._ctx.submit(hello("world"))
+	future.result()
 	
 	future = context.submit(hello("world"))
 	future.add_done_callback(...)  # Execute a callback upon completion of the asynchronous task.
@@ -27,6 +29,7 @@ from functools import partial
 from threading import Thread
 from typing import Optional
 
+from web.core import local
 from web.core.context import Context
 
 
@@ -40,6 +43,8 @@ class AsynchronousSupport:
 	than relying upon default `new_event_loop` behaviour.
 	"""
 	
+	provides: set = {'async'}
+	
 	loop: AbstractEventLoop  # The asynchronous event loop to utilize.
 	thread: Optional[Thread] = None  # Offload asynchronous execution to this thread, if needed.
 	
@@ -49,23 +54,20 @@ class AsynchronousSupport:
 		if not loop: loop = get_event_loop()
 		if not loop: loop = new_event_loop()
 		self.loop = loop
-		
-		if not loop.is_running():  # Thread of execution for asynchronous code if required.
-			self.thread = Thread(target=self.thread, args=(loop, ), daemon=True, name='async')
 	
 	def start(self, context:Context):
 		"""Executed on application startup."""
 		
-		if not self.loop.is_running():  # With no outer async executor, spawn our own in a dedicated thread.
-			self.thread.start()
+		if not self.loop.is_running():  # Thread of execution for asynchronous code if required.
+			self.thread = Thread(target=self.thread, args=(context, self.loop), daemon=True, name='async')
+			self.thread.start()  # With no outer async executor, spawn our own in a dedicated thread.
 		
 		# Expose our event loop at the application scope.
 		context.loop = self.loop
-		set_event_loop(self.loop)
 		
 		log.debug(f"Asynchronous event loop / reactor: {self.loop!r}")
 		
-		context.submit = partial(run_coroutine_threadsafe, loop=self.loop)
+		context.submit = staticmethod(partial(run_coroutine_threadsafe, loop=self.loop))
 	
 	def prepare(self, context:Context):
 		"""Explicitly define the running asynchronous loop within our request worker thread."""
@@ -84,9 +86,9 @@ class AsynchronousSupport:
 		
 		self.loop.call_soon_threadsafe(self.loop.stop)
 	
-	def thread(self, loop:AbstractEventLoop):
+	def thread(self, context:Context, loop:AbstractEventLoop):
 		log.warn("Asynchronous event loop / reactor thread spawned.")
-		set_event_loop(loop)
+		local.context = context
 		loop.run_forever()
 		log.warn("Asynchronous event loop / reactor shut down.")
 
