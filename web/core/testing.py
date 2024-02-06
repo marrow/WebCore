@@ -13,7 +13,7 @@ from pytest import fixture
 
 
 @fixture(scope='session', autouse=True)
-def context(application):
+def testing_context(application):
 	"""Provide and manage the TestingContext Pytest must execute within.
 	
 	Your own test suite must define a fixture named `application`, which will be utilized by this fixture to populate
@@ -29,19 +29,24 @@ def context(application):
 	
 	# notify suite began
 	
-	for ext in signals.pre: ext(context)
-	# notify test began
-	
 	yield context
-	
-	for ext in signals.after: ext(context)
-	for ext in signals.done: ext(context)
 	
 	# notify suite finished
 	
 	for ext in signals.stop: ext(original)
 	
 	local.context = original
+
+
+@fixture(scope='function', autouse=True)
+def test_context(testing_context):
+	for ext in signals.pre: ext(testing_context)
+	for ext in signals.test: ext(testing_context)
+	
+	yield context
+	
+	for ext in signals.after: ext(testing_context)
+	for ext in signals.done: ext(testing_context)
 '''
 
 
