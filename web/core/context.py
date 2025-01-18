@@ -96,7 +96,7 @@ class ContextGroup(Context):
 	default = None
 	
 	def __init__(self, default=None, **kw):
-		if default:
+		if default is not None:
 			self.__dict__['default'] = default  # Avoid attribute assignment protocol for this one.
 		
 		for name in kw:

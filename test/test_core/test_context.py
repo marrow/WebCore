@@ -61,16 +61,24 @@ def test_context_group_initial_arguments():
 
 
 def test_context_group_default():
-	inner = ContextGroup()
+	inner = Context()
 	group = ContextGroup(inner)
 	
-	thing = group.foo = Thing()
-	assert inner.foo is thing
-	assert group.foo is thing
-	del group.foo
+	thing = Thing()
 	
-	assert 'foo' not in inner, list(inner)
-	assert 'foo' not in group, group.foo
-
-
+	# Propagation from inner to group:
+	inner.foo = thing
+	assert inner.foo is thing
+	
+	del inner.foo
+	assert 'foo' not in inner
+	assert 'foo' not in group
+	
+	# Propagation from group to default inner:
+	group.bar = thing
+	assert inner.bar is thing
+	
+	del group.bar
+	assert 'bar' not in inner
+	assert 'bar' not in group
 

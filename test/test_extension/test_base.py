@@ -74,7 +74,7 @@ class TestDefaultViews(object):
 		assert self.do(response_endpoint).text == "Yo."
 	
 	def test_file(self):
-		assert '2016' in self.do(binary_file_endpoint).text
+		assert '2006' in self.do(binary_file_endpoint).text
 	
 	def test_generator(self):
 		assert 'foobar' in self.do(generator_endpoint).text
