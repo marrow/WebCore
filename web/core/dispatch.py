@@ -72,6 +72,9 @@ class WebDispatchers(PluginManager):
 				for crumb in dispatcher(context, handler, path):
 					is_endpoint, handler = crumb.endpoint, crumb.handler
 					
+					if is_endpoint and not callable(handler) and hasattr(handler, '__dispatch__'):
+						crumb = crumb.replace(endpoint=False)
+
 					# DO NOT add production logging statements (ones not wrapped in `if __debug__`) to this callback!
 					for ext in callbacks: ext(context, str(crumb.path) if crumb.path else None, crumb.handler, crumb.endpoint)
 				
